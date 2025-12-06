@@ -10,8 +10,15 @@ async function bootstrap() {
   app.use(helmet());
 
   // Security: Enable CORS
+  const corsOrigin = process.env.CORS_ORIGIN;
+  if (!corsOrigin) {
+    console.warn(
+      'WARNING: CORS_ORIGIN is not set. CORS is disabled for development. Set CORS_ORIGIN in production!',
+    );
+  }
+
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: corsOrigin || false, // false disables CORS if not configured, safer default
     credentials: true,
   });
 
