@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { SocialIdentity } from '../auth/google/domain/social-identity';
 
 @Injectable()
 export class UsersService {
@@ -61,8 +62,33 @@ export class UsersService {
 
   async validatePassword(
     plainPassword: string,
-    hashedPassword: string,
+    hashedPassword: string | null,
   ): Promise<boolean> {
+    if (!hashedPassword) return false;
     return await bcrypt.compare(plainPassword, hashedPassword);
+  }
+
+  async findByGoogleId(googleId: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { googleId } });
+  }
+
+  async upsertGoogleUser(identity: SocialIdentity): Promise<User> {
+    const existing = await this.findByGoogleId(identity.sub);
+    if (existing) {
+      existing.email = identity.email ?? existing.email;
+      existing.name = identity.name ?? existing.name;
+      return this.usersRepository.save(existing);
+    }
+
+    const username = `google_${identity.sub}`;
+    const user = this.usersRepository.create({
+      username,
+      password: null,
+      email: identity.email,
+      name: identity.name,
+      provider: identity.provider,
+      googleId: identity.sub,
+    });
+    return this.usersRepository.save(user);
   }
 }

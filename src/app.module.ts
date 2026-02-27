@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { AuthGoogleModule } from './auth/google/auth-google.module';
 import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
 import { MusicModule } from './music/music.module';
@@ -42,6 +43,7 @@ import { MusicModule } from './music/music.module';
     }),
     UsersModule,
     AuthModule,
+    AuthGoogleModule,
     MusicModule,
   ],
   controllers: [AppController],
