@@ -46,6 +46,12 @@ export class MusicService {
     return this.trackRepo.save(track);
   }
 
+  async deleteTrack(id: number) {
+    const track = await this.getTrack(id);
+    await this.trackRepo.remove(track);
+    return { deleted: true, id };
+  }
+
   // ========= Playlist =========
 
   async createPlaylist(dto: CreatePlaylistDto) {
@@ -103,6 +109,13 @@ export class MusicService {
     });
 
     return this.playlistRepo.save(playlist);
+  }
+
+  async deletePlaylist(id: number) {
+    const playlist = await this.playlistRepo.findOne({ where: { id } });
+    if (!playlist) throw new NotFoundException('Playlist not found');
+    await this.playlistRepo.remove(playlist);
+    return { deleted: true, id };
   }
 
   // ========= PlaylistTrack (playlist ↔ track 연결) =========
@@ -167,5 +180,14 @@ export class MusicService {
     if (dto.note !== undefined) pt.note = dto.note;
 
     return this.playlistTrackRepo.save(pt);
+  }
+
+  async removeTrackFromPlaylist(playlistId: number, playlistTrackId: number) {
+    const pt = await this.playlistTrackRepo.findOne({
+      where: { id: playlistTrackId, playlist: { id: playlistId } },
+    });
+    if (!pt) throw new NotFoundException('PlaylistTrack not found');
+    await this.playlistTrackRepo.remove(pt);
+    return { deleted: true, playlistTrackId };
   }
 }

@@ -9,6 +9,9 @@ import { AuthGoogleModule } from './auth/google/auth-google.module';
 import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
 import { MusicModule } from './music/music.module';
+import { Track } from './music/entities/track.entity';
+import { Playlist } from './music/entities/playlist.entity';
+import { PlaylistTrack } from './music/entities/playlist-track.entity';
 
 @Module({
   imports: [
@@ -25,7 +28,7 @@ import { MusicModule } from './music/music.module';
         username: configService.get<string>('DB_USERNAME', 'postgres'),
         password: configService.get<string>('DB_PASSWORD', 'password'),
         database: configService.get<string>('DB_DATABASE', 'nestjs_db'),
-        entities: [User],
+        entities: [User, Track, Playlist, PlaylistTrack],
         synchronize: configService.get<boolean>('DB_SYNCHRONIZE', true),
         logging: configService.get<string>('NODE_ENV') === 'development',
       }),

@@ -4,6 +4,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Query,
   Body,
@@ -46,12 +47,23 @@ export class MusicController {
     return this.musicService.updateTrack(id, dto);
   }
 
+  @Delete('tracks/:id')
+  deleteTrack(@Param('id', ParseIntPipe) id: number) {
+    return this.musicService.deleteTrack(id);
+  }
+
   // ===== Playlist =====
 
   // 생성
   @Post('playlists')
   createPlaylist(@Body() dto: CreatePlaylistDto) {
     return this.musicService.createPlaylist(dto);
+  }
+
+  // 날짜 기준 플레이리스트 + 트랙 (반드시 :id 라우트보다 먼저 선언)
+  @Get('playlists/by-date')
+  getPlaylistByDate(@Query('date') date: string) {
+    return this.musicService.getPlaylistByDate(date);
   }
 
   // 리스트 (옵션: ?date=YYYY-MM-DD)
@@ -66,12 +78,6 @@ export class MusicController {
     return this.musicService.getPlaylist(id);
   }
 
-  // 날짜 기준 플레이리스트 + 트랙
-  @Get('playlists/by-date')
-  getPlaylistByDate(@Query('date') date: string) {
-    return this.musicService.getPlaylistByDate(date);
-  }
-
   // 수정
   @Patch('playlists/:id')
   updatePlaylist(
@@ -79,6 +85,12 @@ export class MusicController {
     @Body() dto: UpdatePlaylistDto,
   ) {
     return this.musicService.updatePlaylist(id, dto);
+  }
+
+  // 삭제
+  @Delete('playlists/:id')
+  deletePlaylist(@Param('id', ParseIntPipe) id: number) {
+    return this.musicService.deletePlaylist(id);
   }
 
   // ===== PlaylistTrack (playlist와 track 관계 관리) =====
@@ -109,6 +121,18 @@ export class MusicController {
       playlistId,
       playlistTrackId,
       dto,
+    );
+  }
+
+  // 플레이리스트에서 트랙 제거
+  @Delete('playlists/:playlistId/tracks/:playlistTrackId')
+  removeTrackFromPlaylist(
+    @Param('playlistId', ParseIntPipe) playlistId: number,
+    @Param('playlistTrackId', ParseIntPipe) playlistTrackId: number,
+  ) {
+    return this.musicService.removeTrackFromPlaylist(
+      playlistId,
+      playlistTrackId,
     );
   }
 }
