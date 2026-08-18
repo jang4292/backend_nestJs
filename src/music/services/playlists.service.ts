@@ -66,8 +66,12 @@ export class PlaylistsService {
 
     Object.assign(playlist, {
       name: dto.name ?? playlist.name,
-      playDate: dto.playDate ?? playlist.playDate,
-      description: dto.description ?? playlist.description,
+      playDate:
+        dto.playDate !== undefined ? (dto.playDate ?? null) : playlist.playDate,
+      description:
+        dto.description !== undefined
+          ? (dto.description ?? null)
+          : playlist.description,
     });
 
     return this.playlistRepo.save(playlist);
