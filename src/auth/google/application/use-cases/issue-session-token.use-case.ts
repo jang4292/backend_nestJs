@@ -1,7 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  SESSION_ISSUER_PORT,
-} from '../ports/session-issuer.port';
+import { SESSION_ISSUER_PORT } from '../ports/session-issuer.port';
 import type {
   SessionIssuerPort,
   SessionTokens,

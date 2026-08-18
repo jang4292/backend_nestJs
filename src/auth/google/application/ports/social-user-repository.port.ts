@@ -5,8 +5,8 @@ export const SOCIAL_USER_REPOSITORY_PORT = Symbol('SocialUserRepositoryPort');
 export interface SocialUserRecord {
   id: number;
   username: string;
-  email?: string;
-  name?: string;
+  email?: string | null;
+  name?: string | null;
 }
 
 export interface SocialUserRepositoryPort {

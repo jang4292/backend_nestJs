@@ -41,7 +41,7 @@ Google ID 토큰을 검증하고 디코딩된 소셜 신원을 반환합니다.
 ```json
 {
   "ok": true,
-  "requestId": "uuid-v4",
+  "requestId": "request-id",
   "data": {
     "provider": "google",
     "sub": "117123456789012345678",
@@ -76,7 +76,7 @@ Google 인증 코드를 토큰으로 교환합니다 (네이티브 / 인증 코�
 ```json
 {
   "ok": true,
-  "requestId": "uuid-v4",
+  "requestId": "request-id",
   "data": {
     "idToken": "<Google ID 토큰>",
     "accessToken": "<액세스 토큰>",
@@ -118,7 +118,7 @@ Google 인증 코드를 토큰으로 교환합니다 (네이티브 / 인증 코�
 ```json
 {
   "ok": true,
-  "requestId": "uuid-v4",
+  "requestId": "request-id",
   "data": {
     "accessToken": "<JWT>",
     "expiresIn": 3600,
@@ -138,7 +138,7 @@ Google 인증 코드를 토큰으로 교환합니다 (네이티브 / 인증 코�
 ```json
 {
   "ok": false,
-  "requestId": "uuid-v4",
+  "requestId": "request-id",
   "errorCode": "AUTH_GOOGLE_TOKEN_EXPIRED",
   "message": "Token has expired.",
   "details": { /* 선택적 */ }
@@ -167,7 +167,6 @@ Google 인증 코드를 토큰으로 교환합니다 (네이티브 / 인증 코�
 |--------|------|--------|------|
 | `GOOGLE_ALLOWED_AUDIENCES` | ✅ | — | 허용된 `aud` 값 목록 (쉼표 구분, OAuth 클라이언트 ID) |
 | `GOOGLE_ALLOWED_ISSUERS` | ❌ | `accounts.google.com,https://accounts.google.com` | 허용된 발급자 목록 (쉼표 구분) |
-| `GOOGLE_CLOCK_SKEW_SECONDS` | ❌ | `60` | 향후 클럭 편차 허용 설정용 예약 변수 |
 | `GOOGLE_OAUTH_CLIENT_ID` | ✅ (코드 플로우) | — | OAuth 2.0 클라이언트 ID |
 | `GOOGLE_OAUTH_CLIENT_SECRET` | ✅ (코드 플로우) | — | OAuth 2.0 클라이언트 시크릿 |
 | `GOOGLE_OAUTH_REDIRECT_URIS` | ✅ (코드 플로우) | — | 허용된 리다이렉트 URI 목록 (쉼표 구분) |
@@ -178,7 +177,8 @@ Google 인증 코드를 토큰으로 교환합니다 (네이티브 / 인증 코�
 
 ```
 인터페이스 레이어   src/auth/google/interface/
-  AuthGoogleController        ← HTTP 어댑터; DTO → 유스케이스 매핑; 에러 처리
+  AuthGoogleController        ← HTTP 어댑터; DTO → 유스케이스 매핑
+  GoogleAuthExceptionFilter   ← GoogleAuthError → HTTP envelope 응답 매핑
 
 애플리케이션 레이어 src/auth/google/application/
   use-cases/                  ← 오케스트레이션; Port에만 의존
@@ -192,7 +192,6 @@ Google 인증 코드를 토큰으로 교환합니다 (네이티브 / 인증 코�
     GoogleAuthCodeExchangerPort
     SocialUserRepositoryPort
     SessionIssuerPort
-    RequestIdProviderPort
 
 도메인 레이어       src/auth/google/domain/
   SocialIdentity              ← 순수 타입 (프레임워크 의존성 없음)
@@ -202,7 +201,10 @@ Google 인증 코드를 토큰으로 교환합니다 (네이티브 / 인증 코�
   GoogleOAuthClientAdapter    ← google-auth-library를 통해 TokenVerifier + CodeExchanger 구현
   SocialUserTypeOrmAdapter    ← TypeORM/UsersService를 통해 SocialUserRepositoryPort 구현
   SessionIssuerJwtAdapter     ← @nestjs/jwt를 통해 SessionIssuerPort 구현
-  RequestIdAdapter            ← uuid를 통해 RequestIdProviderPort 구현
+
+공통 레이어         src/common/
+  RequestIdInterceptor        ← Google 응답의 x-request-id 생성/반영
+  RequestIdService            ← crypto.randomUUID()로 request id 생성
 ```
 
 ---
@@ -241,8 +243,8 @@ npm test
 | `googleId` | varchar | nullable, unique |
 | `password` | varchar | **nullable**로 변경 (소셜 사용자는 비밀번호 없음) |
 
-`DB_SYNCHRONIZE=true` 설정 시 (개발 환경) TypeORM이 자동으로 적용합니다.  
-프로덕션에서는 마이그레이션을 생성하여 실행하세요:
+공유 DB와 프로덕션에서는 `DB_SYNCHRONIZE=false`를 유지하세요. 스키마 변경은
+TypeORM 마이그레이션을 생성하여 실행합니다:
 
 ```bash
 npx typeorm migration:generate -n AddGoogleSocialLogin

@@ -3,9 +3,7 @@ import {
   GoogleAuthErrorCode,
   GoogleAuthError,
 } from '../../domain/google-auth.errors';
-import {
-  GOOGLE_AUTH_CODE_EXCHANGER_PORT,
-} from '../ports/google-auth-code-exchanger.port';
+import { GOOGLE_AUTH_CODE_EXCHANGER_PORT } from '../ports/google-auth-code-exchanger.port';
 import type {
   GoogleAuthCodeExchangerPort,
   TokenSet,

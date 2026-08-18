@@ -18,7 +18,9 @@ DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=your-password
 DB_DATABASE=nestjs_db
+DB_SYNCHRONIZE=false
 CORS_ORIGIN=http://localhost:3001
+GOOGLE_ALLOWED_AUDIENCES=your-google-client-id.apps.googleusercontent.com
 ```
 
 4. Install dependencies and start the server:
@@ -162,6 +164,75 @@ curl -X PATCH http://localhost:3000/users/profile \
   }'
 ```
 
+### 7. Google Login
+
+Login with a Google ID token:
+
+```bash
+curl -X POST http://localhost:3000/auth/google/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "idToken": "GOOGLE_ID_TOKEN"
+  }'
+```
+
+Response:
+
+```json
+{
+  "ok": true,
+  "requestId": "request-id",
+  "data": {
+    "accessToken": "jwt_token_here",
+    "expiresIn": 3600,
+    "user": {
+      "id": 1,
+      "username": "google_117123456789",
+      "email": "user@example.com"
+    }
+  }
+}
+```
+
+### 8. Music Tracks
+
+Create and list tracks:
+
+```bash
+curl -X POST http://localhost:3000/music/tracks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Song A",
+    "artist": "Artist X",
+    "bpm": 120,
+    "lengthSec": 210
+  }'
+
+curl http://localhost:3000/music/tracks
+```
+
+### 9. Music Playlists
+
+Create a playlist and add a track:
+
+```bash
+curl -X POST http://localhost:3000/music/playlists \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Evening Set",
+    "playDate": "2026-01-01",
+    "description": "Main playlist"
+  }'
+
+curl -X POST http://localhost:3000/music/playlists/1/tracks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "trackId": 1,
+    "seq": 1,
+    "note": "Opening track"
+  }'
+```
+
 ## Error Responses
 
 ### 400 Bad Request
@@ -261,6 +332,7 @@ const profile = await profileResponse.json();
 - [ ] Use a strong, randomly generated `JWT_SECRET`
 - [ ] Set `DB_SYNCHRONIZE=false` and use migrations
 - [ ] Configure `CORS_ORIGIN` to your frontend domain
+- [ ] Configure `GOOGLE_ALLOWED_AUDIENCES` with exact OAuth client IDs
 - [ ] Set up HTTPS/TLS
 - [ ] Configure database connection pooling
 - [ ] Set up logging and monitoring

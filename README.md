@@ -1,196 +1,148 @@
 # NestJS Backend API
 
-A secure NestJS backend application with user authentication, registration, and database integration.
+A NestJS backend focused on authentication, Google social login, user profile
+management, and music playlist APIs. The project uses PostgreSQL with TypeORM,
+strict environment validation, global request validation, and security-focused
+runtime defaults.
 
 ## Features
 
-1. ✅ NestJS framework setup with TypeScript
-2. ✅ User registration with password encryption (bcrypt)
-3. ✅ User login with JWT authentication
-4. ✅ Database integration with TypeORM (PostgreSQL)
-5. ✅ User profile management with timestamps (createdAt, updatedAt)
-6. ✅ Security features:
-   - Helmet for HTTP headers security
-   - CORS configuration
-   - Rate limiting with @nestjs/throttler
-   - Password hashing with bcrypt
-   - JWT token-based authentication
-   - Input validation with class-validator
+- Local user registration and JWT login
+- Google social login using ID token or auth-code + PKCE flow
+- Protected user profile read/update endpoints
+- Music track, playlist, and playlist-track APIs
+- PostgreSQL + TypeORM integration
+- Environment validation for unsafe production settings
+- Helmet, CORS allow-listing, throttling, and DTO validation
+- Unit/integration coverage for auth, Google auth, config, users, and music
 
 ## Installation
 
 ```bash
-$ npm install
+npm install
 ```
 
 ## Configuration
 
-1. Copy `.env.example` to `.env`:
+Copy `.env.example` to `.env` and update the values:
+
 ```bash
-$ cp .env.example .env
+cp .env.example .env
 ```
 
-2. Update the `.env` file with your database credentials and JWT secret:
+Required operational settings:
+
 ```env
-# Server Configuration
 PORT=3000
 NODE_ENV=development
 
-# Database Configuration
 DB_TYPE=postgres
 DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=password
 DB_DATABASE=nestjs_db
-DB_SYNCHRONIZE=true
+DB_SYNCHRONIZE=false
 
-# JWT Configuration
-JWT_SECRET=your-secret-key-change-this-in-production
+JWT_SECRET=replace-with-a-strong-secret
 JWT_EXPIRES_IN=1h
 
-# Security
 THROTTLE_TTL=60
 THROTTLE_LIMIT=10
+CORS_ORIGIN=http://localhost:3001
+
+GOOGLE_ALLOWED_AUDIENCES=your-google-client-id.apps.googleusercontent.com
+GOOGLE_ALLOWED_ISSUERS=accounts.google.com,https://accounts.google.com
+GOOGLE_OAUTH_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_OAUTH_CLIENT_SECRET=your-google-client-secret
+GOOGLE_OAUTH_REDIRECT_URIS=https://your-app.example.com/auth/google/callback
 ```
 
-## Running the app
+`JWT_SECRET` and `GOOGLE_ALLOWED_AUDIENCES` are required at startup.
+`NODE_ENV=production` also requires `CORS_ORIGIN`, rejects placeholder JWT
+secrets, and blocks `DB_SYNCHRONIZE=true`.
+
+## Running
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm run start
+npm run start:dev
+npm run start:prod
 ```
 
-## API Endpoints
+## API Overview
 
-### Public Endpoints
+Public endpoints:
 
-#### Health Check
-```
-GET /health
-```
-
-#### User Registration
-```
+```http
+GET  /health
 POST /users/register
-Content-Type: application/json
-
-{
-  "username": "testuser",
-  "password": "password123",
-  "email": "test@example.com",
-  "name": "Test User"
-}
-```
-
-#### User Login
-```
 POST /auth/login
-Content-Type: application/json
-
-{
-  "username": "testuser",
-  "password": "password123"
-}
-
-Response:
-{
-  "access_token": "jwt_token_here",
-  "user": {
-    "id": 1,
-    "username": "testuser",
-    "email": "test@example.com",
-    "name": "Test User",
-    "createdAt": "2025-12-06T14:30:00.000Z",
-    "updatedAt": "2025-12-06T14:30:00.000Z"
-  }
-}
+POST /auth/google/verify-id-token
+POST /auth/google/exchange-code
+POST /auth/google/login
+GET  /music/tracks
+GET  /music/playlists
 ```
 
-### Protected Endpoints (Require JWT Token)
+Protected user endpoints:
 
-#### Get User Profile
-```
-GET /users/profile
-Authorization: Bearer {jwt_token}
-```
-
-#### Update User Profile
-```
+```http
+GET   /users/profile
 PATCH /users/profile
-Authorization: Bearer {jwt_token}
-Content-Type: application/json
-
-{
-  "email": "newemail@example.com",
-  "name": "Updated Name",
-  "password": "newpassword123"  // optional
-}
 ```
 
-## Test
+Music endpoints:
 
-```bash
-# unit tests
-$ npm run test
+```http
+POST   /music/tracks
+GET    /music/tracks
+GET    /music/tracks/:id
+PATCH  /music/tracks/:id
+DELETE /music/tracks/:id
 
-# e2e tests
-$ npm run test:e2e
+POST   /music/playlists
+GET    /music/playlists
+GET    /music/playlists/by-date?date=YYYY-MM-DD
+GET    /music/playlists/:id
+PATCH  /music/playlists/:id
+DELETE /music/playlists/:id
 
-# test coverage
-$ npm run test:cov
+GET    /music/playlists/:playlistId/tracks
+POST   /music/playlists/:playlistId/tracks
+PATCH  /music/playlists/:playlistId/tracks/:playlistTrackId
+DELETE /music/playlists/:playlistId/tracks/:playlistTrackId
 ```
 
 ## Project Structure
 
-```
+```text
 src/
-├── auth/                    # Authentication module
-│   ├── dto/                 # Data Transfer Objects
-│   ├── guards/              # Auth guards (JWT, Local)
-│   ├── strategies/          # Passport strategies
-│   ├── auth.controller.ts   # Auth controller
-│   ├── auth.module.ts       # Auth module
-│   └── auth.service.ts      # Auth service
-├── users/                   # Users module
-│   ├── dto/                 # Data Transfer Objects
-│   ├── entities/            # TypeORM entities
-│   ├── users.controller.ts  # Users controller
-│   ├── users.module.ts      # Users module
-│   └── users.service.ts     # Users service
-├── app.controller.ts        # Root controller
-├── app.module.ts            # Root module
-├── app.service.ts           # Root service
-└── main.ts                  # Application entry point
+  common/        shared request-id, response, and request contracts
+  config/        environment validation and AppEnv contract
+  auth/          local/JWT auth plus Google social auth
+  users/         user entity, DTOs, controller, service, public-user mapper
+  music/         music controller, facade service, domain services, entities
+  app.module.ts  application module and infrastructure wiring
+  main.ts        bootstrap, validation pipe, helmet, CORS
 ```
 
-## Security Features
+## Learning Guide
 
-1. **Password Encryption**: All passwords are hashed using bcrypt with salt rounds of 10
-2. **JWT Authentication**: Stateless authentication using JSON Web Tokens
-3. **Helmet**: Secures HTTP headers
-4. **CORS**: Configurable Cross-Origin Resource Sharing
-5. **Rate Limiting**: Prevents brute force attacks (configurable via environment variables)
-6. **Input Validation**: Automatic validation of all incoming requests
-7. **SQL Injection Protection**: TypeORM parameterized queries
+- [NestJS operational stability refactor guide](docs/learning/nestjs-operational-stability-guide.kr.md)
 
-## Database Schema
+## Verification
 
-### Users Table
-- `id`: Primary key (auto-generated)
-- `username`: Unique username
-- `password`: Encrypted password (bcrypt)
-- `email`: User email (optional)
-- `name`: User's full name (optional)
-- `createdAt`: Registration timestamp (auto-generated)
-- `updatedAt`: Last update timestamp (auto-updated)
+```bash
+npm test -- --runInBand
+npm run build
+npx eslint "src/**/*.ts" "test/**/*.ts"
+```
 
-## License
+## Production Notes
 
-This project is [MIT licensed](LICENSE).
+- Keep `DB_SYNCHRONIZE=false`; use TypeORM migrations for shared databases.
+- Use a strong `JWT_SECRET` and rotate it according to your security policy.
+- Set `CORS_ORIGIN` to the real frontend origin, never `*`.
+- Configure `GOOGLE_ALLOWED_AUDIENCES` with the exact OAuth client IDs.
+- Avoid logging raw Google tokens, JWTs, or passwords.

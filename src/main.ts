@@ -1,16 +1,18 @@
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
 
   // Security: Enable Helmet
   app.use(helmet());
 
   // Security: Enable CORS
-  const corsOrigin = process.env.CORS_ORIGIN;
+  const corsOrigin = configService.get<string>('CORS_ORIGIN');
   if (!corsOrigin) {
     console.warn(
       'WARNING: CORS_ORIGIN is not set. CORS is disabled for development. Set CORS_ORIGIN in production!',
@@ -31,7 +33,7 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(configService.get<number>('PORT', 3000));
   console.log(`Application is running on: ${await app.getUrl()}`);
 }
 void bootstrap();

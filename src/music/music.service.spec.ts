@@ -5,6 +5,9 @@ import { MusicService } from './music.service';
 import { Track } from './entities/track.entity';
 import { Playlist } from './entities/playlist.entity';
 import { PlaylistTrack } from './entities/playlist-track.entity';
+import { PlaylistTracksService } from './services/playlist-tracks.service';
+import { PlaylistsService } from './services/playlists.service';
+import { TracksService } from './services/tracks.service';
 
 const mockTrackRepo = () => ({
   create: jest.fn(),
@@ -40,6 +43,9 @@ describe('MusicService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MusicService,
+        TracksService,
+        PlaylistsService,
+        PlaylistTracksService,
         { provide: getRepositoryToken(Track), useFactory: mockTrackRepo },
         { provide: getRepositoryToken(Playlist), useFactory: mockPlaylistRepo },
         {

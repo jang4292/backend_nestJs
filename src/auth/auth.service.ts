@@ -2,7 +2,12 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
-import { User } from '../users/entities/user.entity';
+import { PublicUser, toPublicUser } from '../users/dto/public-user.dto';
+
+export interface LoginResponse {
+  access_token: string;
+  user: PublicUser;
+}
 
 @Injectable()
 export class AuthService {
@@ -14,7 +19,7 @@ export class AuthService {
   async validateUser(
     username: string,
     password: string,
-  ): Promise<Omit<User, 'password'> | null> {
+  ): Promise<PublicUser | null> {
     const user = await this.usersService.findOne(username);
     if (!user) {
       return null;
@@ -26,14 +31,12 @@ export class AuthService {
     );
 
     if (isPasswordValid) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password: _, ...result } = user;
-      return result;
+      return toPublicUser(user);
     }
     return null;
   }
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto): Promise<LoginResponse> {
     const user = await this.validateUser(loginDto.username, loginDto.password);
 
     if (!user) {

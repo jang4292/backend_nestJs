@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OAuth2Client } from 'google-auth-library';
 import { SocialIdentity } from '../domain/social-identity';
-import { GoogleAuthError, GoogleAuthErrorCode } from '../domain/google-auth.errors';
+import {
+  GoogleAuthError,
+  GoogleAuthErrorCode,
+} from '../domain/google-auth.errors';
 import { GoogleTokenVerifierPort } from '../application/ports/google-token-verifier.port';
 import {
   GoogleAuthCodeExchangerPort,
@@ -16,13 +19,19 @@ export class GoogleOAuthClientAdapter
   private readonly client: OAuth2Client;
   private readonly allowedAudiences: string[];
   private readonly allowedIssuers: string[];
+  private readonly allowedRedirectUris: string[];
 
   constructor(private readonly configService: ConfigService) {
     const clientId = configService.get<string>('GOOGLE_OAUTH_CLIENT_ID');
-    const clientSecret = configService.get<string>('GOOGLE_OAUTH_CLIENT_SECRET');
+    const clientSecret = configService.get<string>(
+      'GOOGLE_OAUTH_CLIENT_SECRET',
+    );
     this.client = new OAuth2Client(clientId, clientSecret);
 
-    const audienceEnv = configService.get<string>('GOOGLE_ALLOWED_AUDIENCES', '');
+    const audienceEnv = configService.get<string>(
+      'GOOGLE_ALLOWED_AUDIENCES',
+      '',
+    );
     this.allowedAudiences = audienceEnv
       .split(',')
       .map((s) => s.trim())
@@ -36,11 +45,24 @@ export class GoogleOAuthClientAdapter
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean);
+
+    const redirectUriEnv = configService.get<string>(
+      'GOOGLE_OAUTH_REDIRECT_URIS',
+      '',
+    );
+    this.allowedRedirectUris = redirectUriEnv
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
 
-  async verifyIdToken(idToken: string, nonce?: string): Promise<SocialIdentity> {
+  async verifyIdToken(
+    idToken: string,
+    nonce?: string,
+  ): Promise<SocialIdentity> {
     try {
-      const audience = this.allowedAudiences.length > 0 ? this.allowedAudiences : undefined;
+      const audience =
+        this.allowedAudiences.length > 0 ? this.allowedAudiences : undefined;
       const ticket = await this.client.verifyIdToken({ idToken, audience });
       const payload = ticket.getPayload();
 
@@ -96,15 +118,20 @@ export class GoogleOAuthClientAdapter
     expectedState?: string;
   }): Promise<TokenSet> {
     try {
-      const redirectUris = this.configService.get<string>(
-        'GOOGLE_OAUTH_REDIRECT_URIS',
-        params.redirectUri,
-      );
-      const firstUri = redirectUris.split(',')[0].trim();
+      if (
+        this.allowedRedirectUris.length > 0 &&
+        !this.allowedRedirectUris.includes(params.redirectUri)
+      ) {
+        throw new GoogleAuthError(
+          GoogleAuthErrorCode.AUTH_GOOGLE_BAD_REQUEST,
+          'redirectUri is not allowed.',
+        );
+      }
+
       const { tokens } = await this.client.getToken({
         code: params.code,
         codeVerifier: params.codeVerifier,
-        redirect_uri: firstUri,
+        redirect_uri: params.redirectUri,
       });
 
       if (!tokens.id_token) {

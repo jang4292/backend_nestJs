@@ -41,7 +41,7 @@ Verify a Google ID token and return the decoded social identity.
 ```json
 {
   "ok": true,
-  "requestId": "uuid-v4",
+  "requestId": "request-id",
   "data": {
     "provider": "google",
     "sub": "117123456789012345678",
@@ -76,7 +76,7 @@ Exchange a Google authorization code for tokens (Native / auth-code flow).
 ```json
 {
   "ok": true,
-  "requestId": "uuid-v4",
+  "requestId": "request-id",
   "data": {
     "idToken": "<Google ID token>",
     "accessToken": "<access token>",
@@ -118,7 +118,7 @@ Full login flow: verify identity → upsert user → issue JWT session.
 ```json
 {
   "ok": true,
-  "requestId": "uuid-v4",
+  "requestId": "request-id",
   "data": {
     "accessToken": "<JWT>",
     "expiresIn": 3600,
@@ -138,7 +138,7 @@ Full login flow: verify identity → upsert user → issue JWT session.
 ```json
 {
   "ok": false,
-  "requestId": "uuid-v4",
+  "requestId": "request-id",
   "errorCode": "AUTH_GOOGLE_TOKEN_EXPIRED",
   "message": "Token has expired.",
   "details": { /* optional */ }
@@ -167,7 +167,6 @@ Full login flow: verify identity → upsert user → issue JWT session.
 |----------|----------|---------|-------------|
 | `GOOGLE_ALLOWED_AUDIENCES` | ✅ | — | Comma-separated list of allowed `aud` values (your OAuth client IDs) |
 | `GOOGLE_ALLOWED_ISSUERS` | ❌ | `accounts.google.com,https://accounts.google.com` | Comma-separated allowed issuers |
-| `GOOGLE_CLOCK_SKEW_SECONDS` | ❌ | `60` | Reserved for future clock-skew tolerance configuration |
 | `GOOGLE_OAUTH_CLIENT_ID` | ✅ (code flow) | — | OAuth 2.0 Client ID |
 | `GOOGLE_OAUTH_CLIENT_SECRET` | ✅ (code flow) | — | OAuth 2.0 Client Secret |
 | `GOOGLE_OAUTH_REDIRECT_URIS` | ✅ (code flow) | — | Comma-separated allowed redirect URIs |
@@ -178,7 +177,8 @@ Full login flow: verify identity → upsert user → issue JWT session.
 
 ```
 Interface Layer       src/auth/google/interface/
-  AuthGoogleController        ← HTTP adapter; maps DTOs → use-cases; handles errors
+  AuthGoogleController        ← HTTP adapter; maps DTOs → use-cases
+  GoogleAuthExceptionFilter   ← Maps GoogleAuthError → HTTP envelope responses
 
 Application Layer     src/auth/google/application/
   use-cases/                  ← Orchestration; depend on Ports only
@@ -192,7 +192,6 @@ Application Layer     src/auth/google/application/
     GoogleAuthCodeExchangerPort
     SocialUserRepositoryPort
     SessionIssuerPort
-    RequestIdProviderPort
 
 Domain Layer          src/auth/google/domain/
   SocialIdentity              ← Pure type (no framework deps)
@@ -202,7 +201,10 @@ Infrastructure Layer  src/auth/google/infrastructure/
   GoogleOAuthClientAdapter    ← Implements TokenVerifier + CodeExchanger via google-auth-library
   SocialUserTypeOrmAdapter    ← Implements SocialUserRepositoryPort via TypeORM/UsersService
   SessionIssuerJwtAdapter     ← Implements SessionIssuerPort via @nestjs/jwt
-  RequestIdAdapter            ← Implements RequestIdProviderPort via uuid
+
+Common Layer          src/common/
+  RequestIdInterceptor        ← Resolves/echoes x-request-id for Google responses
+  RequestIdService            ← Generates request IDs via crypto.randomUUID()
 ```
 
 ---
@@ -241,8 +243,8 @@ The `users` table gains two new nullable columns:
 | `googleId` | varchar | nullable, unique |
 | `password` | varchar | now **nullable** (social users have no password) |
 
-With `DB_SYNCHRONIZE=true` (development), TypeORM applies these changes automatically.  
-For production, generate a migration:
+Keep `DB_SYNCHRONIZE=false` for shared and production databases. Generate and
+run a TypeORM migration for schema changes:
 
 ```bash
 npx typeorm migration:generate -n AddGoogleSocialLogin

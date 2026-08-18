@@ -4,7 +4,10 @@ import {
   GoogleAuthCodeExchangerPort,
   TokenSet,
 } from '../ports/google-auth-code-exchanger.port';
-import { GoogleAuthError, GoogleAuthErrorCode } from '../../domain/google-auth.errors';
+import {
+  GoogleAuthError,
+  GoogleAuthErrorCode,
+} from '../../domain/google-auth.errors';
 import { Test } from '@nestjs/testing';
 
 describe('ExchangeGoogleAuthCodeUseCase', () => {
@@ -46,8 +49,10 @@ describe('ExchangeGoogleAuthCodeUseCase', () => {
         state: 'received-state',
         expectedState: 'original-state',
       }),
-    ).rejects.toMatchObject({ errorCode: GoogleAuthErrorCode.AUTH_GOOGLE_STATE_MISMATCH });
-    expect(exchanger.exchange).not.toHaveBeenCalled();
+    ).rejects.toMatchObject({
+      errorCode: GoogleAuthErrorCode.AUTH_GOOGLE_STATE_MISMATCH,
+    });
+    expect(exchanger.exchange.mock.calls).toHaveLength(0);
   });
 
   it('should proceed when state matches', async () => {
@@ -63,10 +68,18 @@ describe('ExchangeGoogleAuthCodeUseCase', () => {
 
   it('should propagate AUTH_GOOGLE_EXCHANGE_FAILED from adapter', async () => {
     exchanger.exchange.mockRejectedValue(
-      new GoogleAuthError(GoogleAuthErrorCode.AUTH_GOOGLE_EXCHANGE_FAILED, 'exchange failed'),
+      new GoogleAuthError(
+        GoogleAuthErrorCode.AUTH_GOOGLE_EXCHANGE_FAILED,
+        'exchange failed',
+      ),
     );
     await expect(
-      useCase.execute({ code: 'bad-code', redirectUri: 'https://example.com/callback' }),
-    ).rejects.toMatchObject({ errorCode: GoogleAuthErrorCode.AUTH_GOOGLE_EXCHANGE_FAILED });
+      useCase.execute({
+        code: 'bad-code',
+        redirectUri: 'https://example.com/callback',
+      }),
+    ).rejects.toMatchObject({
+      errorCode: GoogleAuthErrorCode.AUTH_GOOGLE_EXCHANGE_FAILED,
+    });
   });
 });

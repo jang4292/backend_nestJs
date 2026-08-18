@@ -18,7 +18,7 @@ import {
   SessionIssuerPort,
   SessionTokens,
 } from '../ports/session-issuer.port';
-import { GoogleAuthError, GoogleAuthErrorCode } from '../../domain/google-auth.errors';
+import { GoogleAuthErrorCode } from '../../domain/google-auth.errors';
 import { SocialIdentity } from '../../domain/social-identity';
 import { Test } from '@nestjs/testing';
 
@@ -71,7 +71,7 @@ describe('GoogleLoginUseCase', () => {
       const result = await useCase.execute({ idToken: 'valid.token' });
       expect(result.user).toEqual(userRecord);
       expect(result.session).toEqual(tokens);
-      expect(exchanger.exchange).not.toHaveBeenCalled();
+      expect(exchanger.exchange.mock.calls).toHaveLength(0);
     });
   });
 
@@ -88,13 +88,17 @@ describe('GoogleLoginUseCase', () => {
       });
       expect(result.user).toEqual(userRecord);
       expect(result.session).toEqual(tokens);
-      expect(exchanger.exchange).toHaveBeenCalledWith(
-        expect.objectContaining({ code: 'auth-code' }),
+      expect(exchanger.exchange.mock.calls[0]?.[0]).toEqual(
+        expect.objectContaining({
+          code: 'auth-code',
+        }),
       );
     });
 
     it('should throw AUTH_GOOGLE_BAD_REQUEST when redirectUri is missing in code flow', async () => {
-      await expect(useCase.execute({ code: 'auth-code' })).rejects.toMatchObject({
+      await expect(
+        useCase.execute({ code: 'auth-code' }),
+      ).rejects.toMatchObject({
         errorCode: GoogleAuthErrorCode.AUTH_GOOGLE_BAD_REQUEST,
       });
     });
@@ -107,7 +111,9 @@ describe('GoogleLoginUseCase', () => {
           state: 'received',
           expectedState: 'original',
         }),
-      ).rejects.toMatchObject({ errorCode: GoogleAuthErrorCode.AUTH_GOOGLE_STATE_MISMATCH });
+      ).rejects.toMatchObject({
+        errorCode: GoogleAuthErrorCode.AUTH_GOOGLE_STATE_MISMATCH,
+      });
     });
   });
 
@@ -115,7 +121,9 @@ describe('GoogleLoginUseCase', () => {
     it('should throw AUTH_GOOGLE_BAD_REQUEST when both idToken and code are provided', async () => {
       await expect(
         useCase.execute({ idToken: 'token', code: 'code' }),
-      ).rejects.toMatchObject({ errorCode: GoogleAuthErrorCode.AUTH_GOOGLE_BAD_REQUEST });
+      ).rejects.toMatchObject({
+        errorCode: GoogleAuthErrorCode.AUTH_GOOGLE_BAD_REQUEST,
+      });
     });
 
     it('should throw AUTH_GOOGLE_BAD_REQUEST when neither idToken nor code is provided', async () => {

@@ -42,6 +42,6 @@ describe('UpsertSocialUserUseCase', () => {
     repo.upsert.mockResolvedValue(record);
     const result = await useCase.execute(identity);
     expect(result).toEqual(record);
-    expect(repo.upsert).toHaveBeenCalledWith(identity);
+    expect(repo.upsert.mock.calls[0]).toEqual([identity]);
   });
 });
