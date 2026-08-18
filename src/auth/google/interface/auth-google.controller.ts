@@ -23,6 +23,10 @@ import { VerifyIdTokenDto } from './dto/verify-id-token.dto';
 import { ExchangeCodeDto } from './dto/exchange-code.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
 import { GoogleAuthExceptionFilter } from './google-auth-exception.filter';
+import {
+  GoogleAuthError,
+  GoogleAuthErrorCode,
+} from '../domain/google-auth.errors';
 
 type GoogleLoginResponseData = {
   accessToken: string;
@@ -56,10 +60,19 @@ export class AuthGoogleController {
     @Req() req: RequestWithId,
   ) {
     const requestId = this.getRequestId(req);
-    const identity: SocialIdentity = await this.verifyIdTokenUseCase.execute({
-      idToken: dto.idToken,
-      nonce: dto.nonce,
-    });
+    let identity: SocialIdentity;
+    try {
+      identity = await this.verifyIdTokenUseCase.execute({
+        idToken: dto.idToken,
+        nonce: dto.nonce,
+      });
+    } catch (err) {
+      if (err instanceof GoogleAuthError) throw err;
+      throw new GoogleAuthError(
+        GoogleAuthErrorCode.AUTH_GOOGLE_INTERNAL_ERROR,
+        err instanceof Error ? err.message : String(err),
+      );
+    }
     return successResponse(requestId, identity);
   }
 
@@ -70,13 +83,22 @@ export class AuthGoogleController {
     @Req() req: RequestWithId,
   ) {
     const requestId = this.getRequestId(req);
-    const tokenSet: TokenSet = await this.exchangeCodeUseCase.execute({
-      code: dto.code,
-      redirectUri: dto.redirectUri,
-      codeVerifier: dto.codeVerifier,
-      state: dto.state,
-      expectedState: dto.expectedState,
-    });
+    let tokenSet: TokenSet;
+    try {
+      tokenSet = await this.exchangeCodeUseCase.execute({
+        code: dto.code,
+        redirectUri: dto.redirectUri,
+        codeVerifier: dto.codeVerifier,
+        state: dto.state,
+        expectedState: dto.expectedState,
+      });
+    } catch (err) {
+      if (err instanceof GoogleAuthError) throw err;
+      throw new GoogleAuthError(
+        GoogleAuthErrorCode.AUTH_GOOGLE_INTERNAL_ERROR,
+        err instanceof Error ? err.message : String(err),
+      );
+    }
     return successResponse(requestId, tokenSet);
   }
 
@@ -87,15 +109,24 @@ export class AuthGoogleController {
     @Req() req: RequestWithId,
   ) {
     const requestId = this.getRequestId(req);
-    const result: GoogleLoginOutput = await this.googleLoginUseCase.execute({
-      idToken: dto.idToken,
-      code: dto.code,
-      nonce: dto.nonce,
-      redirectUri: dto.redirectUri,
-      codeVerifier: dto.codeVerifier,
-      state: dto.state,
-      expectedState: dto.expectedState,
-    });
+    let result: GoogleLoginOutput;
+    try {
+      result = await this.googleLoginUseCase.execute({
+        idToken: dto.idToken,
+        code: dto.code,
+        nonce: dto.nonce,
+        redirectUri: dto.redirectUri,
+        codeVerifier: dto.codeVerifier,
+        state: dto.state,
+        expectedState: dto.expectedState,
+      });
+    } catch (err) {
+      if (err instanceof GoogleAuthError) throw err;
+      throw new GoogleAuthError(
+        GoogleAuthErrorCode.AUTH_GOOGLE_INTERNAL_ERROR,
+        err instanceof Error ? err.message : String(err),
+      );
+    }
     const data: GoogleLoginResponseData = {
       accessToken: result.session.accessToken,
       expiresIn: result.session.expiresIn,
