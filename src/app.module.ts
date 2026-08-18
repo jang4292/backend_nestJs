@@ -6,27 +6,33 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { AuthGoogleModule } from './auth/google/auth-google.module';
+import { validateAppEnv } from './config/app-env';
 import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
 import { MusicModule } from './music/music.module';
+import { Track } from './music/entities/track.entity';
+import { Playlist } from './music/entities/playlist.entity';
+import { PlaylistTrack } from './music/entities/playlist-track.entity';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+      cache: true,
+      validate: validateAppEnv,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        type: configService.get<string>('DB_TYPE', 'postgres') as 'postgres',
+        type: 'postgres',
         host: configService.get<string>('DB_HOST', 'localhost'),
         port: configService.get<number>('DB_PORT', 5432),
         username: configService.get<string>('DB_USERNAME', 'postgres'),
         password: configService.get<string>('DB_PASSWORD', 'password'),
         database: configService.get<string>('DB_DATABASE', 'nestjs_db'),
-        entities: [User],
-        synchronize: configService.get<boolean>('DB_SYNCHRONIZE', true),
+        entities: [User, Track, Playlist, PlaylistTrack],
+        synchronize: configService.get<boolean>('DB_SYNCHRONIZE', false),
         logging: configService.get<string>('NODE_ENV') === 'development',
       }),
       inject: [ConfigService],

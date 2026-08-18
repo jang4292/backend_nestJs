@@ -18,10 +18,10 @@ export class User {
   password: string | null;
 
   @Column({ nullable: true })
-  email: string;
+  email: string | null;
 
   @Column({ nullable: true })
-  name: string;
+  name: string | null;
 
   /** Social provider name, e.g. 'google' */
   @Column({ nullable: true })

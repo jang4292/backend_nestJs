@@ -17,11 +17,21 @@ export class SocialUserTypeOrmAdapter implements SocialUserRepositoryPort {
     if (provider !== 'google') return null;
     const user = await this.usersService.findByGoogleId(sub);
     if (!user) return null;
-    return { id: user.id, username: user.username, email: user.email, name: user.name };
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      name: user.name,
+    };
   }
 
   async upsert(identity: SocialIdentity): Promise<SocialUserRecord> {
     const user = await this.usersService.upsertGoogleUser(identity);
-    return { id: user.id, username: user.username, email: user.email, name: user.name };
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      name: user.name,
+    };
   }
 }

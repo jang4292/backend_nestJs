@@ -17,7 +17,10 @@ describe('IssueSessionTokenUseCase', () => {
     email: 'user@example.com',
   };
 
-  const tokens: SessionTokens = { accessToken: 'jwt.token.here', expiresIn: 3600 };
+  const tokens: SessionTokens = {
+    accessToken: 'jwt.token.here',
+    expiresIn: 3600,
+  };
 
   beforeEach(async () => {
     issuer = { issue: jest.fn() };
@@ -36,6 +39,6 @@ describe('IssueSessionTokenUseCase', () => {
     issuer.issue.mockResolvedValue(tokens);
     const result = await useCase.execute(user);
     expect(result).toEqual(tokens);
-    expect(issuer.issue).toHaveBeenCalledWith(user);
+    expect(issuer.issue.mock.calls[0]).toEqual([user]);
   });
 });

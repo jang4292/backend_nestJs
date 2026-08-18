@@ -1,8 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { SocialIdentity } from '../../domain/social-identity';
-import {
-  SOCIAL_USER_REPOSITORY_PORT,
-} from '../ports/social-user-repository.port';
+import { SOCIAL_USER_REPOSITORY_PORT } from '../ports/social-user-repository.port';
 import type {
   SocialUserRecord,
   SocialUserRepositoryPort,
