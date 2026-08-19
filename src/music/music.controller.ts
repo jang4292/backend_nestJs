@@ -10,35 +10,42 @@ import {
   Body,
   ParseIntPipe,
 } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { MusicService } from './music.service';
 import { CreateTrackDto } from './dto/create-track.dto';
+import { ListTracksQueryDto } from './dto/list-tracks-query.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
 import { AddTrackToPlaylistDto } from './dto/add-track-to-playlist.dto';
 import { UpdatePlaylistTrackDto } from './dto/update-playlist-track.dto';
 
+@ApiTags('music')
 @Controller('music')
 export class MusicController {
   constructor(private readonly musicService: MusicService) {}
 
   // ===== Track =====
 
+  @ApiOperation({ summary: '트랙 등록 (아티스트/제목/BPM)' })
   @Post('tracks')
   createTrack(@Body() dto: CreateTrackDto) {
     return this.musicService.createTrack(dto);
   }
 
+  @ApiOperation({ summary: '트랙 목록 조회 (검색/필터/페이지네이션)' })
   @Get('tracks')
-  getTrackList() {
-    return this.musicService.getTrackList();
+  getTrackList(@Query() query: ListTracksQueryDto) {
+    return this.musicService.getTrackList(query);
   }
 
+  @ApiOperation({ summary: '트랙 단건 조회' })
   @Get('tracks/:id')
   getTrack(@Param('id', ParseIntPipe) id: number) {
     return this.musicService.getTrack(id);
   }
 
+  @ApiOperation({ summary: '트랙 수정' })
   @Patch('tracks/:id')
   updateTrack(
     @Param('id', ParseIntPipe) id: number,
@@ -47,6 +54,7 @@ export class MusicController {
     return this.musicService.updateTrack(id, dto);
   }
 
+  @ApiOperation({ summary: '트랙 삭제' })
   @Delete('tracks/:id')
   deleteTrack(@Param('id', ParseIntPipe) id: number) {
     return this.musicService.deleteTrack(id);

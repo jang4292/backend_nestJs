@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
@@ -32,6 +33,14 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  // API docs
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Backend NestJs API')
+    .setVersion('1.0')
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api-docs', app, document);
 
   await app.listen(configService.get<number>('PORT', 3000));
   console.log(`Application is running on: ${await app.getUrl()}`);

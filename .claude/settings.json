@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npx jest *)",
+      "Bash(git stash *)",
+      "Bash(npx tsc *)",
+      "Bash(command -v pg_isready)",
+      "Bash(pg_isready -h localhost -p 5432)",
+      "Bash(brew services *)"
+    ]
+  }
+}

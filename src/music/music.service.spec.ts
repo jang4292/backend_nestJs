@@ -9,12 +9,21 @@ import { PlaylistTracksService } from './services/playlist-tracks.service';
 import { PlaylistsService } from './services/playlists.service';
 import { TracksService } from './services/tracks.service';
 
+const mockQueryBuilder = () => ({
+  andWhere: jest.fn().mockReturnThis(),
+  orderBy: jest.fn().mockReturnThis(),
+  skip: jest.fn().mockReturnThis(),
+  take: jest.fn().mockReturnThis(),
+  getManyAndCount: jest.fn(),
+});
+
 const mockTrackRepo = () => ({
   create: jest.fn(),
   save: jest.fn(),
   find: jest.fn(),
   findOne: jest.fn(),
   remove: jest.fn(),
+  createQueryBuilder: jest.fn(),
 });
 
 const mockPlaylistRepo = () => ({
@@ -75,6 +84,52 @@ describe('MusicService', () => {
       expect(trackRepo.create).toHaveBeenCalledWith(dto);
       expect(trackRepo.save).toHaveBeenCalledWith(created);
       expect(result).toEqual(created);
+    });
+  });
+
+  describe('getTrackList', () => {
+    it('should apply search/filter conditions and return paginated result', async () => {
+      const qb = mockQueryBuilder();
+      const items = [{ id: 1, title: 'Song A', artist: 'Artist X', bpm: 120 }];
+      qb.getManyAndCount.mockResolvedValue([items, 1]);
+      trackRepo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.getTrackList({
+        search: 'Song',
+        minBpm: 100,
+        maxBpm: 140,
+        page: 1,
+        limit: 10,
+        sortBy: 'id',
+        sortOrder: 'DESC',
+      });
+
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        '(track.title ILIKE :search OR track.artist ILIKE :search)',
+        { search: '%Song%' },
+      );
+      expect(qb.andWhere).toHaveBeenCalledWith('track.bpm >= :minBpm', {
+        minBpm: 100,
+      });
+      expect(qb.andWhere).toHaveBeenCalledWith('track.bpm <= :maxBpm', {
+        maxBpm: 140,
+      });
+      expect(qb.orderBy).toHaveBeenCalledWith('track.id', 'DESC');
+      expect(qb.skip).toHaveBeenCalledWith(0);
+      expect(qb.take).toHaveBeenCalledWith(10);
+      expect(result).toEqual({ items, total: 1, page: 1, limit: 10 });
+    });
+
+    it('should default to page 1 and limit 20 when not provided', async () => {
+      const qb = mockQueryBuilder();
+      qb.getManyAndCount.mockResolvedValue([[], 0]);
+      trackRepo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.getTrackList({});
+
+      expect(qb.skip).toHaveBeenCalledWith(0);
+      expect(qb.take).toHaveBeenCalledWith(20);
+      expect(result).toEqual({ items: [], total: 0, page: 1, limit: 20 });
     });
   });
 

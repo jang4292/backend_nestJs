@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AddTrackToPlaylistDto } from './dto/add-track-to-playlist.dto';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { CreateTrackDto } from './dto/create-track.dto';
+import { ListTracksQueryDto } from './dto/list-tracks-query.dto';
 import { UpdatePlaylistTrackDto } from './dto/update-playlist-track.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
@@ -13,7 +14,7 @@ import {
   PlaylistTrackSummary,
 } from './services/playlist-tracks.service';
 import { PlaylistsService } from './services/playlists.service';
-import { TracksService } from './services/tracks.service';
+import { PaginatedTracks, TracksService } from './services/tracks.service';
 
 @Injectable()
 export class MusicService {
@@ -27,8 +28,8 @@ export class MusicService {
     return this.tracksService.createTrack(dto);
   }
 
-  getTrackList(): Promise<Track[]> {
-    return this.tracksService.getTrackList();
+  getTrackList(query: ListTracksQueryDto): Promise<PaginatedTracks> {
+    return this.tracksService.getTrackList(query);
   }
 
   getTrack(id: number): Promise<Track> {
