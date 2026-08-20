@@ -7,12 +7,9 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { AuthGoogleModule } from './auth/google/auth-google.module';
 import { validateAppEnv } from './config/app-env';
-import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
 import { MusicModule } from './music/music.module';
-import { Track } from './music/entities/track.entity';
-import { Playlist } from './music/entities/playlist.entity';
-import { PlaylistTrack } from './music/entities/playlist-track.entity';
+import { createDatabaseOptions } from './database/database-options';
 
 @Module({
   imports: [
@@ -24,17 +21,22 @@ import { PlaylistTrack } from './music/entities/playlist-track.entity';
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('DB_HOST', 'localhost'),
-        port: configService.get<number>('DB_PORT', 5432),
-        username: configService.get<string>('DB_USERNAME', 'postgres'),
-        password: configService.get<string>('DB_PASSWORD', 'password'),
-        database: configService.get<string>('DB_DATABASE', 'nestjs_db'),
-        entities: [User, Track, Playlist, PlaylistTrack],
-        synchronize: configService.get<boolean>('DB_SYNCHRONIZE', false),
-        logging: configService.get<string>('NODE_ENV') === 'development',
-      }),
+      useFactory: (configService: ConfigService) =>
+        createDatabaseOptions({
+          DB_HOST: configService.get<string>('DB_HOST', 'localhost'),
+          DB_PORT: configService.get<number>('DB_PORT', 5432),
+          DB_USERNAME: configService.get<string>('DB_USERNAME', 'postgres'),
+          DB_PASSWORD: configService.get<string>('DB_PASSWORD', 'password'),
+          DB_DATABASE: configService.get<string>('DB_DATABASE', 'nestjs_db'),
+          DATABASE_URL: configService.get<string>('DATABASE_URL'),
+          DB_SYNCHRONIZE: configService.get<boolean>('DB_SYNCHRONIZE', false),
+          DB_SSL: configService.get<boolean>('DB_SSL', false),
+          DB_SSL_REJECT_UNAUTHORIZED: configService.get<boolean>(
+            'DB_SSL_REJECT_UNAUTHORIZED',
+            true,
+          ),
+          logging: configService.get<string>('NODE_ENV') === 'development',
+        }),
       inject: [ConfigService],
     }),
     ThrottlerModule.forRootAsync({

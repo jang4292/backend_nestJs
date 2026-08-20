@@ -140,3 +140,16 @@ vite.config.ts.timestamp-*
 
 # Build output
 dist/
+
+# Keys, certificates, credentials
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+*.jks
+id_rsa
+id_rsa.pub
+*serviceAccountKey.json
+*service-account*.json
+*firebase-adminsdk*.json

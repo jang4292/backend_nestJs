@@ -247,6 +247,6 @@ Keep `DB_SYNCHRONIZE=false` for shared and production databases. Generate and
 run a TypeORM migration for schema changes:
 
 ```bash
-npx typeorm migration:generate -n AddGoogleSocialLogin
-npx typeorm migration:run
+npm run migration:generate -- src/database/migrations/AddGoogleSocialLogin
+npm run migration:run
 ```

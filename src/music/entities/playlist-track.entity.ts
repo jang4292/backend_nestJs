@@ -13,27 +13,29 @@ import { Track } from './track.entity';
 @Entity('playlist_track')
 export class PlaylistTrack {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @ManyToOne(() => Playlist, (playlist) => playlist.playlistTracks, {
     onDelete: 'CASCADE',
+    nullable: false,
   })
-  playlist: Playlist;
+  playlist!: Playlist;
 
   @ManyToOne(() => Track, (track) => track.playlistTracks, {
     onDelete: 'CASCADE',
+    nullable: false,
   })
-  track: Track;
+  track!: Track;
 
   @Column()
-  seq: number; // 재생 순서
+  seq!: number; // 재생 순서
 
   @Column({ length: 255, nullable: true })
-  note: string | null;
+  note!: string | null;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

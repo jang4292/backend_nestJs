@@ -43,6 +43,10 @@ DB_USERNAME=postgres
 DB_PASSWORD=password
 DB_DATABASE=nestjs_db
 DB_SYNCHRONIZE=false
+DB_SSL=false
+DB_SSL_REJECT_UNAUTHORIZED=true
+# Optional: DATABASE_URL takes precedence over the DB_* connection values.
+# DATABASE_URL=postgresql://username:password@hostname:5432/database
 
 JWT_SECRET=replace-with-a-strong-secret
 JWT_EXPIRES_IN=1h
@@ -60,7 +64,9 @@ GOOGLE_OAUTH_REDIRECT_URIS=https://your-app.example.com/auth/google/callback
 
 `JWT_SECRET` and `GOOGLE_ALLOWED_AUDIENCES` are required at startup.
 `NODE_ENV=production` also requires `CORS_ORIGIN`, rejects placeholder JWT
-secrets, and blocks `DB_SYNCHRONIZE=true`.
+secrets, and blocks `DB_SYNCHRONIZE=true`. For AWS RDS, use the RDS endpoint
+as `DB_HOST`, enable `DB_SSL`, and keep `DB_SSL_REJECT_UNAUTHORIZED=true` when
+the RDS CA certificate is available to the runtime.
 
 ## Running
 
@@ -68,6 +74,14 @@ secrets, and blocks `DB_SYNCHRONIZE=true`.
 npm run start
 npm run start:dev
 npm run start:prod
+```
+
+Apply the database schema before starting the application in a shared or
+production environment:
+
+```bash
+npm run migration:show
+npm run migration:run
 ```
 
 ## API Overview
@@ -130,6 +144,7 @@ src/
 ## Learning Guide
 
 - [NestJS operational stability refactor guide](docs/learning/nestjs-operational-stability-guide.kr.md)
+- [PostgreSQL RDS and NestJS guide](docs/learning/postgresql-rds-nestjs-guide.kr.md)
 
 ## Verification
 
@@ -142,6 +157,9 @@ npx eslint "src/**/*.ts" "test/**/*.ts"
 ## Production Notes
 
 - Keep `DB_SYNCHRONIZE=false`; use TypeORM migrations for shared databases.
+- Run migrations as a release/deployment step before deploying the application.
+- Do not run the initial migration against an existing RDS database until its
+  current schema has been compared and backed up.
 - Use a strong `JWT_SECRET` and rotate it according to your security policy.
 - Set `CORS_ORIGIN` to the real frontend origin, never `*`.
 - Configure `GOOGLE_ALLOWED_AUDIENCES` with the exact OAuth client IDs.

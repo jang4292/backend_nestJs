@@ -19,6 +19,8 @@ DB_USERNAME=postgres
 DB_PASSWORD=your-password
 DB_DATABASE=nestjs_db
 DB_SYNCHRONIZE=false
+DB_SSL=false
+DB_SSL_REJECT_UNAUTHORIZED=true
 CORS_ORIGIN=http://localhost:3001
 GOOGLE_ALLOWED_AUDIENCES=your-google-client-id.apps.googleusercontent.com
 ```
@@ -27,6 +29,13 @@ GOOGLE_ALLOWED_AUDIENCES=your-google-client-id.apps.googleusercontent.com
 ```bash
 npm install
 npm run start:dev
+```
+
+For a shared or RDS database, apply the schema before starting the API:
+
+```bash
+npm run migration:show
+npm run migration:run
 ```
 
 ## API Examples
