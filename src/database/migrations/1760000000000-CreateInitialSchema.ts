@@ -43,7 +43,6 @@ export class CreateInitialSchema1760000000000 implements MigrationInterface {
           }),
         ],
       }),
-      true,
     );
 
     await queryRunner.createTable(
@@ -67,7 +66,6 @@ export class CreateInitialSchema1760000000000 implements MigrationInterface {
           },
         ],
       }),
-      true,
     );
 
     await queryRunner.createTable(
@@ -95,7 +93,6 @@ export class CreateInitialSchema1760000000000 implements MigrationInterface {
           },
         ],
       }),
-      true,
     );
 
     await queryRunner.createTable(
@@ -119,7 +116,6 @@ export class CreateInitialSchema1760000000000 implements MigrationInterface {
           },
         ],
       }),
-      true,
     );
 
     await queryRunner.createForeignKeys('playlist_track', [
