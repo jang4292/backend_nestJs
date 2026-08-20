@@ -9,7 +9,10 @@ export interface AppEnv {
   DB_USERNAME: string;
   DB_PASSWORD: string;
   DB_DATABASE: string;
+  DATABASE_URL?: string;
   DB_SYNCHRONIZE: boolean;
+  DB_SSL: boolean;
+  DB_SSL_REJECT_UNAUTHORIZED: boolean;
   JWT_SECRET: string;
   JWT_EXPIRES_IN: string;
   THROTTLE_TTL: number;
@@ -33,6 +36,12 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     config.DB_SYNCHRONIZE,
     'DB_SYNCHRONIZE',
     false,
+  );
+  const dbSsl = parseBoolean(config.DB_SSL, 'DB_SSL', false);
+  const dbSslRejectUnauthorized = parseBoolean(
+    config.DB_SSL_REJECT_UNAUTHORIZED,
+    'DB_SSL_REJECT_UNAUTHORIZED',
+    true,
   );
   const corsOrigin = optionalString(config.CORS_ORIGIN);
   const jwtSecret = requiredString(config.JWT_SECRET, 'JWT_SECRET');
@@ -63,7 +72,10 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     DB_USERNAME: optionalString(config.DB_USERNAME) ?? 'postgres',
     DB_PASSWORD: optionalString(config.DB_PASSWORD) ?? 'password',
     DB_DATABASE: optionalString(config.DB_DATABASE) ?? 'nestjs_db',
+    DATABASE_URL: optionalString(config.DATABASE_URL),
     DB_SYNCHRONIZE: dbSynchronize,
+    DB_SSL: dbSsl,
+    DB_SSL_REJECT_UNAUTHORIZED: dbSslRejectUnauthorized,
     JWT_SECRET: jwtSecret,
     JWT_EXPIRES_IN: optionalString(config.JWT_EXPIRES_IN) ?? '1h',
     THROTTLE_TTL: parseInteger(config.THROTTLE_TTL, 'THROTTLE_TTL', 60, {

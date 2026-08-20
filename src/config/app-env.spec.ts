@@ -22,6 +22,8 @@ describe('validateAppEnv', () => {
       DB_TYPE: 'postgres',
       DB_PORT: 15432,
       DB_SYNCHRONIZE: true,
+      DB_SSL: false,
+      DB_SSL_REJECT_UNAUTHORIZED: true,
       THROTTLE_TTL: 120,
       THROTTLE_LIMIT: 20,
     });
@@ -70,5 +72,29 @@ describe('validateAppEnv', () => {
         DB_TYPE: 'mysql',
       }),
     ).toThrow('Only DB_TYPE=postgres is supported.');
+  });
+
+  it('parses RDS SSL settings and an optional connection URL', () => {
+    const env = validateAppEnv({
+      ...baseEnv,
+      DB_SSL: 'true',
+      DB_SSL_REJECT_UNAUTHORIZED: 'false',
+      DATABASE_URL: 'postgresql://user:password@example.com:5432/app',
+    });
+
+    expect(env).toMatchObject({
+      DB_SSL: true,
+      DB_SSL_REJECT_UNAUTHORIZED: false,
+      DATABASE_URL: 'postgresql://user:password@example.com:5432/app',
+    });
+  });
+
+  it('rejects invalid RDS SSL flags', () => {
+    expect(() =>
+      validateAppEnv({
+        ...baseEnv,
+        DB_SSL: 'enabled',
+      }),
+    ).toThrow('DB_SSL must be true or false.');
   });
 });

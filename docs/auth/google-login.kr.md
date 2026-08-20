@@ -247,6 +247,6 @@ npm test
 TypeORM 마이그레이션을 생성하여 실행합니다:
 
 ```bash
-npx typeorm migration:generate -n AddGoogleSocialLogin
-npx typeorm migration:run
+npm run migration:generate -- src/database/migrations/AddGoogleSocialLogin
+npm run migration:run
 ```
