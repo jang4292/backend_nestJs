@@ -43,7 +43,7 @@ DB_USERNAME=postgres
 DB_PASSWORD=password
 DB_DATABASE=nestjs_db
 DB_SYNCHRONIZE=false
-DB_SSL=true
+DB_SSL=false
 DB_SSL_REJECT_UNAUTHORIZED=true
 # Optional: DATABASE_URL takes precedence over the DB_* connection values.
 # DATABASE_URL=postgresql://username:password@hostname:5432/database
