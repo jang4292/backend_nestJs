@@ -3,6 +3,7 @@ import {
   QueryRunner,
   Table,
   TableForeignKey,
+  TableIndex,
   TableUnique,
 } from 'typeorm';
 
@@ -134,6 +135,22 @@ export class CreateInitialSchema1760000000000 implements MigrationInterface {
         onDelete: 'CASCADE',
       }),
     ]);
+
+    await queryRunner.createIndex(
+      'playlist_track',
+      new TableIndex({
+        name: 'IDX_playlist_track_playlistId_seq',
+        columnNames: ['playlistId', 'seq'],
+      }),
+    );
+
+    await queryRunner.createIndex(
+      'playlist_track',
+      new TableIndex({
+        name: 'IDX_playlist_track_trackId',
+        columnNames: ['trackId'],
+      }),
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
