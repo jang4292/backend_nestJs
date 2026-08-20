@@ -17,11 +17,13 @@ export class PlaylistTrack {
 
   @ManyToOne(() => Playlist, (playlist) => playlist.playlistTracks, {
     onDelete: 'CASCADE',
+    nullable: false,
   })
   playlist!: Playlist;
 
   @ManyToOne(() => Track, (track) => track.playlistTracks, {
     onDelete: 'CASCADE',
+    nullable: false,
   })
   track!: Track;
 
