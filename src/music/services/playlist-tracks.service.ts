@@ -100,6 +100,6 @@ export class PlaylistTracksService {
     }
 
     await this.playlistTrackRepo.remove(playlistTrack);
-    return { deleted: true, id: playlistTrackId, playlistTrackId };
+    return { deleted: true, playlistTrackId };
   }
 }

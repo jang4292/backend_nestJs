@@ -12,26 +12,26 @@ import { PlaylistTrack } from './playlist-track.entity';
 @Entity('track')
 export class Track {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ length: 200 })
-  title: string;
+  title!: string;
 
   @Column({ length: 200 })
-  artist: string;
+  artist!: string;
 
   @Column({ type: 'int', nullable: true })
-  bpm: number | null;
+  bpm!: number | null;
 
   @Column({ type: 'int', nullable: true })
-  lengthSec: number | null;
+  lengthSec!: number | null;
 
   @OneToMany(() => PlaylistTrack, (pt) => pt.track)
-  playlistTracks: PlaylistTrack[];
+  playlistTracks!: PlaylistTrack[];
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
