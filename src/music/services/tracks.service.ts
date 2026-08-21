@@ -75,7 +75,8 @@ export class TracksService {
       qb.andWhere('track.bpm <= :maxBpm', { maxBpm });
     }
 
-    const sortColumn = sortBy === 'artistName' ? 'artist.name' : `track.${sortBy}`;
+    const sortColumn =
+      sortBy === 'artistName' ? 'artist.name' : `track.${sortBy}`;
 
     qb.orderBy(sortColumn, sortOrder)
       .addOrderBy('track.id', 'DESC')

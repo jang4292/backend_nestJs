@@ -70,7 +70,11 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     throw new Error('DB_SYNCHRONIZE must be false in production.');
   }
 
-  if (dbPoolMin !== undefined && dbPoolMax !== undefined && dbPoolMin > dbPoolMax) {
+  if (
+    dbPoolMin !== undefined &&
+    dbPoolMax !== undefined &&
+    dbPoolMin > dbPoolMax
+  ) {
     throw new Error('DB_POOL_MIN must be less than or equal to DB_POOL_MAX.');
   }
 

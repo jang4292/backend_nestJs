@@ -30,7 +30,10 @@ describe('ArtistsService', () => {
   });
 
   it('returns artist list sorted by name then id', async () => {
-    const items = [{ id: 1, name: 'A' }, { id: 2, name: 'B' }];
+    const items = [
+      { id: 1, name: 'A' },
+      { id: 2, name: 'B' },
+    ];
     artistRepo.find.mockResolvedValue(items);
 
     const result = await service.getArtistList();

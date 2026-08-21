@@ -13,9 +13,7 @@ import { PlaylistsService } from './services/playlists.service';
 import { TracksService } from './services/tracks.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Artist, Track, Playlist, PlaylistTrack]),
-  ],
+  imports: [TypeOrmModule.forFeature([Artist, Track, Playlist, PlaylistTrack])],
   controllers: [MusicController],
   providers: [
     MusicService,

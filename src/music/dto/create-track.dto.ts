@@ -11,10 +11,14 @@ import {
   MinLength,
 } from 'class-validator';
 
+function trimString(value: unknown): unknown {
+  return typeof value === 'string' ? value.trim() : value;
+}
+
 export class CreateTrackDto {
   @ApiProperty({ maxLength: 200 })
   @IsString()
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @Transform(({ value }: { value: unknown }) => trimString(value))
   @MinLength(1)
   @MaxLength(200)
   title: string;
