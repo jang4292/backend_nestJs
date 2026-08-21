@@ -13,6 +13,13 @@ describe('ListTracksQueryDto', () => {
     expect(dto.sortOrder).toBe('DESC');
   });
 
+  it('should allow artistName sorting', async () => {
+    const dto = plainToInstance(ListTracksQueryDto, { sortBy: 'artistName' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.sortBy).toBe('artistName');
+  });
+
   it('should coerce numeric query string params to numbers', async () => {
     const dto = plainToInstance(ListTracksQueryDto, {
       minBpm: '100',

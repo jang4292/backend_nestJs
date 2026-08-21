@@ -3,11 +3,13 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
+  ManyToOne,
   OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { PlaylistTrack } from './playlist-track.entity';
+import { Artist } from './artist.entity';
 
 @Entity('track')
 export class Track {
@@ -17,8 +19,12 @@ export class Track {
   @Column({ length: 200 })
   title!: string;
 
-  @Column({ length: 200 })
-  artist!: string;
+  @ManyToOne(() => Artist, (artist) => artist.tracks, {
+    onDelete: 'RESTRICT',
+    nullable: false,
+    eager: true,
+  })
+  artist!: Artist;
 
   @Column({ type: 'int', nullable: true })
   bpm!: number | null;

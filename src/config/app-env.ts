@@ -13,6 +13,10 @@ export interface AppEnv {
   DB_SYNCHRONIZE: boolean;
   DB_SSL: boolean;
   DB_SSL_REJECT_UNAUTHORIZED: boolean;
+  DB_SSL_CA?: string;
+  DB_POOL_MIN?: number;
+  DB_POOL_MAX?: number;
+  DB_CONNECT_TIMEOUT_MS?: number;
   JWT_SECRET: string;
   JWT_EXPIRES_IN: string;
   THROTTLE_TTL: number;
@@ -43,6 +47,18 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     'DB_SSL_REJECT_UNAUTHORIZED',
     true,
   );
+  const dbSslCa = optionalString(config.DB_SSL_CA);
+  const dbPoolMin = parseOptionalInteger(config.DB_POOL_MIN, 'DB_POOL_MIN', {
+    min: 0,
+  });
+  const dbPoolMax = parseOptionalInteger(config.DB_POOL_MAX, 'DB_POOL_MAX', {
+    min: 1,
+  });
+  const dbConnectTimeoutMs = parseOptionalInteger(
+    config.DB_CONNECT_TIMEOUT_MS,
+    'DB_CONNECT_TIMEOUT_MS',
+    { min: 1 },
+  );
   const corsOrigin = optionalString(config.CORS_ORIGIN);
   const jwtSecret = requiredString(config.JWT_SECRET, 'JWT_SECRET');
 
@@ -52,6 +68,21 @@ export function validateAppEnv(config: RawEnv): AppEnv {
 
   if (nodeEnv === 'production' && dbSynchronize) {
     throw new Error('DB_SYNCHRONIZE must be false in production.');
+  }
+
+  if (dbPoolMin !== undefined && dbPoolMax !== undefined && dbPoolMin > dbPoolMax) {
+    throw new Error('DB_POOL_MIN must be less than or equal to DB_POOL_MAX.');
+  }
+
+  if (
+    nodeEnv === 'production' &&
+    dbSsl &&
+    dbSslRejectUnauthorized &&
+    !dbSslCa
+  ) {
+    throw new Error(
+      'DB_SSL_CA is required in production when DB_SSL=true and certificate verification is enabled.',
+    );
   }
 
   if (nodeEnv === 'production' && isPlaceholderSecret(jwtSecret)) {
@@ -76,6 +107,10 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     DB_SYNCHRONIZE: dbSynchronize,
     DB_SSL: dbSsl,
     DB_SSL_REJECT_UNAUTHORIZED: dbSslRejectUnauthorized,
+    DB_SSL_CA: dbSslCa,
+    DB_POOL_MIN: dbPoolMin,
+    DB_POOL_MAX: dbPoolMax,
+    DB_CONNECT_TIMEOUT_MS: dbConnectTimeoutMs,
     JWT_SECRET: jwtSecret,
     JWT_EXPIRES_IN: optionalString(config.JWT_EXPIRES_IN) ?? '1h',
     THROTTLE_TTL: parseInteger(config.THROTTLE_TTL, 'THROTTLE_TTL', 60, {
@@ -99,6 +134,19 @@ export function validateAppEnv(config: RawEnv): AppEnv {
       config.GOOGLE_OAUTH_REDIRECT_URIS,
     ),
   };
+}
+
+function parseOptionalInteger(
+  value: unknown,
+  name: string,
+  options?: { min?: number },
+): number | undefined {
+  const parsed = optionalString(value);
+  if (parsed === undefined) {
+    return undefined;
+  }
+
+  return parseInteger(parsed, name, 0, options);
 }
 
 function parseNodeEnv(value: unknown): NodeEnvironment {

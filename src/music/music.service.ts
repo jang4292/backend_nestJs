@@ -6,9 +6,13 @@ import { ListTracksQueryDto } from './dto/list-tracks-query.dto';
 import { UpdatePlaylistTrackDto } from './dto/update-playlist-track.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
+import { Artist } from './entities/artist.entity';
 import { PlaylistTrack } from './entities/playlist-track.entity';
 import { Playlist } from './entities/playlist.entity';
 import { Track } from './entities/track.entity';
+import { CreateArtistDto } from './dto/create-artist.dto';
+import { UpdateArtistDto } from './dto/update-artist.dto';
+import { ArtistsService } from './services/artists.service';
 import {
   PlaylistTracksService,
   PlaylistTrackSummary,
@@ -19,10 +23,31 @@ import { PaginatedTracks, TracksService } from './services/tracks.service';
 @Injectable()
 export class MusicService {
   constructor(
+    private readonly artistsService: ArtistsService,
     private readonly tracksService: TracksService,
     private readonly playlistsService: PlaylistsService,
     private readonly playlistTracksService: PlaylistTracksService,
   ) {}
+
+  getArtistList(): Promise<Artist[]> {
+    return this.artistsService.getArtistList();
+  }
+
+  getArtist(id: number): Promise<Artist> {
+    return this.artistsService.getArtist(id);
+  }
+
+  createArtist(dto: CreateArtistDto): Promise<Artist> {
+    return this.artistsService.createArtist(dto);
+  }
+
+  updateArtist(id: number, dto: UpdateArtistDto): Promise<Artist> {
+    return this.artistsService.updateArtist(id, dto);
+  }
+
+  deleteArtist(id: number): Promise<{ deleted: true; id: number }> {
+    return this.artistsService.deleteArtist(id);
+  }
 
   createTrack(dto: CreateTrackDto): Promise<Track> {
     return this.tracksService.createTrack(dto);

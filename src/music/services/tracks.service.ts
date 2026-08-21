@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Artist } from '../entities/artist.entity';
 import { CreateTrackDto } from '../dto/create-track.dto';
 import { ListTracksQueryDto } from '../dto/list-tracks-query.dto';
 import { UpdateTrackDto } from '../dto/update-track.dto';
@@ -18,17 +19,26 @@ export class TracksService {
   constructor(
     @InjectRepository(Track)
     private readonly trackRepo: Repository<Track>,
+    @InjectRepository(Artist)
+    private readonly artistRepo: Repository<Artist>,
   ) {}
 
   async createTrack(dto: CreateTrackDto): Promise<Track> {
-    const track = this.trackRepo.create(dto);
+    const artist = await this.getArtistEntity(dto.artistId);
+    const track = this.trackRepo.create({
+      title: dto.title,
+      artist,
+      bpm: dto.bpm ?? null,
+      lengthSec: dto.lengthSec ?? null,
+    });
     return this.trackRepo.save(track);
   }
 
   async getTrackList(query: ListTracksQueryDto): Promise<PaginatedTracks> {
     const {
       search,
-      artist,
+      artistId,
+      artistName,
       title,
       minBpm,
       maxBpm,
@@ -38,15 +48,22 @@ export class TracksService {
       sortOrder = 'DESC',
     } = query;
 
-    const qb = this.trackRepo.createQueryBuilder('track');
+    const qb = this.trackRepo
+      .createQueryBuilder('track')
+      .leftJoinAndSelect('track.artist', 'artist');
 
     if (search) {
-      qb.andWhere('(track.title ILIKE :search OR track.artist ILIKE :search)', {
+      qb.andWhere('(track.title ILIKE :search OR artist.name ILIKE :search)', {
         search: `%${search}%`,
       });
     }
-    if (artist) {
-      qb.andWhere('track.artist ILIKE :artist', { artist: `%${artist}%` });
+    if (artistId) {
+      qb.andWhere('artist.id = :artistId', { artistId });
+    }
+    if (artistName) {
+      qb.andWhere('artist.name ILIKE :artistName', {
+        artistName: `%${artistName}%`,
+      });
     }
     if (title) {
       qb.andWhere('track.title ILIKE :title', { title: `%${title}%` });
@@ -58,7 +75,10 @@ export class TracksService {
       qb.andWhere('track.bpm <= :maxBpm', { maxBpm });
     }
 
-    qb.orderBy(`track.${sortBy}`, sortOrder)
+    const sortColumn = sortBy === 'artistName' ? 'artist.name' : `track.${sortBy}`;
+
+    qb.orderBy(sortColumn, sortOrder)
+      .addOrderBy('track.id', 'DESC')
       .skip((page - 1) * limit)
       .take(limit);
 
@@ -67,14 +87,27 @@ export class TracksService {
   }
 
   async getTrack(id: number): Promise<Track> {
-    const track = await this.trackRepo.findOne({ where: { id } });
+    const track = await this.trackRepo.findOne({
+      where: { id },
+      relations: ['artist'],
+    });
     if (!track) throw new NotFoundException('Track not found');
     return track;
   }
 
   async updateTrack(id: number, dto: UpdateTrackDto): Promise<Track> {
     const track = await this.getTrack(id);
-    Object.assign(track, dto);
+
+    if (dto.artistId !== undefined) {
+      track.artist = await this.getArtistEntity(dto.artistId);
+    }
+
+    Object.assign(track, {
+      title: dto.title ?? track.title,
+      bpm: dto.bpm ?? track.bpm,
+      lengthSec: dto.lengthSec ?? track.lengthSec,
+    });
+
     return this.trackRepo.save(track);
   }
 
@@ -82,5 +115,13 @@ export class TracksService {
     const track = await this.getTrack(id);
     await this.trackRepo.remove(track);
     return { deleted: true, id };
+  }
+
+  private async getArtistEntity(artistId: number): Promise<Artist> {
+    const artist = await this.artistRepo.findOne({ where: { id: artistId } });
+    if (!artist) {
+      throw new NotFoundException('Artist not found');
+    }
+    return artist;
   }
 }

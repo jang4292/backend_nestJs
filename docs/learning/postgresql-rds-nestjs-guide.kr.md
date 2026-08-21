@@ -327,6 +327,10 @@ DB_DATABASE=nestjs_db
 DB_SYNCHRONIZE=false
 DB_SSL=true
 DB_SSL_REJECT_UNAUTHORIZED=true
+DB_SSL_CA=/app/config/rds-ca-bundle.pem
+DB_POOL_MIN=2
+DB_POOL_MAX=10
+DB_CONNECT_TIMEOUT_MS=5000
 ```
 
 `DB_PASSWORD`, `JWT_SECRET`, Google secret은 Git에 커밋하지 않습니다. 운영에서는 AWS Secrets Manager 또는 Parameter Store에서 배포 환경변수로 주입하는 방식을 권장합니다.
@@ -357,6 +361,9 @@ DB_SSL_REJECT_UNAUTHORIZED=true
 
 - `DB_SSL=true`: PostgreSQL TLS 연결을 사용합니다.
 - `DB_SSL_REJECT_UNAUTHORIZED=true`: 서버 인증서를 검증합니다.
+- `DB_SSL_CA`: RDS CA 번들 파일 경로입니다. 운영에서 인증서 검증을 켜는 경우 런타임이 이 파일을 읽을 수 있어야 합니다.
+- `DB_POOL_MIN`, `DB_POOL_MAX`: `pg` 풀 최소/최대 연결 수입니다. EC2 인스턴스 수와 RDS max connections를 고려해 설정합니다.
+- `DB_CONNECT_TIMEOUT_MS`: DB 연결 타임아웃입니다. 부팅/배포 시 장애 감지 시간을 제어할 수 있습니다.
 - `DB_SSL_REJECT_UNAUTHORIZED=false`: 암호화는 사용하지만 인증서 검증을 끕니다. 인증서 준비 전 임시 진단 목적 외에는 운영에서 권장하지 않습니다.
 
 RDS CA 인증서를 애플리케이션 런타임에 설치하는 방식은 배포 환경에 따라 달라집니다. 인증서 검증을 적용할 때는 AWS RDS 인증서 번들을 애플리케이션이 읽을 수 있도록 배포하고, TypeORM/pg SSL 옵션에 CA 경로를 추가하는 후속 작업이 필요합니다. 현재 구현은 flag로 TLS와 인증서 검증 정책을 제어합니다.

@@ -3,7 +3,13 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
-const SORTABLE_COLUMNS = ['id', 'title', 'artist', 'bpm', 'createdAt'] as const;
+const SORTABLE_COLUMNS = [
+  'id',
+  'title',
+  'artistName',
+  'bpm',
+  'createdAt',
+] as const;
 export type TrackSortColumn = (typeof SORTABLE_COLUMNS)[number];
 
 export class ListTracksQueryDto {
@@ -12,10 +18,17 @@ export class ListTracksQueryDto {
   @IsString()
   search?: string;
 
+  @ApiPropertyOptional({ description: '아티스트 ID 필터' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  artistId?: number;
+
   @ApiPropertyOptional({ description: '아티스트명 필터' })
   @IsOptional()
   @IsString()
-  artist?: string;
+  artistName?: string;
 
   @ApiPropertyOptional({ description: '곡 제목 필터' })
   @IsOptional()

@@ -36,7 +36,7 @@ export class PlaylistTracksService {
 
     const playlistTracks = await this.playlistTrackRepo.find({
       where: { playlist: { id: playlistId } },
-      relations: ['track'],
+      relations: ['track', 'track.artist'],
       order: { seq: 'ASC' },
     });
 
@@ -47,7 +47,7 @@ export class PlaylistTracksService {
       track: {
         id: playlistTrack.track.id,
         title: playlistTrack.track.title,
-        artist: playlistTrack.track.artist,
+        artist: playlistTrack.track.artist.name,
         bpm: playlistTrack.track.bpm,
         lengthSec: playlistTrack.track.lengthSec,
       },

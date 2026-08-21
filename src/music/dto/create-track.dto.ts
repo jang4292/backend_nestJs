@@ -19,12 +19,10 @@ export class CreateTrackDto {
   @MaxLength(200)
   title: string;
 
-  @ApiProperty({ maxLength: 200 })
-  @IsString()
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  @MinLength(1)
-  @MaxLength(200)
-  artist: string;
+  @ApiProperty({ minimum: 1 })
+  @IsInt()
+  @Min(1)
+  artistId: number;
 
   @ApiPropertyOptional({ minimum: 0, maximum: 400 })
   @IsOptional()
