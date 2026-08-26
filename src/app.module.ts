@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { AuthGoogleModule } from './auth/google/auth-google.module';
-import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filter';
+import { CommonModule } from './common/common.module';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { RequestIdInterceptor } from './common/request-id/request-id.interceptor';
 import { validateAppEnv } from './config/app-env';
 import { UsersModule } from './users/users.module';
 import { MusicModule } from './music/music.module';
@@ -41,6 +43,12 @@ import { createDatabaseOptions } from './database/database-options';
             'DB_SSL_REJECT_UNAUTHORIZED',
             true,
           ),
+          DB_SSL_CA: configService.get<string>('DB_SSL_CA'),
+          DB_POOL_MIN: configService.get<number>('DB_POOL_MIN'),
+          DB_POOL_MAX: configService.get<number>('DB_POOL_MAX'),
+          DB_CONNECT_TIMEOUT_MS: configService.get<number>(
+            'DB_CONNECT_TIMEOUT_MS',
+          ),
           logging: configService.get<string>('NODE_ENV') === 'development',
         }),
       inject: [ConfigService],
@@ -58,13 +66,24 @@ import { createDatabaseOptions } from './database/database-options';
     UsersModule,
     AuthModule,
     AuthGoogleModule,
+    CommonModule,
     MusicModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
-    { provide: APP_FILTER, useClass: GlobalHttpExceptionFilter },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestIdInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

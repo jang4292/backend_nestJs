@@ -14,8 +14,10 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { MusicService } from './music.service';
+import { CreateArtistDto } from './dto/create-artist.dto';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { ListTracksQueryDto } from './dto/list-tracks-query.dto';
+import { UpdateArtistDto } from './dto/update-artist.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
@@ -29,9 +31,48 @@ import { UpdatePlaylistTrackDto } from './dto/update-playlist-track.dto';
 export class MusicController {
   constructor(private readonly musicService: MusicService) {}
 
+  // ===== Artist =====
+
+  @ApiOperation({ summary: '아티스트 목록 조회' })
+  @Get('artists')
+  getArtistList() {
+    return this.musicService.getArtistList();
+  }
+
+  @ApiOperation({ summary: '아티스트 단건 조회' })
+  @Get('artists/:id')
+  getArtist(@Param('id', ParseIntPipe) id: number) {
+    return this.musicService.getArtist(id);
+  }
+
+  @ApiOperation({ summary: '아티스트 등록' })
+  @UseGuards(JwtAuthGuard)
+  @Post('artists')
+  createArtist(@Body() dto: CreateArtistDto) {
+    return this.musicService.createArtist(dto);
+  }
+
+  @ApiOperation({ summary: '아티스트 수정' })
+  @UseGuards(JwtAuthGuard)
+  @Patch('artists/:id')
+  updateArtist(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateArtistDto,
+  ) {
+    return this.musicService.updateArtist(id, dto);
+  }
+
+  @ApiOperation({ summary: '아티스트 삭제' })
+  @UseGuards(JwtAuthGuard)
+  @Delete('artists/:id')
+  deleteArtist(@Param('id', ParseIntPipe) id: number) {
+    return this.musicService.deleteArtist(id);
+  }
+
   // ===== Track =====
 
   @ApiOperation({ summary: '트랙 등록 (아티스트/제목/BPM)' })
+  @UseGuards(JwtAuthGuard)
   @Post('tracks')
   createTrack(@Body() dto: CreateTrackDto) {
     return this.musicService.createTrack(dto);
@@ -50,6 +91,7 @@ export class MusicController {
   }
 
   @ApiOperation({ summary: '트랙 수정' })
+  @UseGuards(JwtAuthGuard)
   @Patch('tracks/:id')
   updateTrack(
     @Param('id', ParseIntPipe) id: number,
@@ -59,6 +101,7 @@ export class MusicController {
   }
 
   @ApiOperation({ summary: '트랙 삭제' })
+  @UseGuards(JwtAuthGuard)
   @Delete('tracks/:id')
   deleteTrack(@Param('id', ParseIntPipe) id: number) {
     return this.musicService.deleteTrack(id);
@@ -67,6 +110,7 @@ export class MusicController {
   // ===== Playlist =====
 
   // 생성
+  @UseGuards(JwtAuthGuard)
   @Post('playlists')
   createPlaylist(@Body() dto: CreatePlaylistDto) {
     return this.musicService.createPlaylist(dto);
@@ -91,6 +135,7 @@ export class MusicController {
   }
 
   // 수정
+  @UseGuards(JwtAuthGuard)
   @Patch('playlists/:id')
   updatePlaylist(
     @Param('id', ParseIntPipe) id: number,
@@ -100,6 +145,7 @@ export class MusicController {
   }
 
   // 삭제
+  @UseGuards(JwtAuthGuard)
   @Delete('playlists/:id')
   deletePlaylist(@Param('id', ParseIntPipe) id: number) {
     return this.musicService.deletePlaylist(id);
@@ -114,6 +160,7 @@ export class MusicController {
   }
 
   // 플레이리스트에 트랙 추가
+  @UseGuards(JwtAuthGuard)
   @Post('playlists/:playlistId/tracks')
   addTrackToPlaylist(
     @Param('playlistId', ParseIntPipe) playlistId: number,
@@ -123,6 +170,7 @@ export class MusicController {
   }
 
   // playlist_track 정보 수정 (seq, note 등)
+  @UseGuards(JwtAuthGuard)
   @Patch('playlists/:playlistId/tracks/:playlistTrackId')
   updatePlaylistTrack(
     @Param('playlistId', ParseIntPipe) playlistId: number,
@@ -137,6 +185,7 @@ export class MusicController {
   }
 
   // 플레이리스트에서 트랙 제거
+  @UseGuards(JwtAuthGuard)
   @Delete('playlists/:playlistId/tracks/:playlistTrackId')
   removeTrackFromPlaylist(
     @Param('playlistId', ParseIntPipe) playlistId: number,

@@ -38,7 +38,7 @@ describe('UsersController', () => {
       create: jest.fn(),
       update: jest.fn(),
     };
-    controller = new UsersController(usersService as UsersService);
+    controller = new UsersController(usersService as unknown as UsersService);
   });
 
   it('register returns a public user without password', async () => {

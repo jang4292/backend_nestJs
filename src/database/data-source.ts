@@ -35,6 +35,19 @@ const dataSource = new DataSource(
       process.env.DB_SSL_REJECT_UNAUTHORIZED,
       true,
     ),
+    DB_SSL_CA: process.env.DB_SSL_CA,
+    DB_POOL_MIN:
+      process.env.DB_POOL_MIN !== undefined
+        ? Number(process.env.DB_POOL_MIN)
+        : undefined,
+    DB_POOL_MAX:
+      process.env.DB_POOL_MAX !== undefined
+        ? Number(process.env.DB_POOL_MAX)
+        : undefined,
+    DB_CONNECT_TIMEOUT_MS:
+      process.env.DB_CONNECT_TIMEOUT_MS !== undefined
+        ? Number(process.env.DB_CONNECT_TIMEOUT_MS)
+        : undefined,
     migrations: ['src/database/migrations/*.ts'],
   }),
 );

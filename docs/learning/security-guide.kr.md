@@ -128,3 +128,17 @@ id_rsa.pub
 - `.env.example`에는 항상 placeholder만 남기고, 실제 값이 담긴 `.env`는 `.gitignore`로 반드시 제외합니다.
 - "프로덕션에서 실수로 잘못된 설정이 들어가면 조용히 동작하는 것"보다 "즉시 앱이 죽는 것"이 낫습니다. 이 프로젝트의 `validateAppEnv`처럼 fail-closed 검증을 앱 시작 지점에 둡니다.
 - 시크릿은 주기적으로, 그리고 유출 의심 시 즉시 rotate합니다. 로컬 개발용 값이라도 오래 방치하지 않는 것이 좋습니다.
+
+## 6. 현재 코드 기준 운영 보안 체크포인트
+
+- 모든 요청은 `x-request-id`를 헤더로 반환해야 합니다. 문제가 생겼을 때 애플리케이션 로그, ALB/Nginx 로그, 클라이언트 오류 리포트를 같은 request id로 합칠 수 있어야 합니다.
+- 전역 예외 필터가 내부 에러를 `Internal server error` 형태로 반환하는지 확인합니다. stack trace, SQL 구문, 비밀값이 응답 본문에 포함되면 안 됩니다.
+- `POST/PATCH/DELETE /music/**` 엔드포인트는 JWT 인증이 필요해야 합니다. 익명 요청 시 401/403이 나오는지 배포 전 점검합니다.
+- `/auth/login`은 route-level throttling이 적용되어야 합니다. 같은 IP에서 짧은 시간에 반복 시도 시 429 응답이 발생하는지 확인합니다.
+- 운영 점검 시 `JWT_SECRET`, `DB_PASSWORD`, `DATABASE_URL`, Google OAuth secret이 로그에 출력되지 않는지 샘플 트래픽으로 검증합니다.
+
+## 7. 운영 체크리스트 문서
+
+배포 전 점검, Secrets Manager 주입, 비밀번호 회전 절차는 아래 체크리스트 문서를 함께 사용하세요.
+
+- `docs/learning/deployment-secrets-checklist.kr.md`

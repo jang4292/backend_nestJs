@@ -3,7 +3,7 @@ import { validate } from 'class-validator';
 import { CreateTrackDto } from './create-track.dto';
 
 describe('CreateTrackDto', () => {
-  const valid = { title: 'Song A', artist: 'Artist X', bpm: 120 };
+  const valid = { title: 'Song A', artistId: 1, bpm: 120 };
 
   it('should pass validation with valid data', async () => {
     const dto = plainToInstance(CreateTrackDto, valid);
@@ -11,14 +11,12 @@ describe('CreateTrackDto', () => {
     expect(errors).toHaveLength(0);
   });
 
-  it('should trim leading/trailing whitespace from title and artist', () => {
+  it('should trim leading/trailing whitespace from title', () => {
     const dto = plainToInstance(CreateTrackDto, {
       ...valid,
       title: '  Song A  ',
-      artist: '  Artist X  ',
     });
     expect(dto.title).toBe('Song A');
-    expect(dto.artist).toBe('Artist X');
   });
 
   it('should reject title longer than 200 characters', async () => {
@@ -40,5 +38,11 @@ describe('CreateTrackDto', () => {
     const dto = plainToInstance(CreateTrackDto, { ...valid, bpm: 401 });
     const errors = await validate(dto);
     expect(errors.some((e) => e.property === 'bpm')).toBe(true);
+  });
+
+  it('should reject invalid artistId', async () => {
+    const dto = plainToInstance(CreateTrackDto, { ...valid, artistId: 0 });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'artistId')).toBe(true);
   });
 });

@@ -87,4 +87,39 @@ describe('createDatabaseOptions', () => {
 
     expect(options.type).toBe('postgres');
   });
+
+  it('loads SSL CA bundle when DB_SSL_CA is configured', () => {
+    const readCaFile = jest.fn().mockReturnValue('CERT_DATA');
+
+    const options = createDatabaseOptions(
+      {
+        ...baseConfig,
+        DB_SSL: true,
+        DB_SSL_CA: '/tmp/rds-ca.pem',
+      },
+      readCaFile,
+    );
+
+    expect(readCaFile).toHaveBeenCalledWith('/tmp/rds-ca.pem', 'utf8');
+    expect(options).toMatchObject({
+      ssl: { rejectUnauthorized: true, ca: 'CERT_DATA' },
+    });
+  });
+
+  it('sets pg extra options when timeout and pool config are provided', () => {
+    const options = createDatabaseOptions({
+      ...baseConfig,
+      DB_POOL_MIN: 2,
+      DB_POOL_MAX: 10,
+      DB_CONNECT_TIMEOUT_MS: 5000,
+    });
+
+    expect(options).toMatchObject({
+      extra: {
+        min: 2,
+        max: 10,
+        connectionTimeoutMillis: 5000,
+      },
+    });
+  });
 });

@@ -101,13 +101,42 @@ describe('validateAppEnv', () => {
       DB_SSL: 'true',
       DB_SSL_REJECT_UNAUTHORIZED: 'false',
       DATABASE_URL: 'postgresql://user:password@example.com:5432/app',
+      DB_POOL_MIN: '2',
+      DB_POOL_MAX: '10',
+      DB_CONNECT_TIMEOUT_MS: '5000',
     });
 
     expect(env).toMatchObject({
       DB_SSL: true,
       DB_SSL_REJECT_UNAUTHORIZED: false,
       DATABASE_URL: 'postgresql://user:password@example.com:5432/app',
+      DB_POOL_MIN: 2,
+      DB_POOL_MAX: 10,
+      DB_CONNECT_TIMEOUT_MS: 5000,
     });
+  });
+
+  it('requires DB_SSL_CA in production when SSL verification is enabled', () => {
+    expect(() =>
+      validateAppEnv({
+        ...baseEnv,
+        NODE_ENV: 'production',
+        CORS_ORIGIN: 'https://app.example.com',
+        DB_SSL: 'true',
+      }),
+    ).toThrow(
+      'DB_SSL_CA is required in production when DB_SSL=true and certificate verification is enabled.',
+    );
+  });
+
+  it('rejects invalid pool min/max combinations', () => {
+    expect(() =>
+      validateAppEnv({
+        ...baseEnv,
+        DB_POOL_MIN: '10',
+        DB_POOL_MAX: '2',
+      }),
+    ).toThrow('DB_POOL_MIN must be less than or equal to DB_POOL_MAX.');
   });
 
   it('rejects invalid RDS SSL flags', () => {
