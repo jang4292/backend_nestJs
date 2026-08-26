@@ -65,13 +65,34 @@ describe('validateAppEnv', () => {
     ).toThrow('CORS_ORIGIN is required when NODE_ENV=production.');
   });
 
-  it('only supports PostgreSQL', () => {
+  it('rejects an unsupported DB_TYPE', () => {
     expect(() =>
       validateAppEnv({
         ...baseEnv,
-        DB_TYPE: 'mysql',
+        DB_TYPE: 'sqlite',
       }),
-    ).toThrow('Only DB_TYPE=postgres is supported.');
+    ).toThrow('DB_TYPE must be one of: postgres, mysql.');
+  });
+
+  it('accepts mysql as DB_TYPE and defaults its port to 3306', () => {
+    const env = validateAppEnv({
+      ...baseEnv,
+      DB_TYPE: 'mysql',
+    });
+
+    expect(env.DB_TYPE).toBe('mysql');
+    expect(env.DB_PORT).toBe(3306);
+  });
+
+  it('requires DB_PASSWORD in production', () => {
+    expect(() =>
+      validateAppEnv({
+        ...baseEnv,
+        NODE_ENV: 'production',
+        CORS_ORIGIN: 'https://example.com',
+        DB_PASSWORD: undefined,
+      }),
+    ).toThrow('DB_PASSWORD is required when NODE_ENV=production.');
   });
 
   it('parses RDS SSL settings and an optional connection URL', () => {

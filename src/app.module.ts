@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { AuthGoogleModule } from './auth/google/auth-google.module';
+import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filter';
 import { validateAppEnv } from './config/app-env';
 import { UsersModule } from './users/users.module';
 import { MusicModule } from './music/music.module';
@@ -23,6 +25,10 @@ import { createDatabaseOptions } from './database/database-options';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) =>
         createDatabaseOptions({
+          DB_TYPE: configService.get<'postgres' | 'mysql'>(
+            'DB_TYPE',
+            'postgres',
+          ),
           DB_HOST: configService.get<string>('DB_HOST', 'localhost'),
           DB_PORT: configService.get<number>('DB_PORT', 5432),
           DB_USERNAME: configService.get<string>('DB_USERNAME', 'postgres'),
@@ -55,6 +61,10 @@ import { createDatabaseOptions } from './database/database-options';
     MusicModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_FILTER, useClass: GlobalHttpExceptionFilter },
+  ],
 })
 export class AppModule {}

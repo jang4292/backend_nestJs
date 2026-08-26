@@ -9,8 +9,10 @@ import {
   Query,
   Body,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { MusicService } from './music.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { ListTracksQueryDto } from './dto/list-tracks-query.dto';
@@ -21,6 +23,8 @@ import { AddTrackToPlaylistDto } from './dto/add-track-to-playlist.dto';
 import { UpdatePlaylistTrackDto } from './dto/update-playlist-track.dto';
 
 @ApiTags('music')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('music')
 export class MusicController {
   constructor(private readonly musicService: MusicService) {}

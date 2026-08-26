@@ -3,7 +3,7 @@ export type NodeEnvironment = 'development' | 'test' | 'production';
 export interface AppEnv {
   PORT: number;
   NODE_ENV: NodeEnvironment;
-  DB_TYPE: 'postgres';
+  DB_TYPE: 'postgres' | 'mysql';
   DB_HOST: string;
   DB_PORT: number;
   DB_USERNAME: string;
@@ -59,18 +59,28 @@ export function validateAppEnv(config: RawEnv): AppEnv {
   }
 
   const dbType = optionalString(config.DB_TYPE) ?? 'postgres';
-  if (dbType !== 'postgres') {
-    throw new Error('Only DB_TYPE=postgres is supported.');
+  if (dbType !== 'postgres' && dbType !== 'mysql') {
+    throw new Error('DB_TYPE must be one of: postgres, mysql.');
+  }
+
+  const dbPassword = optionalString(config.DB_PASSWORD);
+  if (nodeEnv === 'production' && !dbPassword) {
+    throw new Error('DB_PASSWORD is required when NODE_ENV=production.');
   }
 
   return {
     PORT: parseInteger(config.PORT, 'PORT', 3000, { min: 1 }),
     NODE_ENV: nodeEnv,
-    DB_TYPE: 'postgres',
+    DB_TYPE: dbType,
     DB_HOST: optionalString(config.DB_HOST) ?? 'localhost',
-    DB_PORT: parseInteger(config.DB_PORT, 'DB_PORT', 5432, { min: 1 }),
+    DB_PORT: parseInteger(
+      config.DB_PORT,
+      'DB_PORT',
+      dbType === 'mysql' ? 3306 : 5432,
+      { min: 1 },
+    ),
     DB_USERNAME: optionalString(config.DB_USERNAME) ?? 'postgres',
-    DB_PASSWORD: optionalString(config.DB_PASSWORD) ?? 'password',
+    DB_PASSWORD: dbPassword ?? 'password',
     DB_DATABASE: optionalString(config.DB_DATABASE) ?? 'nestjs_db',
     DATABASE_URL: optionalString(config.DATABASE_URL),
     DB_SYNCHRONIZE: dbSynchronize,
