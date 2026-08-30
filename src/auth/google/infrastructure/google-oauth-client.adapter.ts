@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OAuth2Client } from 'google-auth-library';
-import { SocialIdentity } from '../domain/social-identity';
+import { SocialIdentity } from '../../../users/domain/social-identity';
 import {
   GoogleAuthError,
   GoogleAuthErrorCode,

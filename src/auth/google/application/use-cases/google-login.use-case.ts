@@ -7,16 +7,16 @@ import { GOOGLE_TOKEN_VERIFIER_PORT } from '../ports/google-token-verifier.port'
 import type { GoogleTokenVerifierPort } from '../ports/google-token-verifier.port';
 import { GOOGLE_AUTH_CODE_EXCHANGER_PORT } from '../ports/google-auth-code-exchanger.port';
 import type { GoogleAuthCodeExchangerPort } from '../ports/google-auth-code-exchanger.port';
-import { SOCIAL_USER_REPOSITORY_PORT } from '../ports/social-user-repository.port';
+import { SOCIAL_ACCOUNT_LINKER_PORT } from '../../../../users/application/ports/social-account-linker.port';
 import type {
   SocialUserRecord,
-  SocialUserRepositoryPort,
-} from '../ports/social-user-repository.port';
-import { SESSION_ISSUER_PORT } from '../ports/session-issuer.port';
+  SocialAccountLinkerPort,
+} from '../../../../users/application/ports/social-account-linker.port';
+import { SESSION_ISSUER_PORT } from '../../../session/application/ports/session-issuer.port';
 import type {
   SessionIssuerPort,
   SessionTokens,
-} from '../ports/session-issuer.port';
+} from '../../../session/application/ports/session-issuer.port';
 
 export interface GoogleLoginInput {
   /** Provide exactly one of idToken or code */
@@ -41,8 +41,8 @@ export class GoogleLoginUseCase {
     private readonly verifier: GoogleTokenVerifierPort,
     @Inject(GOOGLE_AUTH_CODE_EXCHANGER_PORT)
     private readonly exchanger: GoogleAuthCodeExchangerPort,
-    @Inject(SOCIAL_USER_REPOSITORY_PORT)
-    private readonly userRepo: SocialUserRepositoryPort,
+    @Inject(SOCIAL_ACCOUNT_LINKER_PORT)
+    private readonly userRepo: SocialAccountLinkerPort,
     @Inject(SESSION_ISSUER_PORT)
     private readonly sessionIssuer: SessionIssuerPort,
   ) {}

@@ -1,0 +1,22 @@
+/** Stable error code enum – no framework imports */
+export enum AppleAuthErrorCode {
+  AUTH_APPLE_BAD_REQUEST = 'AUTH_APPLE_BAD_REQUEST',
+  AUTH_APPLE_INVALID_AUDIENCE = 'AUTH_APPLE_INVALID_AUDIENCE',
+  AUTH_APPLE_INVALID_ISSUER = 'AUTH_APPLE_INVALID_ISSUER',
+  AUTH_APPLE_TOKEN_EXPIRED = 'AUTH_APPLE_TOKEN_EXPIRED',
+  AUTH_APPLE_MISSING_SUB = 'AUTH_APPLE_MISSING_SUB',
+  AUTH_APPLE_STATE_MISMATCH = 'AUTH_APPLE_STATE_MISMATCH',
+  AUTH_APPLE_EXCHANGE_FAILED = 'AUTH_APPLE_EXCHANGE_FAILED',
+  AUTH_APPLE_CONFIG_MISSING = 'AUTH_APPLE_CONFIG_MISSING',
+  AUTH_APPLE_INTERNAL_ERROR = 'AUTH_APPLE_INTERNAL_ERROR',
+}
+
+export class AppleAuthError extends Error {
+  constructor(
+    public readonly errorCode: AppleAuthErrorCode,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'AppleAuthError';
+  }
+}

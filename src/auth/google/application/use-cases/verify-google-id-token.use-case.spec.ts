@@ -7,7 +7,7 @@ import {
   GoogleAuthError,
   GoogleAuthErrorCode,
 } from '../../domain/google-auth.errors';
-import { SocialIdentity } from '../../domain/social-identity';
+import { SocialIdentity } from '../../../../users/domain/social-identity';
 import { Test } from '@nestjs/testing';
 
 describe('VerifyGoogleIdTokenUseCase', () => {

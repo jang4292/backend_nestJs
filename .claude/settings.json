@@ -9,7 +9,19 @@
       "Bash(pg_isready -h localhost -p 5432)",
       "Bash(brew services *)",
       "Bash(npm run *)",
-      "Bash(npm test *)"
+      "Bash(npm test *)",
+      "Bash(xargs sed -i '' 's#social-common/application/ports/session-issuer\\\\.port#session/application/ports/session-issuer.port#g')",
+      "Bash(xargs sed -i '' \"s#'\\\\.\\\\./\\\\.\\\\./social-common/domain/social-identity'#'../../../users/domain/social-identity'#g\")",
+      "Bash(xargs sed -i '' \"s#'\\\\.\\\\./\\\\.\\\\./\\\\.\\\\./social-common/domain/social-identity'#'../../../../users/domain/social-identity'#g\")",
+      "Bash(xargs sed -i '' \"s#'\\\\.\\\\./\\\\.\\\\./social-common/application/ports/social-user-repository\\\\.port'#'../../../users/application/ports/social-account-linker.port'#g\")",
+      "Bash(xargs sed -i '' \"s#'\\\\.\\\\./\\\\.\\\\./\\\\.\\\\./social-common/application/ports/social-user-repository\\\\.port'#'../../../../users/application/ports/social-account-linker.port'#g\")",
+      "Bash(xargs sed -i '' -e 's/SOCIAL_USER_REPOSITORY_PORT/SOCIAL_ACCOUNT_LINKER_PORT/g' -e 's/SocialUserRepositoryPort/SocialAccountLinkerPort/g')",
+      "Bash(git mv *)",
+      "Bash(git rm *)",
+      "Bash(xargs -r rmdir)",
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Bash(sed -i '' '1{/^\\\\/\\\\/ src\\\\/music\\\\/dto\\\\//d;}' src/music/interface/dto/add-track-to-playlist.dto.ts src/music/interface/dto/update-track.dto.ts src/music/interface/dto/create-track.dto.ts src/music/interface/dto/update-playlist.dto.ts src/music/interface/dto/list-tracks-query.dto.ts src/music/interface/dto/create-playlist.dto.ts src/music/interface/dto/update-playlist-track.dto.ts)",
+      "Bash(sed -i '' '1{/^\\\\/\\\\/ src\\\\/music\\\\/music.controller.ts/d;}' src/music/interface/music.controller.ts)"
     ]
   }
 }

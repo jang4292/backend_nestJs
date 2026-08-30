@@ -13,7 +13,7 @@ import { successResponse } from '../../../common/http/api-response';
 import { RequestIdInterceptor } from '../../../common/request-id/request-id.interceptor';
 import { RequestIdService } from '../../../common/request-id/request-id.service';
 import type { RequestWithId } from '../../../common/request-id/request-with-id';
-import type { SocialIdentity } from '../domain/social-identity';
+import type { SocialIdentity } from '../../../users/domain/social-identity';
 import type { TokenSet } from '../application/ports/google-auth-code-exchanger.port';
 import { VerifyGoogleIdTokenUseCase } from '../application/use-cases/verify-google-id-token.use-case';
 import { ExchangeGoogleAuthCodeUseCase } from '../application/use-cases/exchange-google-auth-code.use-case';

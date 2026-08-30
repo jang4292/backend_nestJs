@@ -5,8 +5,12 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
+import { AuthLocalModule } from './auth/local/auth-local.module';
 import { AuthGoogleModule } from './auth/google/auth-google.module';
+import { AuthAppleModule } from './auth/apple/auth-apple.module';
+import { AuthKakaoModule } from './auth/kakao/auth-kakao.module';
+import { AuthNaverModule } from './auth/naver/auth-naver.module';
+import { AuthFacebookModule } from './auth/facebook/auth-facebook.module';
 import { CommonModule } from './common/common.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { RequestIdInterceptor } from './common/request-id/request-id.interceptor';
@@ -64,8 +68,12 @@ import { createDatabaseOptions } from './database/database-options';
       inject: [ConfigService],
     }),
     UsersModule,
-    AuthModule,
+    AuthLocalModule,
     AuthGoogleModule,
+    AuthAppleModule,
+    AuthKakaoModule,
+    AuthNaverModule,
+    AuthFacebookModule,
     CommonModule,
     MusicModule,
   ],

@@ -27,6 +27,22 @@ export interface AppEnv {
   GOOGLE_OAUTH_CLIENT_ID?: string;
   GOOGLE_OAUTH_CLIENT_SECRET?: string;
   GOOGLE_OAUTH_REDIRECT_URIS?: string;
+  APPLE_ALLOWED_AUDIENCES?: string;
+  APPLE_SERVICE_ID?: string;
+  APPLE_TEAM_ID?: string;
+  APPLE_KEY_ID?: string;
+  APPLE_PRIVATE_KEY?: string;
+  APPLE_REDIRECT_URIS?: string;
+  KAKAO_REST_API_KEY?: string;
+  KAKAO_CLIENT_SECRET?: string;
+  KAKAO_REDIRECT_URIS?: string;
+  NAVER_CLIENT_ID?: string;
+  NAVER_CLIENT_SECRET?: string;
+  NAVER_REDIRECT_URIS?: string;
+  FACEBOOK_APP_ID?: string;
+  FACEBOOK_APP_SECRET?: string;
+  FACEBOOK_REDIRECT_URIS?: string;
+  FACEBOOK_GRAPH_API_VERSION?: string;
 }
 
 type RawEnv = Record<string, unknown>;
@@ -146,6 +162,24 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     ),
     GOOGLE_OAUTH_REDIRECT_URIS: optionalString(
       config.GOOGLE_OAUTH_REDIRECT_URIS,
+    ),
+    APPLE_ALLOWED_AUDIENCES: optionalString(config.APPLE_ALLOWED_AUDIENCES),
+    APPLE_SERVICE_ID: optionalString(config.APPLE_SERVICE_ID),
+    APPLE_TEAM_ID: optionalString(config.APPLE_TEAM_ID),
+    APPLE_KEY_ID: optionalString(config.APPLE_KEY_ID),
+    APPLE_PRIVATE_KEY: optionalString(config.APPLE_PRIVATE_KEY),
+    APPLE_REDIRECT_URIS: optionalString(config.APPLE_REDIRECT_URIS),
+    KAKAO_REST_API_KEY: optionalString(config.KAKAO_REST_API_KEY),
+    KAKAO_CLIENT_SECRET: optionalString(config.KAKAO_CLIENT_SECRET),
+    KAKAO_REDIRECT_URIS: optionalString(config.KAKAO_REDIRECT_URIS),
+    NAVER_CLIENT_ID: optionalString(config.NAVER_CLIENT_ID),
+    NAVER_CLIENT_SECRET: optionalString(config.NAVER_CLIENT_SECRET),
+    NAVER_REDIRECT_URIS: optionalString(config.NAVER_REDIRECT_URIS),
+    FACEBOOK_APP_ID: optionalString(config.FACEBOOK_APP_ID),
+    FACEBOOK_APP_SECRET: optionalString(config.FACEBOOK_APP_SECRET),
+    FACEBOOK_REDIRECT_URIS: optionalString(config.FACEBOOK_REDIRECT_URIS),
+    FACEBOOK_GRAPH_API_VERSION: optionalString(
+      config.FACEBOOK_GRAPH_API_VERSION,
     ),
   };
 }
