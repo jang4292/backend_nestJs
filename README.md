@@ -68,6 +68,28 @@ secrets, and blocks `DB_SYNCHRONIZE=true`. For AWS RDS, use the RDS endpoint
 as `DB_HOST`, enable `DB_SSL`, and keep `DB_SSL_REJECT_UNAUTHORIZED=true` when
 the RDS CA certificate is available to the runtime.
 
+For this project, RDS is the primary shared database path and local PostgreSQL
+is optional. Keep real RDS endpoints, DB usernames, DB names, and secret ids in
+your ignored `.env` or EC2 shell environment. Do not commit them to tracked
+files. A local RDS-oriented `.env` should look like this:
+
+```env
+NODE_ENV=development
+DB_HOST=<rds-endpoint>
+DB_PORT=5432
+DB_USERNAME=<db-user>
+DB_PASSWORD=<local-only-password-or-exported-secret>
+DB_DATABASE=<db-name>
+DB_SYNCHRONIZE=false
+DB_SSL=true
+DB_SSL_REJECT_UNAUTHORIZED=true
+DB_CONNECT_TIMEOUT_MS=5000
+```
+
+If your laptop cannot reach RDS, check the RDS security group and VPC/network
+path first. If you use local PostgreSQL instead, keep `DB_HOST=localhost` and
+run the same migrations before starting the app.
+
 ## Running
 
 ```bash
@@ -83,6 +105,35 @@ production environment:
 npm run migration:show
 npm run migration:run
 ```
+
+`npm run test:e2e` boots `AppModule` and needs a reachable PostgreSQL database.
+Without local PostgreSQL or RDS access, unit tests and build can still pass while
+e2e fails at DB connection time.
+
+## Secrets Manager and PM2
+
+The app itself reads only environment variables. On EC2, fetch Secrets Manager
+values immediately before migrations and PM2 reloads:
+
+```bash
+git pull --ff-only
+npm ci
+npm run build
+eval "$(AWS_SECRET_ID=<secret-id> AWS_REGION=ap-northeast-2 npm run -s secrets:export)"
+npm run migration:run
+npm run pm2:reload
+curl -fsS http://localhost:${PORT:-3000}/health
+```
+
+`scripts/export-secrets-env.cjs` accepts these Secrets Manager `SecretString`
+shapes:
+
+- Env-key JSON: `{"DB_PASSWORD":"...","JWT_SECRET":"..."}`
+- RDS managed JSON: `{"username":"...","password":"...","host":"...","port":5432,"dbname":"..."}`
+- Password-only string: the whole secret becomes `DB_PASSWORD`
+
+The helper prints shell `export` statements for allow-listed app variables only.
+It does not print diagnostic logs with secret values.
 
 ## API Overview
 

@@ -1,53 +1,25 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CommonModule } from '../../common/common.module';
 import { UsersModule } from '../../users/users.module';
+import { SessionModule } from '../session/session.module';
 
 import { GOOGLE_TOKEN_VERIFIER_PORT } from './application/ports/google-token-verifier.port';
 import { GOOGLE_AUTH_CODE_EXCHANGER_PORT } from './application/ports/google-auth-code-exchanger.port';
-import { SOCIAL_USER_REPOSITORY_PORT } from './application/ports/social-user-repository.port';
-import { SESSION_ISSUER_PORT } from './application/ports/session-issuer.port';
 
 import { VerifyGoogleIdTokenUseCase } from './application/use-cases/verify-google-id-token.use-case';
 import { ExchangeGoogleAuthCodeUseCase } from './application/use-cases/exchange-google-auth-code.use-case';
-import { UpsertSocialUserUseCase } from './application/use-cases/upsert-social-user.use-case';
-import { IssueSessionTokenUseCase } from './application/use-cases/issue-session-token.use-case';
 import { GoogleLoginUseCase } from './application/use-cases/google-login.use-case';
 
 import { GoogleOAuthClientAdapter } from './infrastructure/google-oauth-client.adapter';
-import { SocialUserTypeOrmAdapter } from './infrastructure/social-user-typeorm.adapter';
-import { SessionIssuerJwtAdapter } from './infrastructure/session-issuer-jwt.adapter';
 
 import { AuthGoogleController } from './interface/auth-google.controller';
 import { GoogleAuthExceptionFilter } from './interface/google-auth-exception.filter';
 
 @Module({
-  imports: [
-    CommonModule,
-    UsersModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => {
-        const secret = configService.get<string>('JWT_SECRET');
-        if (!secret) {
-          throw new Error('JWT_SECRET is not configured.');
-        }
-        return {
-          secret,
-          signOptions: {
-            expiresIn: configService.get('JWT_EXPIRES_IN') || '1h',
-          },
-        };
-      },
-      inject: [ConfigService],
-    }),
-  ],
+  imports: [CommonModule, UsersModule, SessionModule],
   controllers: [AuthGoogleController],
   providers: [
     GoogleOAuthClientAdapter,
-    SocialUserTypeOrmAdapter,
-    SessionIssuerJwtAdapter,
     GoogleAuthExceptionFilter,
 
     {
@@ -58,16 +30,9 @@ import { GoogleAuthExceptionFilter } from './interface/google-auth-exception.fil
       provide: GOOGLE_AUTH_CODE_EXCHANGER_PORT,
       useExisting: GoogleOAuthClientAdapter,
     },
-    {
-      provide: SOCIAL_USER_REPOSITORY_PORT,
-      useExisting: SocialUserTypeOrmAdapter,
-    },
-    { provide: SESSION_ISSUER_PORT, useExisting: SessionIssuerJwtAdapter },
 
     VerifyGoogleIdTokenUseCase,
     ExchangeGoogleAuthCodeUseCase,
-    UpsertSocialUserUseCase,
-    IssueSessionTokenUseCase,
     GoogleLoginUseCase,
   ],
 })

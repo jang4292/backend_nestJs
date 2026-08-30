@@ -9,24 +9,24 @@ import {
   TokenSet,
 } from '../ports/google-auth-code-exchanger.port';
 import {
-  SOCIAL_USER_REPOSITORY_PORT,
+  SOCIAL_ACCOUNT_LINKER_PORT,
   SocialUserRecord,
-  SocialUserRepositoryPort,
-} from '../ports/social-user-repository.port';
+  SocialAccountLinkerPort,
+} from '../../../../users/application/ports/social-account-linker.port';
 import {
   SESSION_ISSUER_PORT,
   SessionIssuerPort,
   SessionTokens,
-} from '../ports/session-issuer.port';
+} from '../../../session/application/ports/session-issuer.port';
 import { GoogleAuthErrorCode } from '../../domain/google-auth.errors';
-import { SocialIdentity } from '../../domain/social-identity';
+import { SocialIdentity } from '../../../../users/domain/social-identity';
 import { Test } from '@nestjs/testing';
 
 describe('GoogleLoginUseCase', () => {
   let useCase: GoogleLoginUseCase;
   let verifier: jest.Mocked<GoogleTokenVerifierPort>;
   let exchanger: jest.Mocked<GoogleAuthCodeExchangerPort>;
-  let userRepo: jest.Mocked<SocialUserRepositoryPort>;
+  let userRepo: jest.Mocked<SocialAccountLinkerPort>;
   let sessionIssuer: jest.Mocked<SessionIssuerPort>;
 
   const identity: SocialIdentity = {
@@ -54,7 +54,7 @@ describe('GoogleLoginUseCase', () => {
         GoogleLoginUseCase,
         { provide: GOOGLE_TOKEN_VERIFIER_PORT, useValue: verifier },
         { provide: GOOGLE_AUTH_CODE_EXCHANGER_PORT, useValue: exchanger },
-        { provide: SOCIAL_USER_REPOSITORY_PORT, useValue: userRepo },
+        { provide: SOCIAL_ACCOUNT_LINKER_PORT, useValue: userRepo },
         { provide: SESSION_ISSUER_PORT, useValue: sessionIssuer },
       ],
     }).compile();

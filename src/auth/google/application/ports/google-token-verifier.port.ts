@@ -1,4 +1,4 @@
-import { SocialIdentity } from '../../domain/social-identity';
+import { SocialIdentity } from '../../../../users/domain/social-identity';
 
 export const GOOGLE_TOKEN_VERIFIER_PORT = Symbol('GoogleTokenVerifierPort');
 

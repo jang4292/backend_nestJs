@@ -65,13 +65,34 @@ describe('validateAppEnv', () => {
     ).toThrow('CORS_ORIGIN is required when NODE_ENV=production.');
   });
 
-  it('only supports PostgreSQL', () => {
+  it('rejects an unsupported DB_TYPE', () => {
     expect(() =>
       validateAppEnv({
         ...baseEnv,
-        DB_TYPE: 'mysql',
+        DB_TYPE: 'sqlite',
       }),
-    ).toThrow('Only DB_TYPE=postgres is supported.');
+    ).toThrow('DB_TYPE must be one of: postgres, mysql.');
+  });
+
+  it('accepts mysql as DB_TYPE and defaults its port to 3306', () => {
+    const env = validateAppEnv({
+      ...baseEnv,
+      DB_TYPE: 'mysql',
+    });
+
+    expect(env.DB_TYPE).toBe('mysql');
+    expect(env.DB_PORT).toBe(3306);
+  });
+
+  it('requires DB_PASSWORD in production', () => {
+    expect(() =>
+      validateAppEnv({
+        ...baseEnv,
+        NODE_ENV: 'production',
+        CORS_ORIGIN: 'https://example.com',
+        DB_PASSWORD: undefined,
+      }),
+    ).toThrow('DB_PASSWORD is required when NODE_ENV=production.');
   });
 
   it('parses RDS SSL settings and an optional connection URL', () => {
@@ -80,13 +101,42 @@ describe('validateAppEnv', () => {
       DB_SSL: 'true',
       DB_SSL_REJECT_UNAUTHORIZED: 'false',
       DATABASE_URL: 'postgresql://user:password@example.com:5432/app',
+      DB_POOL_MIN: '2',
+      DB_POOL_MAX: '10',
+      DB_CONNECT_TIMEOUT_MS: '5000',
     });
 
     expect(env).toMatchObject({
       DB_SSL: true,
       DB_SSL_REJECT_UNAUTHORIZED: false,
       DATABASE_URL: 'postgresql://user:password@example.com:5432/app',
+      DB_POOL_MIN: 2,
+      DB_POOL_MAX: 10,
+      DB_CONNECT_TIMEOUT_MS: 5000,
     });
+  });
+
+  it('requires DB_SSL_CA in production when SSL verification is enabled', () => {
+    expect(() =>
+      validateAppEnv({
+        ...baseEnv,
+        NODE_ENV: 'production',
+        CORS_ORIGIN: 'https://app.example.com',
+        DB_SSL: 'true',
+      }),
+    ).toThrow(
+      'DB_SSL_CA is required in production when DB_SSL=true and certificate verification is enabled.',
+    );
+  });
+
+  it('rejects invalid pool min/max combinations', () => {
+    expect(() =>
+      validateAppEnv({
+        ...baseEnv,
+        DB_POOL_MIN: '10',
+        DB_POOL_MAX: '2',
+      }),
+    ).toThrow('DB_POOL_MIN must be less than or equal to DB_POOL_MAX.');
   });
 
   it('rejects invalid RDS SSL flags', () => {

@@ -43,12 +43,12 @@ NestJS API
        playlist_track
 ```
 
-| Entity | PostgreSQL table | 역할 | 주요 포인트 |
-| --- | --- | --- | --- |
-| `User` | `users` | 로컬 회원과 Google 소셜 회원 저장 | `username` unique, `googleId` nullable unique |
-| `Track` | `track` | 음악 트랙 저장 | `title`, `artist`, `bpm`, `lengthSec` |
-| `Playlist` | `playlist` | 플레이리스트 저장 | `playDate`, `description` nullable |
-| `PlaylistTrack` | `playlist_track` | playlist와 track의 관계 저장 | `playlistId`, `trackId`, `seq`, `note` |
+| Entity          | PostgreSQL table | 역할                              | 주요 포인트                                   |
+| --------------- | ---------------- | --------------------------------- | --------------------------------------------- |
+| `User`          | `users`          | 로컬 회원과 Google 소셜 회원 저장 | `username` unique, `googleId` nullable unique |
+| `Track`         | `track`          | 음악 트랙 저장                    | `title`, `artist`, `bpm`, `lengthSec`         |
+| `Playlist`      | `playlist`       | 플레이리스트 저장                 | `playDate`, `description` nullable            |
+| `PlaylistTrack` | `playlist_track` | playlist와 track의 관계 저장      | `playlistId`, `trackId`, `seq`, `note`        |
 
 `playlist_track`는 playlist와 track을 연결하는 관계 테이블입니다. playlist 또는 track이 삭제되면 연결 row도 함께 삭제되도록 foreign key에 `CASCADE` 정책이 들어갑니다.
 
@@ -86,7 +86,7 @@ TypeOrmModule.forRootAsync({
       ),
     }),
   inject: [ConfigService],
-})
+});
 ```
 
 학습 포인트는 `process.env`를 service에서 직접 읽지 않는다는 점입니다. 설정은 앱 시작 시 검증하고, 검증된 값을 NestJS DI 흐름으로 전달합니다.
@@ -131,14 +131,14 @@ export class User {
 
 여기서 decorator는 DB 스키마 의미를 가집니다.
 
-| Decorator | 의미 |
-| --- | --- |
-| `@Entity('users')` | 이 class를 `users` 테이블에 매핑 |
-| `@PrimaryGeneratedColumn()` | 자동 증가 primary key |
-| `@Column({ unique: true })` | unique 제약이 있는 컬럼 |
-| `@Column({ nullable: true })` | `NULL`을 허용하는 컬럼 |
-| `@CreateDateColumn()` | 생성 시각 자동 저장 |
-| `@UpdateDateColumn()` | 수정 시각 자동 저장 |
+| Decorator                     | 의미                             |
+| ----------------------------- | -------------------------------- |
+| `@Entity('users')`            | 이 class를 `users` 테이블에 매핑 |
+| `@PrimaryGeneratedColumn()`   | 자동 증가 primary key            |
+| `@Column({ unique: true })`   | unique 제약이 있는 컬럼          |
+| `@Column({ nullable: true })` | `NULL`을 허용하는 컬럼           |
+| `@CreateDateColumn()`         | 생성 시각 자동 저장              |
+| `@UpdateDateColumn()`         | 수정 시각 자동 저장              |
 
 중요한 점은 entity는 "DB 구조의 코드 표현"이고 DTO는 "HTTP 요청/응답의 계약"이라는 점입니다. 예를 들어 `CreateUserDto`는 회원가입 요청 body를 검증하고, `User` entity는 저장될 DB row의 형태를 표현합니다.
 
@@ -188,7 +188,7 @@ export class UsersModule {}
 `src/music/music.module.ts`는 세 entity의 repository를 등록합니다.
 
 ```ts
-TypeOrmModule.forFeature([Track, Playlist, PlaylistTrack])
+TypeOrmModule.forFeature([Track, Playlist, PlaylistTrack]);
 ```
 
 `forRootAsync`가 애플리케이션 전체 DB 연결을 만든다면, `forFeature`는 특정 feature module 안에서 사용할 repository provider를 등록한다고 이해하면 됩니다.
@@ -281,13 +281,13 @@ migration CLI는 `src/database/data-source.ts`를 사용합니다. 이 파일도
 
 AWS RDS for PostgreSQL을 사용할 때는 RDS 콘솔에서 다음 값을 준비합니다.
 
-| 값 | 설명 | 프로젝트 변수 |
-| --- | --- | --- |
-| Endpoint | RDS 호스트 이름 | `DB_HOST` |
-| Port | 기본 PostgreSQL 포트는 5432 | `DB_PORT` |
-| Master/app username | 애플리케이션용 DB 사용자 | `DB_USERNAME` |
-| Password | DB 사용자 비밀번호 | `DB_PASSWORD` |
-| Initial database | 사용할 데이터베이스 이름 | `DB_DATABASE` |
+| 값                  | 설명                        | 프로젝트 변수 |
+| ------------------- | --------------------------- | ------------- |
+| Endpoint            | RDS 호스트 이름             | `DB_HOST`     |
+| Port                | 기본 PostgreSQL 포트는 5432 | `DB_PORT`     |
+| Master/app username | 애플리케이션용 DB 사용자    | `DB_USERNAME` |
+| Password            | DB 사용자 비밀번호          | `DB_PASSWORD` |
+| Initial database    | 사용할 데이터베이스 이름    | `DB_DATABASE` |
 
 애플리케이션을 실행하는 서버가 RDS에 접근할 수 있어야 합니다. RDS 보안 그룹의 인바운드 규칙은 `0.0.0.0/0` 대신 애플리케이션 서버의 보안 그룹 또는 고정된 운영 IP만 허용하세요. 가능하면 RDS는 private subnet에 두고 애플리케이션도 같은 VPC에서 실행합니다.
 
@@ -314,22 +314,28 @@ DB_SSL=false
 DB_SSL_REJECT_UNAUTHORIZED=true
 ```
 
+로컬 장비 사양이 낮거나 Docker Desktop을 항상 켜두기 어렵다면, 로컬 PostgreSQL은 보조 경로로만 사용해도 됩니다. 이 경우 RDS 접근이 가능한 네트워크에서 `.env`의 `DB_HOST`를 RDS endpoint로 바꾸고 같은 migration 명령을 사용합니다.
+
 RDS 운영 환경 예시는 다음과 같습니다.
 
 ```env
 NODE_ENV=production
 DB_TYPE=postgres
-DB_HOST=my-db.xxxxxxxxxxxx.ap-northeast-2.rds.amazonaws.com
+DB_HOST=<rds-endpoint>
 DB_PORT=5432
 DB_USERNAME=app_user
-DB_PASSWORD=비밀번호
+DB_PASSWORD=<Secrets Manager에서 주입>
 DB_DATABASE=nestjs_db
 DB_SYNCHRONIZE=false
 DB_SSL=true
 DB_SSL_REJECT_UNAUTHORIZED=true
+DB_SSL_CA=/app/config/rds-ca-bundle.pem
+DB_POOL_MIN=2
+DB_POOL_MAX=10
+DB_CONNECT_TIMEOUT_MS=5000
 ```
 
-`DB_PASSWORD`, `JWT_SECRET`, Google secret은 Git에 커밋하지 않습니다. 운영에서는 AWS Secrets Manager 또는 Parameter Store에서 배포 환경변수로 주입하는 방식을 권장합니다.
+`DB_HOST`에는 프로젝트 밖에서 전달받은 RDS endpoint를 넣습니다. endpoint 자체가 비밀번호는 아니지만 인프라 식별자이므로 `.env`, EC2 shell, PM2 환경변수처럼 Git에서 제외되는 위치에서 관리합니다. `DB_PASSWORD`, `JWT_SECRET`, Google secret은 Git에 커밋하지 않습니다. 운영에서는 AWS Secrets Manager 또는 Parameter Store에서 배포 환경변수로 주입하는 방식을 권장합니다.
 
 ### DB_*와 DATABASE_URL
 
@@ -346,6 +352,40 @@ DATABASE_URL=postgresql://app_user:비밀번호@my-db.example.com:5432/nestjs_db
 
 비밀번호에 `@`, `:`, `/`, `#` 같은 문자가 있으면 URL encoding이 필요합니다. 이 문제가 걱정되거나 AWS secret을 항목별로 관리한다면 `DB_*` 방식을 사용하세요.
 
+### Secrets Manager helper
+
+이 프로젝트에는 EC2/PM2 수동 배포를 돕기 위한 helper가 있습니다.
+
+```bash
+eval "$(AWS_SECRET_ID=<secret-id> AWS_REGION=ap-northeast-2 npm run -s secrets:export)"
+```
+
+지원하는 SecretString 형식은 세 가지입니다.
+
+```json
+{
+  "DB_PASSWORD": "...",
+  "JWT_SECRET": "...",
+  "GOOGLE_OAUTH_CLIENT_SECRET": "..."
+}
+```
+
+```json
+{
+  "username": "app_user",
+  "password": "...",
+  "host": "...",
+  "port": 5432,
+  "dbname": "nestjs_db"
+}
+```
+
+```text
+password-only-secret
+```
+
+첫 번째 형식은 앱 환경변수명과 secret 키를 일치시키므로 작은 프로젝트에서 단순합니다. 두 번째 형식은 RDS managed secret과 password rotation에 잘 맞지만 `password`를 `DB_PASSWORD`로 바꾸는 매핑이 필요합니다. 세 번째 형식은 DB password 하나만 관리할 때 가장 작지만 JWT/OAuth secret은 별도 관리해야 합니다. 운영에서는 DB secret과 app secret을 분리하고, 필요한 경우 같은 shell에서 helper를 여러 번 실행해 환경변수를 합칩니다.
+
 ## 13. SSL 설정
 
 AWS RDS와 애플리케이션 사이의 전송 구간을 암호화하려면 다음을 사용합니다.
@@ -357,9 +397,12 @@ DB_SSL_REJECT_UNAUTHORIZED=true
 
 - `DB_SSL=true`: PostgreSQL TLS 연결을 사용합니다.
 - `DB_SSL_REJECT_UNAUTHORIZED=true`: 서버 인증서를 검증합니다.
+- `DB_SSL_CA`: RDS CA 번들 파일 경로입니다. 운영에서 인증서 검증을 켜는 경우 런타임이 이 파일을 읽을 수 있어야 합니다.
+- `DB_POOL_MIN`, `DB_POOL_MAX`: `pg` 풀 최소/최대 연결 수입니다. EC2 인스턴스 수와 RDS max connections를 고려해 설정합니다.
+- `DB_CONNECT_TIMEOUT_MS`: DB 연결 타임아웃입니다. 부팅/배포 시 장애 감지 시간을 제어할 수 있습니다.
 - `DB_SSL_REJECT_UNAUTHORIZED=false`: 암호화는 사용하지만 인증서 검증을 끕니다. 인증서 준비 전 임시 진단 목적 외에는 운영에서 권장하지 않습니다.
 
-RDS CA 인증서를 애플리케이션 런타임에 설치하는 방식은 배포 환경에 따라 달라집니다. 인증서 검증을 적용할 때는 AWS RDS 인증서 번들을 애플리케이션이 읽을 수 있도록 배포하고, TypeORM/pg SSL 옵션에 CA 경로를 추가하는 후속 작업이 필요합니다. 현재 구현은 flag로 TLS와 인증서 검증 정책을 제어합니다.
+RDS CA 인증서를 애플리케이션 런타임에 설치하는 방식은 배포 환경에 따라 달라집니다. 인증서 검증을 적용할 때는 AWS RDS 인증서 번들을 애플리케이션이 읽을 수 있도록 배포하고, `DB_SSL_CA`에 해당 경로를 설정합니다. 인증서 검증 실패 원인 확인을 위해 `DB_SSL_REJECT_UNAUTHORIZED=false`를 임시로 사용할 수 있지만, 운영 배포 기준값으로 남기지 않습니다.
 
 ## 14. 기존 RDS에 이미 테이블이 있는 경우
 
@@ -387,6 +430,21 @@ RDS CA 인증서를 애플리케이션 런타임에 설치하는 방식은 배�
 ```
 
 개인 프로젝트에서는 RDS에 접근 가능한 운영 터미널에서 수동 실행할 수 있습니다. 단, 실행한 명령과 결과를 기록하고 애플리케이션 배포 전에 migration을 완료하세요.
+
+EC2에서 GitHub 수동 pull과 PM2를 사용하는 흐름은 다음과 같습니다.
+
+```bash
+git pull --ff-only
+npm ci
+npm run build
+eval "$(AWS_SECRET_ID=<secret-id> AWS_REGION=ap-northeast-2 npm run -s secrets:export)"
+npm run migration:show
+npm run migration:run
+npm run pm2:reload
+curl -fsS http://localhost:${PORT:-3000}/health
+```
+
+`npm run pm2:reload`는 `ecosystem.config.cjs`를 사용합니다. 이 파일에는 secret 값을 저장하지 않고, helper가 현재 shell에 export한 환경변수만 PM2에 전달합니다.
 
 ## 16. 자주 발생하는 오류
 

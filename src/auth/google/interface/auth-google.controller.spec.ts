@@ -9,13 +9,13 @@ import { ExchangeGoogleAuthCodeUseCase } from '../application/use-cases/exchange
 import { GoogleLoginUseCase } from '../application/use-cases/google-login.use-case';
 import { GOOGLE_TOKEN_VERIFIER_PORT } from '../application/ports/google-token-verifier.port';
 import { GOOGLE_AUTH_CODE_EXCHANGER_PORT } from '../application/ports/google-auth-code-exchanger.port';
-import { SOCIAL_USER_REPOSITORY_PORT } from '../application/ports/social-user-repository.port';
-import { SESSION_ISSUER_PORT } from '../application/ports/session-issuer.port';
+import { SOCIAL_ACCOUNT_LINKER_PORT } from '../../../users/application/ports/social-account-linker.port';
+import { SESSION_ISSUER_PORT } from '../../session/application/ports/session-issuer.port';
 import {
   GoogleAuthError,
   GoogleAuthErrorCode,
 } from '../domain/google-auth.errors';
-import { SocialIdentity } from '../domain/social-identity';
+import { SocialIdentity } from '../../../users/domain/social-identity';
 import { GoogleAuthExceptionFilter } from './google-auth-exception.filter';
 
 interface SuccessEnvelope<T> {
@@ -49,7 +49,7 @@ describe('AuthGoogleController (integration)', () => {
         GoogleLoginUseCase,
         { provide: GOOGLE_TOKEN_VERIFIER_PORT, useValue: mockVerifier },
         { provide: GOOGLE_AUTH_CODE_EXCHANGER_PORT, useValue: mockExchanger },
-        { provide: SOCIAL_USER_REPOSITORY_PORT, useValue: mockUserRepo },
+        { provide: SOCIAL_ACCOUNT_LINKER_PORT, useValue: mockUserRepo },
         { provide: SESSION_ISSUER_PORT, useValue: mockSessionIssuer },
         GoogleAuthExceptionFilter,
       ],

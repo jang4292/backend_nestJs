@@ -1,10 +1,15 @@
+import { readFileSync } from 'fs';
 import { DataSourceOptions } from 'typeorm';
+import { Artist } from '../music/entities/artist.entity';
 import { PlaylistTrack } from '../music/entities/playlist-track.entity';
 import { Playlist } from '../music/entities/playlist.entity';
 import { Track } from '../music/entities/track.entity';
 import { User } from '../users/entities/user.entity';
 
+type ReadCaFile = (filePath: string, encoding: BufferEncoding) => string;
+
 export interface DatabaseConfig {
+  DB_TYPE?: 'postgres' | 'mysql';
   DB_HOST: string;
   DB_PORT: number;
   DB_USERNAME: string;
@@ -14,17 +19,41 @@ export interface DatabaseConfig {
   DB_SYNCHRONIZE: boolean;
   DB_SSL: boolean;
   DB_SSL_REJECT_UNAUTHORIZED: boolean;
+  DB_SSL_CA?: string;
+  DB_POOL_MIN?: number;
+  DB_POOL_MAX?: number;
+  DB_CONNECT_TIMEOUT_MS?: number;
   logging?: boolean;
   migrations?: string[];
 }
 
-export const databaseEntities = [User, Track, Playlist, PlaylistTrack];
+export const databaseEntities = [User, Artist, Track, Playlist, PlaylistTrack];
 
 export function createDatabaseOptions(
   config: DatabaseConfig,
+  readCaFile: ReadCaFile = readFileSync,
 ): DataSourceOptions {
+  const dbType = config.DB_TYPE ?? 'postgres';
+
+  const sslOptions = config.DB_SSL
+    ? {
+        rejectUnauthorized: config.DB_SSL_REJECT_UNAUTHORIZED,
+        ...(config.DB_SSL_CA
+          ? { ca: readCaFile(config.DB_SSL_CA, 'utf8') }
+          : {}),
+      }
+    : undefined;
+
+  const extraOptions = {
+    ...(config.DB_CONNECT_TIMEOUT_MS
+      ? { connectionTimeoutMillis: config.DB_CONNECT_TIMEOUT_MS }
+      : {}),
+    ...(config.DB_POOL_MIN !== undefined ? { min: config.DB_POOL_MIN } : {}),
+    ...(config.DB_POOL_MAX !== undefined ? { max: config.DB_POOL_MAX } : {}),
+  };
+
   return {
-    type: 'postgres',
+    type: dbType,
     ...(config.DATABASE_URL
       ? { url: config.DATABASE_URL }
       : {
@@ -38,12 +67,7 @@ export function createDatabaseOptions(
     migrations: config.migrations ?? ['dist/database/migrations/*.js'],
     synchronize: config.DB_SYNCHRONIZE,
     logging: config.logging ?? false,
-    ...(config.DB_SSL
-      ? {
-          ssl: {
-            rejectUnauthorized: config.DB_SSL_REJECT_UNAUTHORIZED,
-          },
-        }
-      : {}),
+    ...(sslOptions ? { ssl: sslOptions } : {}),
+    ...(Object.keys(extraOptions).length > 0 ? { extra: extraOptions } : {}),
   };
 }

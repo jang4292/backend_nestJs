@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { SocialIdentity } from '../../domain/social-identity';
+import type { SocialIdentity } from '../../../../users/domain/social-identity';
 import { GOOGLE_TOKEN_VERIFIER_PORT } from '../ports/google-token-verifier.port';
 import type { GoogleTokenVerifierPort } from '../ports/google-token-verifier.port';
 

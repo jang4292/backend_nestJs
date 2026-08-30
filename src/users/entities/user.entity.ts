@@ -4,7 +4,9 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { SocialAccount } from './social-account.entity';
 
 @Entity('users')
 export class User {
@@ -17,19 +19,14 @@ export class User {
   @Column({ nullable: true })
   password: string | null;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true })
   email: string | null;
 
   @Column({ nullable: true })
   name: string | null;
 
-  /** Social provider name, e.g. 'google' */
-  @Column({ nullable: true })
-  provider: string | null;
-
-  /** Provider-specific unique user id (e.g. Google sub) */
-  @Column({ nullable: true, unique: true })
-  googleId: string | null;
+  @OneToMany(() => SocialAccount, (socialAccount) => socialAccount.user)
+  socialAccounts: SocialAccount[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -3,7 +3,7 @@ export type NodeEnvironment = 'development' | 'test' | 'production';
 export interface AppEnv {
   PORT: number;
   NODE_ENV: NodeEnvironment;
-  DB_TYPE: 'postgres';
+  DB_TYPE: 'postgres' | 'mysql';
   DB_HOST: string;
   DB_PORT: number;
   DB_USERNAME: string;
@@ -13,6 +13,10 @@ export interface AppEnv {
   DB_SYNCHRONIZE: boolean;
   DB_SSL: boolean;
   DB_SSL_REJECT_UNAUTHORIZED: boolean;
+  DB_SSL_CA?: string;
+  DB_POOL_MIN?: number;
+  DB_POOL_MAX?: number;
+  DB_CONNECT_TIMEOUT_MS?: number;
   JWT_SECRET: string;
   JWT_EXPIRES_IN: string;
   THROTTLE_TTL: number;
@@ -23,6 +27,22 @@ export interface AppEnv {
   GOOGLE_OAUTH_CLIENT_ID?: string;
   GOOGLE_OAUTH_CLIENT_SECRET?: string;
   GOOGLE_OAUTH_REDIRECT_URIS?: string;
+  APPLE_ALLOWED_AUDIENCES?: string;
+  APPLE_SERVICE_ID?: string;
+  APPLE_TEAM_ID?: string;
+  APPLE_KEY_ID?: string;
+  APPLE_PRIVATE_KEY?: string;
+  APPLE_REDIRECT_URIS?: string;
+  KAKAO_REST_API_KEY?: string;
+  KAKAO_CLIENT_SECRET?: string;
+  KAKAO_REDIRECT_URIS?: string;
+  NAVER_CLIENT_ID?: string;
+  NAVER_CLIENT_SECRET?: string;
+  NAVER_REDIRECT_URIS?: string;
+  FACEBOOK_APP_ID?: string;
+  FACEBOOK_APP_SECRET?: string;
+  FACEBOOK_REDIRECT_URIS?: string;
+  FACEBOOK_GRAPH_API_VERSION?: string;
 }
 
 type RawEnv = Record<string, unknown>;
@@ -43,6 +63,18 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     'DB_SSL_REJECT_UNAUTHORIZED',
     true,
   );
+  const dbSslCa = optionalString(config.DB_SSL_CA);
+  const dbPoolMin = parseOptionalInteger(config.DB_POOL_MIN, 'DB_POOL_MIN', {
+    min: 0,
+  });
+  const dbPoolMax = parseOptionalInteger(config.DB_POOL_MAX, 'DB_POOL_MAX', {
+    min: 1,
+  });
+  const dbConnectTimeoutMs = parseOptionalInteger(
+    config.DB_CONNECT_TIMEOUT_MS,
+    'DB_CONNECT_TIMEOUT_MS',
+    { min: 1 },
+  );
   const corsOrigin = optionalString(config.CORS_ORIGIN);
   const jwtSecret = requiredString(config.JWT_SECRET, 'JWT_SECRET');
 
@@ -54,28 +86,61 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     throw new Error('DB_SYNCHRONIZE must be false in production.');
   }
 
+  if (
+    dbPoolMin !== undefined &&
+    dbPoolMax !== undefined &&
+    dbPoolMin > dbPoolMax
+  ) {
+    throw new Error('DB_POOL_MIN must be less than or equal to DB_POOL_MAX.');
+  }
+
+  if (
+    nodeEnv === 'production' &&
+    dbSsl &&
+    dbSslRejectUnauthorized &&
+    !dbSslCa
+  ) {
+    throw new Error(
+      'DB_SSL_CA is required in production when DB_SSL=true and certificate verification is enabled.',
+    );
+  }
+
   if (nodeEnv === 'production' && isPlaceholderSecret(jwtSecret)) {
     throw new Error('JWT_SECRET must be a strong production secret.');
   }
 
   const dbType = optionalString(config.DB_TYPE) ?? 'postgres';
-  if (dbType !== 'postgres') {
-    throw new Error('Only DB_TYPE=postgres is supported.');
+  if (dbType !== 'postgres' && dbType !== 'mysql') {
+    throw new Error('DB_TYPE must be one of: postgres, mysql.');
+  }
+
+  const dbPassword = optionalString(config.DB_PASSWORD);
+  if (nodeEnv === 'production' && !dbPassword) {
+    throw new Error('DB_PASSWORD is required when NODE_ENV=production.');
   }
 
   return {
     PORT: parseInteger(config.PORT, 'PORT', 3000, { min: 1 }),
     NODE_ENV: nodeEnv,
-    DB_TYPE: 'postgres',
+    DB_TYPE: dbType,
     DB_HOST: optionalString(config.DB_HOST) ?? 'localhost',
-    DB_PORT: parseInteger(config.DB_PORT, 'DB_PORT', 5432, { min: 1 }),
+    DB_PORT: parseInteger(
+      config.DB_PORT,
+      'DB_PORT',
+      dbType === 'mysql' ? 3306 : 5432,
+      { min: 1 },
+    ),
     DB_USERNAME: optionalString(config.DB_USERNAME) ?? 'postgres',
-    DB_PASSWORD: optionalString(config.DB_PASSWORD) ?? 'password',
+    DB_PASSWORD: dbPassword ?? 'password',
     DB_DATABASE: optionalString(config.DB_DATABASE) ?? 'nestjs_db',
     DATABASE_URL: optionalString(config.DATABASE_URL),
     DB_SYNCHRONIZE: dbSynchronize,
     DB_SSL: dbSsl,
     DB_SSL_REJECT_UNAUTHORIZED: dbSslRejectUnauthorized,
+    DB_SSL_CA: dbSslCa,
+    DB_POOL_MIN: dbPoolMin,
+    DB_POOL_MAX: dbPoolMax,
+    DB_CONNECT_TIMEOUT_MS: dbConnectTimeoutMs,
     JWT_SECRET: jwtSecret,
     JWT_EXPIRES_IN: optionalString(config.JWT_EXPIRES_IN) ?? '1h',
     THROTTLE_TTL: parseInteger(config.THROTTLE_TTL, 'THROTTLE_TTL', 60, {
@@ -98,7 +163,38 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     GOOGLE_OAUTH_REDIRECT_URIS: optionalString(
       config.GOOGLE_OAUTH_REDIRECT_URIS,
     ),
+    APPLE_ALLOWED_AUDIENCES: optionalString(config.APPLE_ALLOWED_AUDIENCES),
+    APPLE_SERVICE_ID: optionalString(config.APPLE_SERVICE_ID),
+    APPLE_TEAM_ID: optionalString(config.APPLE_TEAM_ID),
+    APPLE_KEY_ID: optionalString(config.APPLE_KEY_ID),
+    APPLE_PRIVATE_KEY: optionalString(config.APPLE_PRIVATE_KEY),
+    APPLE_REDIRECT_URIS: optionalString(config.APPLE_REDIRECT_URIS),
+    KAKAO_REST_API_KEY: optionalString(config.KAKAO_REST_API_KEY),
+    KAKAO_CLIENT_SECRET: optionalString(config.KAKAO_CLIENT_SECRET),
+    KAKAO_REDIRECT_URIS: optionalString(config.KAKAO_REDIRECT_URIS),
+    NAVER_CLIENT_ID: optionalString(config.NAVER_CLIENT_ID),
+    NAVER_CLIENT_SECRET: optionalString(config.NAVER_CLIENT_SECRET),
+    NAVER_REDIRECT_URIS: optionalString(config.NAVER_REDIRECT_URIS),
+    FACEBOOK_APP_ID: optionalString(config.FACEBOOK_APP_ID),
+    FACEBOOK_APP_SECRET: optionalString(config.FACEBOOK_APP_SECRET),
+    FACEBOOK_REDIRECT_URIS: optionalString(config.FACEBOOK_REDIRECT_URIS),
+    FACEBOOK_GRAPH_API_VERSION: optionalString(
+      config.FACEBOOK_GRAPH_API_VERSION,
+    ),
   };
+}
+
+function parseOptionalInteger(
+  value: unknown,
+  name: string,
+  options?: { min?: number },
+): number | undefined {
+  const parsed = optionalString(value);
+  if (parsed === undefined) {
+    return undefined;
+  }
+
+  return parseInteger(parsed, name, 0, options);
 }
 
 function parseNodeEnv(value: unknown): NodeEnvironment {

@@ -34,13 +34,16 @@ async function bootstrap() {
     }),
   );
 
-  // API docs
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Backend NestJs API')
-    .setVersion('1.0')
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api-docs', app, document);
+  // API docs (개발 환경에서만 노출 — 프로덕션에서 API 스펙 노출 방지)
+  if (configService.get<string>('NODE_ENV') !== 'production') {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('Backend NestJs API')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('api-docs', app, document);
+  }
 
   await app.listen(configService.get<number>('PORT', 3000));
   console.log(`Application is running on: ${await app.getUrl()}`);
