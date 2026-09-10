@@ -30,7 +30,7 @@ const KEY_VALUE_SECRET_PATTERN = new RegExp(
   'gi',
 );
 const DATABASE_URL_SECRET_PATTERN =
-  /(postgres(?:ql)?:\/\/[^:\s/@]+:)([^@\s]+)(@)/gi;
+  /((?:postgres(?:ql)?|mariadb):\/\/[^:\s/@]+:)([^@\s]+)(@)/gi;
 const BEARER_TOKEN_PATTERN = /(Bearer\s+)[A-Za-z0-9._~+/=-]+/gi;
 
 @Catch()
