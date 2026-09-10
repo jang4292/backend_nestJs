@@ -9,6 +9,7 @@ import {
   UseFilters,
   UseInterceptors,
 } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { successResponse } from '../../../common/http/api-response';
 import { RequestIdInterceptor } from '../../../common/request-id/request-id.interceptor';
 import { RequestIdService } from '../../../common/request-id/request-id.service';
@@ -36,6 +37,7 @@ type FacebookLoginResponseData = {
 };
 
 @Controller('auth/facebook')
+@ApiTags('auth/facebook')
 @UseInterceptors(RequestIdInterceptor)
 @UseFilters(FacebookAuthExceptionFilter)
 export class AuthFacebookController {
@@ -58,6 +60,7 @@ export class AuthFacebookController {
   }
 
   @Post('exchange-code')
+  @ApiOperation({ summary: 'Facebook authorization code 교환' })
   @HttpCode(HttpStatus.OK)
   async exchangeCode(
     @Body(ValidationPipe) dto: ExchangeCodeDto,
@@ -79,6 +82,7 @@ export class AuthFacebookController {
   }
 
   @Post('login')
+  @ApiOperation({ summary: 'Facebook social login' })
   @HttpCode(HttpStatus.OK)
   async login(
     @Body(ValidationPipe) dto: FacebookLoginDto,

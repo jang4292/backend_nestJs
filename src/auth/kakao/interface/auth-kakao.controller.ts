@@ -9,6 +9,7 @@ import {
   UseFilters,
   UseInterceptors,
 } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { successResponse } from '../../../common/http/api-response';
 import { RequestIdInterceptor } from '../../../common/request-id/request-id.interceptor';
 import { RequestIdService } from '../../../common/request-id/request-id.service';
@@ -36,6 +37,7 @@ type KakaoLoginResponseData = {
 };
 
 @Controller('auth/kakao')
+@ApiTags('auth/kakao')
 @UseInterceptors(RequestIdInterceptor)
 @UseFilters(KakaoAuthExceptionFilter)
 export class AuthKakaoController {
@@ -58,6 +60,7 @@ export class AuthKakaoController {
   }
 
   @Post('exchange-code')
+  @ApiOperation({ summary: 'Kakao authorization code 교환' })
   @HttpCode(HttpStatus.OK)
   async exchangeCode(
     @Body(ValidationPipe) dto: ExchangeCodeDto,
@@ -79,6 +82,7 @@ export class AuthKakaoController {
   }
 
   @Post('login')
+  @ApiOperation({ summary: 'Kakao social login' })
   @HttpCode(HttpStatus.OK)
   async login(
     @Body(ValidationPipe) dto: KakaoLoginDto,

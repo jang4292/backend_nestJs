@@ -9,6 +9,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { UsersService } from '../users.service';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../../auth/session/interface/jwt-auth.guard';
@@ -17,10 +18,12 @@ import { toPublicUser } from './presenters/public-user.presenter';
 import type { PublicUser } from './presenters/public-user.presenter';
 
 @Controller('users')
+@ApiTags('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post('register')
+  @ApiOperation({ summary: '사용자 등록' })
   async register(
     @Body(ValidationPipe) createUserDto: CreateUserDto,
   ): Promise<PublicUser> {
@@ -29,13 +32,17 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Get('profile')
+  @ApiOperation({ summary: '현재 사용자 프로필 조회' })
   getProfile(@Request() req: AuthenticatedRequest): PublicUser {
     return req.user;
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Patch('profile')
+  @ApiOperation({ summary: '현재 사용자 프로필 수정' })
   async updateProfile(
     @Request() req: AuthenticatedRequest,
     @Body(ValidationPipe) updateUserDto: UpdateUserDto,

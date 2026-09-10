@@ -1,29 +1,23 @@
 # 백엔드 API 서버 검토: DB 설정 / 로그인 로직 / 보안 / REST API 구조
 
-이 문서는 `feature/login-logics` 브랜치 기준으로 (1) MySQL 관련 설정값의 위치, (2) 로그인 로직, (3) 보안 처리, (4) REST API 구조를 정리하고, 검토 과정에서 발견된 이슈와 이번 작업에서의 조치 여부를 기록한다. PostgreSQL 연결 자체의 기본 구조는 [postgresql-rds-nestjs-guide.kr.md](postgresql-rds-nestjs-guide.kr.md)를, 시크릿 흐름은 [security-guide.kr.md](security-guide.kr.md)를 함께 참고한다.
+이 문서는 현재 `develop` 기준으로 (1) MariaDB 설정값의 위치, (2) 로그인 로직, (3) 보안 처리, (4) REST API 구조를 정리한다. 과거 PostgreSQL 기록은 [postgresql-rds-nestjs-guide.kr.md](postgresql-rds-nestjs-guide.kr.md)를, 시크릿 흐름은 [security-guide.kr.md](security-guide.kr.md)를 참고한다.
 
 ## 1. MySQL 관련 설정값 위치 (재도입 가능 구조로 정리)
 
-이 프로젝트는 현재 PostgreSQL만 실제로 사용하지만(설치된 드라이버도 `pg`뿐), 나중에 MySQL 설정값을 별도로 다시 반영할 수 있도록 DB 종류를 `DB_TYPE` 환경변수로 분기하는 구조로 정리했다.
+이 프로젝트는 현재 MariaDB 10.11을 사용하며 `mysql2` 드라이버를 통해 TypeORM과 연결한다. `DB_TYPE`은 호환성을 위해 환경변수로 받지만 `mariadb`만 허용한다.
 
 DB 설정이 모이는 지점은 다음 4곳이다.
 
 | 파일 | 역할 |
 | --- | --- |
-| [src/config/app-env.ts](../../src/config/app-env.ts) | `DB_TYPE: 'postgres' \| 'mysql'` 타입 정의, 환경변수 검증(`postgres`/`mysql` 외 값은 부팅 시 에러) |
-| [src/database/database-options.ts](../../src/database/database-options.ts) | `createDatabaseOptions()` — `DB_TYPE`에 따라 TypeORM `DataSourceOptions.type`을 분기해 반환. 이 함수 하나가 앱 런타임과 migration CLI가 공유하는 단일 진입점 |
-| [src/database/data-source.ts](../../src/database/data-source.ts) | migration CLI용 `DataSource` — `DB_TYPE` env를 읽어 `createDatabaseOptions`에 전달, 기본 포트도 타입에 따라 5432/3306으로 분기 |
+| [src/config/app-env.ts](../../src/config/app-env.ts) | `DB_TYPE: 'mariadb'` 타입 정의와 환경변수 검증 |
+| [src/database/database-options.ts](../../src/database/database-options.ts) | `createDatabaseOptions()` — MariaDB용 TypeORM `DataSourceOptions`를 생성하며 앱 런타임과 migration CLI가 공유하는 단일 진입점 |
+| [src/database/data-source.ts](../../src/database/data-source.ts) | migration CLI용 `DataSource` — 검증된 MariaDB 설정을 `createDatabaseOptions`에 전달 |
 | [src/app.module.ts](../../src/app.module.ts) | `TypeOrmModule.forRootAsync`에서 `ConfigService`의 `DB_TYPE`을 읽어 `createDatabaseOptions`에 전달 |
 
-`.env` / `.env.example`의 `DB_*` 변수(`DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`, `DATABASE_URL`)는 두 DB 종류에 공통으로 쓰인다. `DB_SSL`, `DB_SSL_REJECT_UNAUTHORIZED`는 현재 postgres(RDS) 전용으로만 적용되도록 분기해 두었다(`database-options.ts` 참고).
+`.env` / `.env.example`의 `DB_*` 변수는 MariaDB 연결과 migration CLI에서 공통으로 사용한다. 현재 서버 TLS 상태에 따라 기본 템플릿은 `DB_SSL=false`를 사용한다.
 
-### MySQL을 실제로 다시 붙일 때 추가로 필요한 작업 (이번 범위 밖)
-
-이번 작업은 "구조 분기"까지만 진행했고, 아래는 실제로 `DB_TYPE=mysql`을 운영에 쓰기 전에 반드시 필요한 후속 작업이다.
-
-- `mysql2` 드라이버 설치 (`package.json` dependencies)
-- MySQL 전용 migration 작성 — 현재 [1760000000000-CreateInitialSchema.ts](../../src/database/migrations/1760000000000-CreateInitialSchema.ts)는 `serial`, `timestamp without time zone` 등 PostgreSQL 전용 컬럼 타입을 사용하므로 MySQL에서는 그대로 동작하지 않는다
-- 실제 MySQL 인스턴스에 연결해 커넥션/마이그레이션/쿼리 동작 검증 (이번 작업 범위에서 명시적으로 제외)
+공유 환경에서는 `DB_SYNCHRONIZE=false`를 유지하고 migration을 배포 단계에서 실행한다.
 
 ## 2. 로그인 로직 정리
 
@@ -40,7 +34,7 @@ POST /auth/login (AuthController)
 
 관련 파일: [auth.controller.ts](../../src/auth/auth.controller.ts), [auth.service.ts](../../src/auth/auth.service.ts), [jwt.strategy.ts](../../src/auth/strategies/jwt.strategy.ts), [jwt-auth.guard.ts](../../src/auth/guards/jwt-auth.guard.ts)
 
-Google OAuth 로그인은 별도 DDD 모듈([src/auth/google/**](../../src/auth/google))로 분리되어 있으며 `POST /auth/google/verify-id-token`, `/auth/google/exchange-code`, `/auth/google/login` 세 엔드포인트를 제공한다.
+Google OAuth 로그인은 별도 DDD 모듈로 분리되어 있으며, Apple/Facebook/Kakao/Naver도 동일한 provider별 구조로 제공한다.
 
 ### 발견된 문제와 조치
 
@@ -69,16 +63,16 @@ Google OAuth 로그인은 별도 DDD 모듈([src/auth/google/**](../../src/auth/
 | 모듈 | 주요 엔드포인트 | 인증 |
 | --- | --- | --- |
 | `AuthModule` | `POST /auth/login` | 불필요 (로그인 자체) |
-| `AuthGoogleModule` | `POST /auth/google/verify-id-token`, `/auth/google/exchange-code`, `/auth/google/login` | 불필요 (로그인 자체) |
+| `AuthGoogleModule` 및 기타 SNS 모듈 | `/auth/{provider}/*` | 불필요 (로그인 자체) |
 | `UsersModule` | `POST /users/register` | 불필요 |
 | | `GET /users/profile`, `PATCH /users/profile` | `JwtAuthGuard` |
-| `MusicModule` | `/music/tracks/*` (CRUD), `/music/playlists/*` (CRUD), `/music/playlists/:id/tracks/*` (관계 CRUD) | `JwtAuthGuard` (이번 작업에서 추가) |
+| `MusicModule` | `/music/artists/*`, `/music/tracks/*`, `/music/playlists/*`, `/music/playlists/:id/tracks/*` | `JwtAuthGuard` |
 
 모든 API는 `Controller`/`@Body`/`@Query`/`@Param` + DTO(class-validator) 조합의 표준 REST 패턴을 따른다. Google 로그인 모듈만 도메인/유스케이스/어댑터를 분리한 클린 아키텍처 스타일이고, 나머지는 Controller-Service-Repository 계층 구조다.
 
 ## 5. 종합 검토 체크리스트
 
-- [x] MySQL 설정값 위치 정리 + `DB_TYPE` 기반 재도입 가능 구조로 리팩터링 (드라이버 설치·실연결 검증은 범위 밖)
+- [x] MariaDB 설정값과 TypeORM migration 경로 정리
 - [x] 사용되지 않는 `LocalStrategy`/`LocalAuthGuard` 제거
 - [x] `ThrottlerGuard` 전역 바인딩 (rate limiting 실제 적용)
 - [x] `MusicController`에 `JwtAuthGuard` 적용
@@ -87,4 +81,3 @@ Google OAuth 로그인은 별도 DDD 모듈([src/auth/google/**](../../src/auth/
 - [x] 전역 예외 필터로 에러 응답 정규화
 - [ ] Refresh token / 서버 측 로그아웃(토큰 무효화) 구현 — 후속 과제
 - [ ] `Track`/`Playlist`에 소유자(`userId`) 컬럼 추가 후 "본인 데이터만 접근" 수준까지 인가 강화 — 후속 과제
-- [ ] MySQL 실사용을 위한 `mysql2` 설치 + 전용 migration 작성 + 실연결 검증 — 후속 과제

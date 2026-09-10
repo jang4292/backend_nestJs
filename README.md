@@ -1,20 +1,23 @@
 # NestJS Backend API
 
-A NestJS backend focused on authentication, Google social login, user profile
-management, and music playlist APIs. The project uses MariaDB with TypeORM,
-strict environment validation, global request validation, and security-focused
+A NestJS backend for local and social authentication, user profiles, and music
+catalog and playlist APIs. The project uses MariaDB with TypeORM, strict
+environment validation, global request validation, and security-focused
 runtime defaults.
 
 ## Features
 
 - Local user registration and JWT login
-- Google social login using ID token or auth-code + PKCE flow
+- Social login for Google, Apple, Facebook, Kakao, and Naver
+- Google and Apple ID-token verification plus authorization-code exchange flows
+- Authorization-code exchange and access-token login flows for Facebook, Kakao,
+  and Naver
 - Protected user profile read/update endpoints
-- Music track, playlist, and playlist-track APIs
+- Music artist, track, playlist, and playlist-track APIs
 - MariaDB + TypeORM integration
 - Environment validation for unsafe production settings
 - Helmet, CORS allow-listing, throttling, and DTO validation
-- Unit/integration coverage for auth, Google auth, config, users, and music
+- Unit and integration coverage for auth, config, users, and music
 
 ## Installation
 
@@ -68,31 +71,28 @@ has TLS disabled, so use `DB_SSL=false`. Re-check `have_ssl` and
 `require_secure_transport` before exposing the database outside its current
 network.
 `NODE_ENV=production` also requires `CORS_ORIGIN`, rejects placeholder JWT
-secrets, and blocks `DB_SYNCHRONIZE=true`. For AWS RDS, use the RDS endpoint
-as `DB_HOST`, enable `DB_SSL`, and keep `DB_SSL_REJECT_UNAUTHORIZED=true` when
-the RDS CA certificate is available to the runtime.
-
-For this project, RDS is the primary shared database path and local PostgreSQL
-is optional. Keep real RDS endpoints, DB usernames, DB names, and secret ids in
-your ignored `.env` or EC2 shell environment. Do not commit them to tracked
-files. A local RDS-oriented `.env` should look like this:
+secrets, and blocks `DB_SYNCHRONIZE=true`. For a remote MariaDB instance, use
+its hostname as `DB_HOST`. Enable `DB_SSL=true` only after the server TLS
+configuration and CA certificate are ready. Keep real endpoints, usernames,
+database names, and secret values in ignored environment files or the EC2
+environment.
 
 ```env
 NODE_ENV=development
-DB_HOST=<rds-endpoint>
-DB_PORT=5432
+DB_HOST=<mariadb-host>
+DB_PORT=3306
 DB_USERNAME=<db-user>
 DB_PASSWORD=<local-only-password-or-exported-secret>
 DB_DATABASE=<db-name>
 DB_SYNCHRONIZE=false
-DB_SSL=true
+DB_SSL=false
 DB_SSL_REJECT_UNAUTHORIZED=true
 DB_CONNECT_TIMEOUT_MS=5000
 ```
 
-If your laptop cannot reach RDS, check the RDS security group and VPC/network
-path first. If you use local PostgreSQL instead, keep `DB_HOST=localhost` and
-run the same migrations before starting the app.
+The application supports `DB_TYPE=mariadb` only. PostgreSQL is not a supported
+runtime database. Run migrations against the target MariaDB database before
+starting a shared or production instance.
 
 ## Running
 
@@ -119,9 +119,15 @@ The environment files have four clear roles:
 
 Do not create or use `.env.local`; it is not part of the supported configuration.
 
+## API Documentation
+
+Swagger is available at `http://localhost:3000/api-docs` in development and
+test environments. It is disabled in production. Complete curl examples are
+in [API_EXAMPLES.md](API_EXAMPLES.md).
+
 `npm run test:e2e` boots `AppModule` and needs a reachable MariaDB database.
-Without local MariaDB or RDS access, unit tests and build can still pass while
-e2e fails at DB connection time.
+Without local or remote MariaDB access, unit tests and build can still pass
+while e2e fails at DB connection time.
 
 ## Secrets Manager and PM2
 
@@ -142,7 +148,7 @@ curl -fsS http://localhost:${PORT:-3000}/health
 shapes:
 
 - Env-key JSON: `{"DB_PASSWORD":"...","JWT_SECRET":"..."}`
-- RDS managed JSON: `{"username":"...","password":"...","host":"...","port":5432,"dbname":"..."}`
+- MariaDB managed JSON: `{"username":"...","password":"...","host":"...","port":3306,"dbname":"..."}`
 - Password-only string: the whole secret becomes `DB_PASSWORD`
 
 The helper prints shell `export` statements for allow-listed app variables only.
@@ -167,8 +173,6 @@ Run test-database migrations with `NODE_ENV=test`. In Windows PowerShell:
 $env:NODE_ENV='test'; npm run migration:run
 ```
 
-## API Overview
-
 ## Troubleshooting Guide
 
 로컬 환경 파일, MariaDB 연결, TypeORM 메타데이터, Jest ESM 오류의 발생 및 수정 이력은
@@ -183,8 +187,15 @@ POST /auth/login
 POST /auth/google/verify-id-token
 POST /auth/google/exchange-code
 POST /auth/google/login
-GET  /music/tracks
-GET  /music/playlists
+POST /auth/apple/verify-id-token
+POST /auth/apple/exchange-code
+POST /auth/apple/login
+POST /auth/facebook/exchange-code
+POST /auth/facebook/login
+POST /auth/kakao/exchange-code
+POST /auth/kakao/login
+POST /auth/naver/exchange-code
+POST /auth/naver/login
 ```
 
 Protected user endpoints:
@@ -197,6 +208,12 @@ PATCH /users/profile
 Music endpoints:
 
 ```http
+GET    /music/artists
+GET    /music/artists/:id
+POST   /music/artists
+PATCH  /music/artists/:id
+DELETE /music/artists/:id
+
 POST   /music/tracks
 GET    /music/tracks
 GET    /music/tracks/:id
@@ -222,7 +239,7 @@ DELETE /music/playlists/:playlistId/tracks/:playlistTrackId
 src/
   common/        shared request-id, response, and request contracts
   config/        environment validation and AppEnv contract
-  auth/          local/JWT auth plus Google social auth
+  auth/          local/JWT auth plus five social providers
   users/         user entity, DTOs, controller, service, public-user mapper
   music/         music controller, facade service, domain services, entities
   app.module.ts  application module and infrastructure wiring
@@ -231,6 +248,9 @@ src/
 
 ## Learning Guide
 
+- [API usage examples](API_EXAMPLES.md)
+- [SNS login overview](docs/auth/sns-login-overview.kr.md)
+- [Google login guide](docs/auth/google-login.en.md)
 - [NestJS operational stability refactor guide](docs/learning/nestjs-operational-stability-guide.kr.md)
 - [MariaDB EC2 deployment guide](docs/deployment/mariadb-systemd.kr.md)
 
@@ -246,7 +266,7 @@ npx eslint "src/**/*.ts" "test/**/*.ts"
 
 - Keep `DB_SYNCHRONIZE=false`; use TypeORM migrations for shared databases.
 - Run migrations as a release/deployment step before deploying the application.
-- Do not run the initial migration against an existing RDS database until its
+- Do not run the initial migration against an existing MariaDB database until its
   current schema has been compared and backed up.
 - Use a strong `JWT_SECRET` and rotate it according to your security policy.
 - Set `CORS_ORIGIN` to the real frontend origin, never `*`.

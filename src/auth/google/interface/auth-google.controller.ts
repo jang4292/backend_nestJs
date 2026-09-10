@@ -9,6 +9,7 @@ import {
   UseFilters,
   UseInterceptors,
 } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { successResponse } from '../../../common/http/api-response';
 import { RequestIdInterceptor } from '../../../common/request-id/request-id.interceptor';
 import { RequestIdService } from '../../../common/request-id/request-id.service';
@@ -39,6 +40,7 @@ type GoogleLoginResponseData = {
 };
 
 @Controller('auth/google')
+@ApiTags('auth/google')
 @UseInterceptors(RequestIdInterceptor)
 @UseFilters(GoogleAuthExceptionFilter)
 export class AuthGoogleController {
@@ -54,6 +56,7 @@ export class AuthGoogleController {
   }
 
   @Post('verify-id-token')
+  @ApiOperation({ summary: 'Google ID token 검증' })
   @HttpCode(HttpStatus.OK)
   async verifyIdToken(
     @Body(ValidationPipe) dto: VerifyIdTokenDto,
@@ -77,6 +80,7 @@ export class AuthGoogleController {
   }
 
   @Post('exchange-code')
+  @ApiOperation({ summary: 'Google authorization code 교환' })
   @HttpCode(HttpStatus.OK)
   async exchangeCode(
     @Body(ValidationPipe) dto: ExchangeCodeDto,
@@ -103,6 +107,7 @@ export class AuthGoogleController {
   }
 
   @Post('login')
+  @ApiOperation({ summary: 'Google social login' })
   @HttpCode(HttpStatus.OK)
   async login(
     @Body(ValidationPipe) dto: GoogleLoginDto,
