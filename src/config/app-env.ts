@@ -115,8 +115,10 @@ export function validateAppEnv(config: RawEnv): AppEnv {
   }
 
   const dbDatabase = requiredString(config.DB_DATABASE, 'DB_DATABASE');
-  // Temporary compatibility: the current test account is scoped to app_db.
-  // Re-enable the dedicated *_test-only rule after app_db_test is provisioned.
+  // TODO(db-test-isolation): Keep this temporary exception for app_db because the
+  // current shared test account is still scoped to that schema.
+  // Follow-up work: provision dedicated *_test credentials/database (ex: app_db_test)
+  // and then remove the app_db bypass to enforce strict *_test-only validation again.
   if (
     nodeEnv === 'test' &&
     dbDatabase !== 'app_db' &&
