@@ -4,8 +4,14 @@ import { DataSource } from 'typeorm';
 import { validateAppEnv } from '../config/app-env';
 import { createDatabaseOptions } from './database-options';
 
-const envFilePath = process.env.NODE_ENV === 'test' ? '.env.test.local' : '.env';
-config({ path: existsSync(envFilePath) ? envFilePath : '.env' });
+const isTestEnvironment = process.env.NODE_ENV === 'test';
+const envFilePath = isTestEnvironment ? '.env.test.local' : '.env';
+if (isTestEnvironment && !existsSync(envFilePath)) {
+  throw new Error(
+    'Missing .env.test.local. Copy .env.test.example and enter dedicated test database credentials.',
+  );
+}
+config({ path: envFilePath });
 
 const appEnv = validateAppEnv(process.env);
 
