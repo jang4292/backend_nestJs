@@ -4,7 +4,7 @@ This document provides practical examples for using the backend API.
 
 ## Prerequisites
 
-1. Make sure PostgreSQL is running
+1. Make sure MariaDB is reachable at `yhjang.com:3306`
 2. Copy `.env.example` to `.env` and configure:
 ```bash
 cp .env.example .env
@@ -13,9 +13,10 @@ cp .env.example .env
 3. Update `.env` with your settings:
 ```env
 JWT_SECRET=your-strong-secret-key-here
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=postgres
+DB_TYPE=mariadb
+DB_HOST=yhjang.com
+DB_PORT=3306
+DB_USERNAME=your-db-user
 DB_PASSWORD=your-password
 DB_DATABASE=nestjs_db
 DB_SYNCHRONIZE=false

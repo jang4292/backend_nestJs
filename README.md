@@ -1,7 +1,7 @@
 # NestJS Backend API
 
 A NestJS backend focused on authentication, Google social login, user profile
-management, and music playlist APIs. The project uses PostgreSQL with TypeORM,
+management, and music playlist APIs. The project uses MariaDB with TypeORM,
 strict environment validation, global request validation, and security-focused
 runtime defaults.
 
@@ -11,7 +11,7 @@ runtime defaults.
 - Google social login using ID token or auth-code + PKCE flow
 - Protected user profile read/update endpoints
 - Music track, playlist, and playlist-track APIs
-- PostgreSQL + TypeORM integration
+- MariaDB + TypeORM integration
 - Environment validation for unsafe production settings
 - Helmet, CORS allow-listing, throttling, and DTO validation
 - Unit/integration coverage for auth, Google auth, config, users, and music
@@ -24,7 +24,7 @@ npm install
 
 ## Configuration
 
-Copy `.env.example` to `.env` and update the values:
+Copy `.env.example` to an ignored local file and update the values:
 
 ```bash
 cp .env.example .env
@@ -36,17 +36,17 @@ Required operational settings:
 PORT=3000
 NODE_ENV=development
 
-DB_TYPE=postgres
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=password
+DB_TYPE=mariadb
+DB_HOST=yhjang.com
+DB_PORT=3306
+DB_USERNAME=replace-with-local-db-user
+DB_PASSWORD=replace-with-local-db-password
 DB_DATABASE=nestjs_db
 DB_SYNCHRONIZE=false
 DB_SSL=false
 DB_SSL_REJECT_UNAUTHORIZED=true
-# Optional: DATABASE_URL takes precedence over the DB_* connection values.
-# DATABASE_URL=postgresql://username:password@hostname:5432/database
+# Optional compatibility alternative. DATABASE_URL takes precedence over DB_*.
+# DATABASE_URL=mariadb://username:password@hostname:3306/database
 
 JWT_SECRET=replace-with-a-strong-secret
 JWT_EXPIRES_IN=1h
@@ -62,7 +62,11 @@ GOOGLE_OAUTH_CLIENT_SECRET=your-google-client-secret
 GOOGLE_OAUTH_REDIRECT_URIS=https://your-app.example.com/auth/google/callback
 ```
 
-`JWT_SECRET` and `GOOGLE_ALLOWED_AUDIENCES` are required at startup.
+`DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`, `JWT_SECRET`, and
+`GOOGLE_ALLOWED_AUDIENCES` are required at startup. The current MariaDB server
+has TLS disabled, so use `DB_SSL=false`. Re-check `have_ssl` and
+`require_secure_transport` before exposing the database outside its current
+network.
 `NODE_ENV=production` also requires `CORS_ORIGIN`, rejects placeholder JWT
 secrets, and blocks `DB_SYNCHRONIZE=true`. For AWS RDS, use the RDS endpoint
 as `DB_HOST`, enable `DB_SSL`, and keep `DB_SSL_REJECT_UNAUTHORIZED=true` when
@@ -106,8 +110,17 @@ npm run migration:show
 npm run migration:run
 ```
 
-`npm run test:e2e` boots `AppModule` and needs a reachable PostgreSQL database.
-Without local PostgreSQL or RDS access, unit tests and build can still pass while
+The environment files have four clear roles:
+
+- `.env`: actual local development settings (ignored by git)
+- `.env.example`: development settings template (tracked)
+- `.env.test.local`: actual local E2E settings (ignored by git)
+- `.env.test.example`: E2E settings template (tracked)
+
+Do not create or use `.env.local`; it is not part of the supported configuration.
+
+`npm run test:e2e` boots `AppModule` and needs a reachable MariaDB database.
+Without local MariaDB or RDS access, unit tests and build can still pass while
 e2e fails at DB connection time.
 
 ## Secrets Manager and PM2
@@ -135,7 +148,31 @@ shapes:
 The helper prints shell `export` statements for allow-listed app variables only.
 It does not print diagnostic logs with secret values.
 
+## E2E Database
+
+E2E tests require a separate MariaDB database and account. Copy
+`.env.test.example` to `.env.test.local`, enter the test credentials, and use
+the database currently granted to the test account. The current temporary
+setting is `DB_DATABASE=app_db`; change it to a dedicated `app_db_test` after
+that database and its permissions are provisioned.
+
+```bash
+cp .env.test.example .env.test.local
+npm run test:e2e
+```
+
+Run test-database migrations with `NODE_ENV=test`. In Windows PowerShell:
+
+```powershell
+$env:NODE_ENV='test'; npm run migration:run
+```
+
 ## API Overview
+
+## Troubleshooting Guide
+
+로컬 환경 파일, MariaDB 연결, TypeORM 메타데이터, Jest ESM 오류의 발생 및 수정 이력은
+[로컬 실행 오류 및 수정 이력](docs/learning/runtime-troubleshooting-history.kr.md)을 참고하세요.
 
 Public endpoints:
 
@@ -195,7 +232,7 @@ src/
 ## Learning Guide
 
 - [NestJS operational stability refactor guide](docs/learning/nestjs-operational-stability-guide.kr.md)
-- [PostgreSQL RDS and NestJS guide](docs/learning/postgresql-rds-nestjs-guide.kr.md)
+- [MariaDB EC2 deployment guide](docs/deployment/mariadb-systemd.kr.md)
 
 ## Verification
 

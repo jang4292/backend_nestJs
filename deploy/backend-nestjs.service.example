@@ -1,0 +1,15 @@
+[Unit]
+Description=Backend NestJS API
+After=network.target mariadb.service
+
+[Service]
+Type=simple
+User=backend-nestjs
+WorkingDirectory=/opt/backend-nestjs
+EnvironmentFile=/etc/backend-nestjs/backend-nestjs.env
+ExecStart=/usr/bin/node /opt/backend-nestjs/dist/main.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

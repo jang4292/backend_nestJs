@@ -17,6 +17,8 @@
    - `npm test -- --runInBand`
    - `npm run build`
 9. 로컬 PostgreSQL을 보조로 사용할 때도 `DB_SYNCHRONIZE=false`를 유지하고 migration으로 스키마를 맞춥니다.
+10. 현재 E2E는 테스트 계정 권한 문제로 `app_db`를 임시 사용합니다.
+11. [ ] `app_db_test` 생성 및 테스트 계정 권한 부여 후 `.env.test.local`을 `app_db_test`로 복구합니다.
 
 현재 로컬에 PostgreSQL/RDS 연결이 없으면 `migration:show`와 `npm run test:e2e`는 DB 연결 단계에서 실패합니다. 이 경우 단위 테스트와 build로 코드 상태를 먼저 확인하고, DB 접근 경로를 준비한 뒤 e2e를 실행합니다.
 

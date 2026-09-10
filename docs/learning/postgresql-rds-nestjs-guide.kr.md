@@ -1,6 +1,6 @@
-# NestJS와 PostgreSQL(TypeORM) 연결 학습 가이드
+# PostgreSQL RDS 참고 자료 (현재 구성에는 적용하지 않음)
 
-이 문서는 이 프로젝트의 NestJS 애플리케이션이 PostgreSQL과 어떻게 연결되고, TypeORM으로 테이블과 코드를 어떻게 이어 붙이는지 학습하기 위한 가이드입니다. AWS RDS for PostgreSQL 연결과 운영 migration 흐름도 함께 다루지만, 먼저 현재 코드에서 요청이 데이터베이스까지 이동하는 구조를 이해하는 데 초점을 둡니다.
+이 문서는 과거 PostgreSQL RDS 구성을 위한 참고 자료입니다. 현재 프로젝트는 MariaDB 10.11과 `mysql2` 드라이버를 사용하므로, 현재 배포와 설정에는 [MariaDB EC2 배포 가이드](../deployment/mariadb-systemd.kr.md)를 사용합니다.
 
 ## 1. 큰 흐름 먼저 보기
 

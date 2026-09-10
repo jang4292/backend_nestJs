@@ -19,11 +19,16 @@ import { UsersModule } from './users/users.module';
 import { MusicModule } from './music/music.module';
 import { createDatabaseOptions } from './database/database-options';
 
+const envFilePath =
+  process.env.NODE_ENV === 'test'
+    ? ['.env.test.local', '.env.test']
+    : ['.env'];
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath,
       cache: true,
       validate: validateAppEnv,
     }),
@@ -31,15 +36,12 @@ import { createDatabaseOptions } from './database/database-options';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) =>
         createDatabaseOptions({
-          DB_TYPE: configService.get<'postgres' | 'mysql'>(
-            'DB_TYPE',
-            'postgres',
-          ),
-          DB_HOST: configService.get<string>('DB_HOST', 'localhost'),
-          DB_PORT: configService.get<number>('DB_PORT', 5432),
-          DB_USERNAME: configService.get<string>('DB_USERNAME', 'postgres'),
-          DB_PASSWORD: configService.get<string>('DB_PASSWORD', 'password'),
-          DB_DATABASE: configService.get<string>('DB_DATABASE', 'nestjs_db'),
+          DB_TYPE: configService.get<'mariadb'>('DB_TYPE', 'mariadb'),
+          DB_HOST: configService.getOrThrow<string>('DB_HOST'),
+          DB_PORT: configService.getOrThrow<number>('DB_PORT'),
+          DB_USERNAME: configService.getOrThrow<string>('DB_USERNAME'),
+          DB_PASSWORD: configService.getOrThrow<string>('DB_PASSWORD'),
+          DB_DATABASE: configService.getOrThrow<string>('DB_DATABASE'),
           DATABASE_URL: configService.get<string>('DATABASE_URL'),
           DB_SYNCHRONIZE: configService.get<boolean>('DB_SYNCHRONIZE', false),
           DB_SSL: configService.get<boolean>('DB_SSL', false),

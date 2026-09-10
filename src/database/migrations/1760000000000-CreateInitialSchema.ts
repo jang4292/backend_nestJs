@@ -17,8 +17,10 @@ export class CreateInitialSchema1760000000000 implements MigrationInterface {
         columns: [
           {
             name: 'id',
-            type: 'serial',
+            type: 'int',
             isPrimary: true,
+            isGenerated: true,
+            generationStrategy: 'increment',
           },
           { name: 'username', type: 'varchar', isUnique: true },
           { name: 'password', type: 'varchar', isNullable: true },
@@ -28,13 +30,14 @@ export class CreateInitialSchema1760000000000 implements MigrationInterface {
           { name: 'googleId', type: 'varchar', isNullable: true },
           {
             name: 'createdAt',
-            type: 'timestamp without time zone',
-            default: 'now()',
+            type: 'datetime',
+            default: 'CURRENT_TIMESTAMP',
           },
           {
             name: 'updatedAt',
-            type: 'timestamp without time zone',
-            default: 'now()',
+            type: 'datetime',
+            default: 'CURRENT_TIMESTAMP',
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
         ],
         uniques: [
@@ -50,20 +53,27 @@ export class CreateInitialSchema1760000000000 implements MigrationInterface {
       new Table({
         name: 'track',
         columns: [
-          { name: 'id', type: 'serial', isPrimary: true },
+          {
+            name: 'id',
+            type: 'int',
+            isPrimary: true,
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
           { name: 'title', type: 'varchar', length: '200' },
           { name: 'artist', type: 'varchar', length: '200' },
           { name: 'bpm', type: 'integer', isNullable: true },
           { name: 'lengthSec', type: 'integer', isNullable: true },
           {
             name: 'createdAt',
-            type: 'timestamp without time zone',
-            default: 'now()',
+            type: 'datetime',
+            default: 'CURRENT_TIMESTAMP',
           },
           {
             name: 'updatedAt',
-            type: 'timestamp without time zone',
-            default: 'now()',
+            type: 'datetime',
+            default: 'CURRENT_TIMESTAMP',
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
         ],
       }),
@@ -73,7 +83,13 @@ export class CreateInitialSchema1760000000000 implements MigrationInterface {
       new Table({
         name: 'playlist',
         columns: [
-          { name: 'id', type: 'serial', isPrimary: true },
+          {
+            name: 'id',
+            type: 'int',
+            isPrimary: true,
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
           { name: 'name', type: 'varchar', length: '200' },
           { name: 'playDate', type: 'date', isNullable: true },
           {
@@ -84,13 +100,14 @@ export class CreateInitialSchema1760000000000 implements MigrationInterface {
           },
           {
             name: 'createdAt',
-            type: 'timestamp without time zone',
-            default: 'now()',
+            type: 'datetime',
+            default: 'CURRENT_TIMESTAMP',
           },
           {
             name: 'updatedAt',
-            type: 'timestamp without time zone',
-            default: 'now()',
+            type: 'datetime',
+            default: 'CURRENT_TIMESTAMP',
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
         ],
       }),
@@ -100,20 +117,27 @@ export class CreateInitialSchema1760000000000 implements MigrationInterface {
       new Table({
         name: 'playlist_track',
         columns: [
-          { name: 'id', type: 'serial', isPrimary: true },
+          {
+            name: 'id',
+            type: 'int',
+            isPrimary: true,
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
           { name: 'playlistId', type: 'integer' },
           { name: 'trackId', type: 'integer' },
           { name: 'seq', type: 'integer' },
           { name: 'note', type: 'varchar', length: '255', isNullable: true },
           {
             name: 'createdAt',
-            type: 'timestamp without time zone',
-            default: 'now()',
+            type: 'datetime',
+            default: 'CURRENT_TIMESTAMP',
           },
           {
             name: 'updatedAt',
-            type: 'timestamp without time zone',
-            default: 'now()',
+            type: 'datetime',
+            default: 'CURRENT_TIMESTAMP',
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
         ],
       }),

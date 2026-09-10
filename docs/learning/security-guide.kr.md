@@ -7,14 +7,14 @@
 이 프로젝트의 시크릿 흐름은 다음 순서로 읽으면 가장 이해하기 쉽습니다.
 
 ```text
-.env (로컬, git 추적 안 됨)
+.env.local 또는 .env.test.local (로컬, git 추적 안 됨)
   -> ConfigModule.forRoot
   -> validateAppEnv (src/config/app-env.ts)
   -> ConfigService
   -> AppModule / DatabaseOptions / JwtModule / GoogleAuth
 ```
 
-- `.env`: 로컬 개발 환경의 실제 값을 담는 파일. [.gitignore](../../.gitignore)에서 `.env`와 `.env.*`를 제외하되 `.env.example`만 예외로 허용해, 실제 값은 절대 커밋되지 않고 "어떤 변수가 필요한지"를 보여주는 템플릿만 남깁니다.
+- `.env`: 로컬 개발 환경의 실제 값을 담는 파일입니다. `.env.test.local`에는 E2E 전용 계정과 `nestjs_test` DB만 기록합니다. [.gitignore](../../.gitignore)에서 실제 `.env`와 `.env.*`를 제외하고 `*.example` 템플릿만 허용하므로, 실제 값은 절대 커밋되지 않습니다.
 - `ConfigModule.forRoot`: 앱 시작 시 `.env`와 배포 환경변수를 읽습니다.
 - `validateAppEnv`: 값을 사용하기 전에 형식과 최소한의 안전 규칙을 강제로 검증합니다.
 - `ConfigService`: 검증을 통과한 값만 앱 코드(DB 연결, JWT 발급, Google OAuth 검증)로 전달됩니다.
@@ -67,9 +67,10 @@ if (nodeEnv === 'production' && !corsOrigin) {
 .env
 .env.*
 !.env.example
+!.env.*.example
 ```
 
-`.env.*` 패턴으로 `.env.local`, `.env.production` 등 변형까지 전부 막고, `.env.example`만 느낌표(`!`)로 다시 허용합니다. 이 프로젝트에서 이번 검토로 아래 패턴을 추가로 더했습니다.
+`.env.*` 패턴으로 `.env.test.local`, `.env.production` 등 변형까지 전부 막고, `.env.example`만 느낌표(`!`)로 다시 허용합니다. 이 프로젝트에서 이번 검토로 아래 패턴을 추가로 더했습니다.
 
 ```gitignore
 # Keys, certificates, credentials
@@ -124,8 +125,8 @@ id_rsa.pub
 
 ## 5. 일반 원칙 요약
 
-- 시크릿은 코드가 아니라 환경변수(또는 운영에서는 AWS Secrets Manager/Parameter Store 같은 외부 저장소)로만 주입합니다. 이 방향은 [postgresql-rds-nestjs-guide.kr.md](postgresql-rds-nestjs-guide.kr.md)에서도 이미 언급하고 있습니다.
-- `.env.example`에는 항상 placeholder만 남기고, 실제 값이 담긴 `.env`는 `.gitignore`로 반드시 제외합니다.
+- 시크릿은 코드가 아니라 환경변수(또는 운영에서는 AWS Secrets Manager/Parameter Store 같은 외부 저장소)로만 주입합니다. EC2 systemd 방식은 [MariaDB EC2 배포 가이드](../deployment/mariadb-systemd.kr.md)를 따릅니다.
+- `.env.example` 및 `.env.test.example`에는 항상 placeholder만 남기고, 실제 값이 담긴 `.env`와 `.env.test.local`은 `.gitignore`로 반드시 제외합니다.
 - "프로덕션에서 실수로 잘못된 설정이 들어가면 조용히 동작하는 것"보다 "즉시 앱이 죽는 것"이 낫습니다. 이 프로젝트의 `validateAppEnv`처럼 fail-closed 검증을 앱 시작 지점에 둡니다.
 - 시크릿은 주기적으로, 그리고 유출 의심 시 즉시 rotate합니다. 로컬 개발용 값이라도 오래 방치하지 않는 것이 좋습니다.
 
