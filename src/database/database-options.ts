@@ -54,10 +54,11 @@ export function createDatabaseOptions(
 
   const extraOptions = {
     ...(config.DB_CONNECT_TIMEOUT_MS
-      ? { connectionTimeoutMillis: config.DB_CONNECT_TIMEOUT_MS }
+      ? { connectTimeout: config.DB_CONNECT_TIMEOUT_MS }
       : {}),
-    ...(config.DB_POOL_MIN !== undefined ? { min: config.DB_POOL_MIN } : {}),
-    ...(config.DB_POOL_MAX !== undefined ? { max: config.DB_POOL_MAX } : {}),
+    ...(config.DB_POOL_MAX !== undefined
+      ? { connectionLimit: config.DB_POOL_MAX }
+      : {}),
   };
 
   return {

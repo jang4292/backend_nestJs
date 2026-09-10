@@ -106,7 +106,7 @@ describe('createDatabaseOptions', () => {
     });
   });
 
-  it('sets pg extra options when timeout and pool config are provided', () => {
+  it('sets mariadb extra options when timeout and pool config are provided', () => {
     const options = createDatabaseOptions({
       ...baseConfig,
       DB_POOL_MIN: 2,
@@ -116,10 +116,10 @@ describe('createDatabaseOptions', () => {
 
     expect(options).toMatchObject({
       extra: {
-        min: 2,
-        max: 10,
-        connectionTimeoutMillis: 5000,
+        connectionLimit: 10,
+        connectTimeout: 5000,
       },
     });
+    expect(options.extra).not.toHaveProperty('min');
   });
 });
