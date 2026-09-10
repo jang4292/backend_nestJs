@@ -15,7 +15,13 @@ export class NormalizeArtists1760000001000 implements MigrationInterface {
       new Table({
         name: 'artist',
         columns: [
-          { name: 'id', type: 'serial', isPrimary: true },
+          {
+            name: 'id',
+            type: 'int',
+            isPrimary: true,
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
           { name: 'name', type: 'varchar', length: '200', isNullable: false },
           {
             name: 'description',
@@ -25,13 +31,14 @@ export class NormalizeArtists1760000001000 implements MigrationInterface {
           },
           {
             name: 'createdAt',
-            type: 'timestamp without time zone',
-            default: 'now()',
+            type: 'datetime',
+            default: 'CURRENT_TIMESTAMP',
           },
           {
             name: 'updatedAt',
-            type: 'timestamp without time zone',
-            default: 'now()',
+            type: 'datetime',
+            default: 'CURRENT_TIMESTAMP',
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
         ],
         uniques: [{ name: 'UQ_artist_name', columnNames: ['name'] }],
@@ -49,18 +56,16 @@ export class NormalizeArtists1760000001000 implements MigrationInterface {
     );
 
     await queryRunner.query(`
-      INSERT INTO "artist" ("name", "description", "createdAt", "updatedAt")
-      SELECT DISTINCT TRIM("artist") as "name", NULL, now(), now()
-      FROM "track"
-      WHERE TRIM("artist") <> ''
-      ON CONFLICT ("name") DO NOTHING
+      INSERT IGNORE INTO artist (name, description, createdAt, updatedAt)
+      SELECT DISTINCT TRIM(artist) AS name, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+      FROM track
+      WHERE TRIM(artist) <> ''
     `);
 
     await queryRunner.query(`
-      UPDATE "track" t
-      SET "artistId" = a."id"
-      FROM "artist" a
-      WHERE a."name" = TRIM(t."artist")
+      UPDATE track t
+      INNER JOIN artist a ON a.name = TRIM(t.artist)
+      SET t.artistId = a.id
     `);
 
     await queryRunner.changeColumn(
@@ -107,10 +112,9 @@ export class NormalizeArtists1760000001000 implements MigrationInterface {
     );
 
     await queryRunner.query(`
-      UPDATE "track" t
-      SET "artist" = a."name"
-      FROM "artist" a
-      WHERE t."artistId" = a."id"
+      UPDATE track t
+      INNER JOIN artist a ON t.artistId = a.id
+      SET t.artist = a.name
     `);
 
     await queryRunner.changeColumn(
