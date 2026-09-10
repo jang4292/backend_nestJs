@@ -7,7 +7,7 @@
 이 프로젝트의 시크릿 흐름은 다음 순서로 읽으면 가장 이해하기 쉽습니다.
 
 ```text
-.env.local 또는 .env.test.local (로컬, git 추적 안 됨)
+.env 또는 .env.test.local (로컬, git 추적 안 됨)
   -> ConfigModule.forRoot
   -> validateAppEnv (src/config/app-env.ts)
   -> ConfigService
