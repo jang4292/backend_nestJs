@@ -4,12 +4,13 @@ import { Artist } from '../music/entities/artist.entity';
 import { PlaylistTrack } from '../music/entities/playlist-track.entity';
 import { Playlist } from '../music/entities/playlist.entity';
 import { Track } from '../music/entities/track.entity';
+import { SocialAccount } from '../users/entities/social-account.entity';
 import { User } from '../users/entities/user.entity';
 
 type ReadCaFile = (filePath: string, encoding: BufferEncoding) => string;
 
 export interface DatabaseConfig {
-  DB_TYPE?: 'postgres' | 'mysql';
+  DB_TYPE?: 'mariadb';
   DB_HOST: string;
   DB_PORT: number;
   DB_USERNAME: string;
@@ -27,13 +28,20 @@ export interface DatabaseConfig {
   migrations?: string[];
 }
 
-export const databaseEntities = [User, Artist, Track, Playlist, PlaylistTrack];
+export const databaseEntities = [
+  User,
+  SocialAccount,
+  Artist,
+  Track,
+  Playlist,
+  PlaylistTrack,
+];
 
 export function createDatabaseOptions(
   config: DatabaseConfig,
   readCaFile: ReadCaFile = readFileSync,
 ): DataSourceOptions {
-  const dbType = config.DB_TYPE ?? 'postgres';
+  const dbType = config.DB_TYPE ?? 'mariadb';
 
   const sslOptions = config.DB_SSL
     ? {
@@ -46,10 +54,11 @@ export function createDatabaseOptions(
 
   const extraOptions = {
     ...(config.DB_CONNECT_TIMEOUT_MS
-      ? { connectionTimeoutMillis: config.DB_CONNECT_TIMEOUT_MS }
+      ? { connectTimeout: config.DB_CONNECT_TIMEOUT_MS }
       : {}),
-    ...(config.DB_POOL_MIN !== undefined ? { min: config.DB_POOL_MIN } : {}),
-    ...(config.DB_POOL_MAX !== undefined ? { max: config.DB_POOL_MAX } : {}),
+    ...(config.DB_POOL_MAX !== undefined
+      ? { connectionLimit: config.DB_POOL_MAX }
+      : {}),
   };
 
   return {

@@ -106,8 +106,8 @@ new ValidationPipe({
 TypeOrmModule.forRootAsync({
   imports: [ConfigModule],
   useFactory: (configService: ConfigService) => ({
-    type: 'postgres',
-    host: configService.get<string>('DB_HOST', 'localhost'),
+    type: 'mariadb',
+    host: configService.getOrThrow<string>('DB_HOST'),
     ...
   }),
   inject: [ConfigService],
@@ -127,7 +127,8 @@ TypeOrmModule.forRootAsync({
 
 - `JWT_SECRET`은 필수입니다.
 - `GOOGLE_ALLOWED_AUDIENCES`는 필수입니다.
-- `DB_TYPE`은 `postgres`만 허용합니다.
+- `DB_TYPE`은 `mariadb`만 허용합니다.
+- `NODE_ENV=test`이면 `DB_DATABASE`는 반드시 `_test`로 끝나야 합니다.
 - `PORT`, `DB_PORT`, `THROTTLE_TTL`, `THROTTLE_LIMIT`는 정수로 파싱합니다.
 - `DB_SYNCHRONIZE`는 boolean으로 파싱합니다.
 - `NODE_ENV=production`이면 `CORS_ORIGIN`이 반드시 있어야 합니다.

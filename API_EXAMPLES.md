@@ -4,7 +4,7 @@ This document provides practical examples for using the backend API.
 
 ## Prerequisites
 
-1. Make sure PostgreSQL is running
+1. Make sure MariaDB is reachable at the configured `DB_HOST:DB_PORT`
 2. Copy `.env.example` to `.env` and configure:
 ```bash
 cp .env.example .env
@@ -13,9 +13,10 @@ cp .env.example .env
 3. Update `.env` with your settings:
 ```env
 JWT_SECRET=your-strong-secret-key-here
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=postgres
+DB_TYPE=mariadb
+DB_HOST=yhjang.com
+DB_PORT=3306
+DB_USERNAME=your-db-user
 DB_PASSWORD=your-password
 DB_DATABASE=nestjs_db
 DB_SYNCHRONIZE=false
@@ -31,7 +32,7 @@ npm install
 npm run start:dev
 ```
 
-For a shared or RDS database, apply the schema before starting the API:
+For a shared or production database, apply the schema before starting the API:
 
 ```bash
 npm run migration:show
@@ -52,7 +53,8 @@ Response:
 ```json
 {
   "status": "ok",
-  "timestamp": "2025-12-06T14:30:00.000Z"
+  "timestamp": "2026-09-10T14:30:00.000Z",
+  "database": "up"
 }
 ```
 
@@ -173,7 +175,25 @@ curl -X PATCH http://localhost:3000/users/profile \
   }'
 ```
 
-### 7. Google Login
+### 7. Social Login
+
+Google and Apple support ID-token verification and authorization-code login.
+Facebook, Kakao, and Naver accept a provider access token or authorization code.
+All social login responses use this envelope:
+
+```json
+{
+  "ok": true,
+  "requestId": "request-id",
+  "data": {
+    "accessToken": "jwt_token_here",
+    "expiresIn": 3600,
+    "user": { "id": 1, "username": "provider_subject", "email": "user@example.com" }
+  }
+}
+```
+
+#### Google login
 
 Login with a Google ID token:
 
@@ -203,13 +223,63 @@ Response:
 }
 ```
 
-### 8. Music Tracks
+#### Apple login
+
+```bash
+curl -X POST http://localhost:3000/auth/apple/login \
+  -H "Content-Type: application/json" \
+  -d '{"idToken":"APPLE_ID_TOKEN"}'
+```
+
+#### Facebook, Kakao, and Naver login
+
+Replace the provider name and token with the corresponding provider value:
+
+```bash
+curl -X POST http://localhost:3000/auth/kakao/login \
+  -H "Content-Type: application/json" \
+  -d '{"accessToken":"KAKAO_ACCESS_TOKEN"}'
+```
+
+Authorization-code exchange endpoints are:
+
+```text
+POST /auth/google/exchange-code
+POST /auth/apple/exchange-code
+POST /auth/facebook/exchange-code
+POST /auth/kakao/exchange-code
+POST /auth/naver/exchange-code
+```
+
+Google and Apple also expose `POST /auth/{provider}/verify-id-token`.
+Provider-specific credentials and error codes are documented in
+[the SNS login overview](docs/auth/sns-login-overview.kr.md).
+
+### 8. Music Artists
+
+All music endpoints require `Authorization: Bearer YOUR_ACCESS_TOKEN_HERE`.
+
+```bash
+curl http://localhost:3000/music/artists \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE"
+
+curl -X POST http://localhost:3000/music/artists \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
+  -d '{"name":"Artist X"}'
+```
+
+Use `GET /music/artists/:id`, `PATCH /music/artists/:id`, and
+`DELETE /music/artists/:id` for single-artist operations.
+
+### 9. Music Tracks
 
 Create and list tracks:
 
 ```bash
 curl -X POST http://localhost:3000/music/tracks \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
   -d '{
     "title": "Song A",
     "artist": "Artist X",
@@ -217,16 +287,18 @@ curl -X POST http://localhost:3000/music/tracks \
     "lengthSec": 210
   }'
 
-curl http://localhost:3000/music/tracks
+curl http://localhost:3000/music/tracks \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE"
 ```
 
-### 9. Music Playlists
+### 10. Music Playlists
 
 Create a playlist and add a track:
 
 ```bash
 curl -X POST http://localhost:3000/music/playlists \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
   -d '{
     "name": "Evening Set",
     "playDate": "2026-01-01",
@@ -235,6 +307,7 @@ curl -X POST http://localhost:3000/music/playlists \
 
 curl -X POST http://localhost:3000/music/playlists/1/tracks \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
   -d '{
     "trackId": 1,
     "seq": 1,
@@ -243,6 +316,17 @@ curl -X POST http://localhost:3000/music/playlists/1/tracks \
 ```
 
 ## Error Responses
+
+Social authentication errors use the request-id envelope:
+
+```json
+{
+  "ok": false,
+  "requestId": "request-id",
+  "errorCode": "AUTH_KAKAO_INVALID_TOKEN",
+  "message": "Invalid provider token."
+}
+```
 
 ### 400 Bad Request
 
@@ -342,6 +426,7 @@ const profile = await profileResponse.json();
 - [ ] Set `DB_SYNCHRONIZE=false` and use migrations
 - [ ] Configure `CORS_ORIGIN` to your frontend domain
 - [ ] Configure `GOOGLE_ALLOWED_AUDIENCES` with exact OAuth client IDs
+- [ ] Configure credentials for every social provider the client uses
 - [ ] Set up HTTPS/TLS
 - [ ] Configure database connection pooling
 - [ ] Set up logging and monitoring

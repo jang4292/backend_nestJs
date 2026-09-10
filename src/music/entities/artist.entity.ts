@@ -16,7 +16,7 @@ export class Artist {
   @Column({ length: 200, unique: true })
   name!: string;
 
-  @Column({ length: 500, nullable: true })
+  @Column({ type: 'varchar', length: 500, nullable: true })
   description!: string | null;
 
   @OneToMany(() => Track, (track) => track.artist)

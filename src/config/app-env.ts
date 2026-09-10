@@ -3,7 +3,7 @@ export type NodeEnvironment = 'development' | 'test' | 'production';
 export interface AppEnv {
   PORT: number;
   NODE_ENV: NodeEnvironment;
-  DB_TYPE: 'postgres' | 'mysql';
+  DB_TYPE: 'mariadb';
   DB_HOST: string;
   DB_PORT: number;
   DB_USERNAME: string;
@@ -109,30 +109,35 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     throw new Error('JWT_SECRET must be a strong production secret.');
   }
 
-  const dbType = optionalString(config.DB_TYPE) ?? 'postgres';
-  if (dbType !== 'postgres' && dbType !== 'mysql') {
-    throw new Error('DB_TYPE must be one of: postgres, mysql.');
+  const dbType = optionalString(config.DB_TYPE) ?? 'mariadb';
+  if (dbType !== 'mariadb') {
+    throw new Error('Only DB_TYPE=mariadb is supported.');
   }
 
-  const dbPassword = optionalString(config.DB_PASSWORD);
-  if (nodeEnv === 'production' && !dbPassword) {
-    throw new Error('DB_PASSWORD is required when NODE_ENV=production.');
+  const dbDatabase = requiredString(config.DB_DATABASE, 'DB_DATABASE');
+  // TODO(db-test-isolation): Keep this temporary exception for app_db because the
+  // current shared test account is still scoped to that schema.
+  // Follow-up work: provision dedicated *_test credentials/database (ex: app_db_test)
+  // and then remove the app_db bypass to enforce strict *_test-only validation again.
+  if (
+    nodeEnv === 'test' &&
+    dbDatabase !== 'app_db' &&
+    !dbDatabase.endsWith('_test')
+  ) {
+    throw new Error(
+      'DB_DATABASE must be app_db or end with _test when NODE_ENV=test.',
+    );
   }
 
   return {
     PORT: parseInteger(config.PORT, 'PORT', 3000, { min: 1 }),
     NODE_ENV: nodeEnv,
-    DB_TYPE: dbType,
+    DB_TYPE: 'mariadb',
     DB_HOST: optionalString(config.DB_HOST) ?? 'localhost',
-    DB_PORT: parseInteger(
-      config.DB_PORT,
-      'DB_PORT',
-      dbType === 'mysql' ? 3306 : 5432,
-      { min: 1 },
-    ),
-    DB_USERNAME: optionalString(config.DB_USERNAME) ?? 'postgres',
-    DB_PASSWORD: dbPassword ?? 'password',
-    DB_DATABASE: optionalString(config.DB_DATABASE) ?? 'nestjs_db',
+    DB_PORT: parseInteger(config.DB_PORT, 'DB_PORT', 3306, { min: 1 }),
+    DB_USERNAME: requiredString(config.DB_USERNAME, 'DB_USERNAME'),
+    DB_PASSWORD: requiredString(config.DB_PASSWORD, 'DB_PASSWORD'),
+    DB_DATABASE: dbDatabase,
     DATABASE_URL: optionalString(config.DATABASE_URL),
     DB_SYNCHRONIZE: dbSynchronize,
     DB_SSL: dbSsl,

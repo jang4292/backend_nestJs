@@ -30,7 +30,7 @@ export class PlaylistTrack {
   @Column()
   seq!: number; // 재생 순서
 
-  @Column({ length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   note!: string | null;
 
   @CreateDateColumn()

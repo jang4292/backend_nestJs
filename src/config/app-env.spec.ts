@@ -3,6 +3,9 @@ import { validateAppEnv } from './app-env';
 const baseEnv = {
   JWT_SECRET: 'test-secret-with-enough-length',
   GOOGLE_ALLOWED_AUDIENCES: 'web-client.apps.googleusercontent.com',
+  DB_USERNAME: 'test_user',
+  DB_PASSWORD: 'test_password',
+  DB_DATABASE: 'test_database',
 };
 
 describe('validateAppEnv', () => {
@@ -10,7 +13,7 @@ describe('validateAppEnv', () => {
     const env = validateAppEnv({
       ...baseEnv,
       PORT: '4000',
-      DB_PORT: '15432',
+      DB_PORT: '13306',
       DB_SYNCHRONIZE: 'true',
       THROTTLE_TTL: '120',
       THROTTLE_LIMIT: '20',
@@ -19,8 +22,8 @@ describe('validateAppEnv', () => {
     expect(env).toMatchObject({
       PORT: 4000,
       NODE_ENV: 'development',
-      DB_TYPE: 'postgres',
-      DB_PORT: 15432,
+      DB_TYPE: 'mariadb',
+      DB_PORT: 13306,
       DB_SYNCHRONIZE: true,
       DB_SSL: false,
       DB_SSL_REJECT_UNAUTHORIZED: true,
@@ -38,11 +41,12 @@ describe('validateAppEnv', () => {
   });
 
   it('requires Google allowed audiences', () => {
-    expect(() =>
-      validateAppEnv({
-        JWT_SECRET: 'test-secret-with-enough-length',
-      }),
-    ).toThrow('GOOGLE_ALLOWED_AUDIENCES is required.');
+    const env = { ...baseEnv };
+    delete env.GOOGLE_ALLOWED_AUDIENCES;
+
+    expect(() => validateAppEnv(env)).toThrow(
+      'GOOGLE_ALLOWED_AUDIENCES is required.',
+    );
   });
 
   it('blocks synchronize in production', () => {
@@ -65,23 +69,13 @@ describe('validateAppEnv', () => {
     ).toThrow('CORS_ORIGIN is required when NODE_ENV=production.');
   });
 
-  it('rejects an unsupported DB_TYPE', () => {
+  it('only supports MariaDB', () => {
     expect(() =>
       validateAppEnv({
         ...baseEnv,
-        DB_TYPE: 'sqlite',
+        DB_TYPE: 'postgres',
       }),
-    ).toThrow('DB_TYPE must be one of: postgres, mysql.');
-  });
-
-  it('accepts mysql as DB_TYPE and defaults its port to 3306', () => {
-    const env = validateAppEnv({
-      ...baseEnv,
-      DB_TYPE: 'mysql',
-    });
-
-    expect(env.DB_TYPE).toBe('mysql');
-    expect(env.DB_PORT).toBe(3306);
+    ).toThrow('Only DB_TYPE=mariadb is supported.');
   });
 
   it('requires DB_PASSWORD in production', () => {
@@ -92,7 +86,44 @@ describe('validateAppEnv', () => {
         CORS_ORIGIN: 'https://example.com',
         DB_PASSWORD: undefined,
       }),
-    ).toThrow('DB_PASSWORD is required when NODE_ENV=production.');
+    ).toThrow('DB_PASSWORD is required.');
+  });
+
+  it.each(['DB_USERNAME', 'DB_PASSWORD', 'DB_DATABASE'] as const)(
+    'requires %s',
+    (variable) => {
+      const env = { ...baseEnv };
+      delete env[variable];
+
+      expect(() => validateAppEnv(env)).toThrow(`${variable} is required.`);
+    },
+  );
+
+  it('allows the current shared test database and dedicated test databases', () => {
+    expect(() =>
+      validateAppEnv({
+        ...baseEnv,
+        NODE_ENV: 'test',
+      }),
+    ).toThrow(
+      'DB_DATABASE must be app_db or end with _test when NODE_ENV=test.',
+    );
+
+    expect(
+      validateAppEnv({
+        ...baseEnv,
+        NODE_ENV: 'test',
+        DB_DATABASE: 'app_db',
+      }).DB_DATABASE,
+    ).toBe('app_db');
+
+    expect(
+      validateAppEnv({
+        ...baseEnv,
+        NODE_ENV: 'test',
+        DB_DATABASE: 'nestjs_test',
+      }).DB_DATABASE,
+    ).toBe('nestjs_test');
   });
 
   it('parses RDS SSL settings and an optional connection URL', () => {
@@ -100,7 +131,7 @@ describe('validateAppEnv', () => {
       ...baseEnv,
       DB_SSL: 'true',
       DB_SSL_REJECT_UNAUTHORIZED: 'false',
-      DATABASE_URL: 'postgresql://user:password@example.com:5432/app',
+      DATABASE_URL: 'mariadb://user:password@example.com:3306/app',
       DB_POOL_MIN: '2',
       DB_POOL_MAX: '10',
       DB_CONNECT_TIMEOUT_MS: '5000',
@@ -109,7 +140,7 @@ describe('validateAppEnv', () => {
     expect(env).toMatchObject({
       DB_SSL: true,
       DB_SSL_REJECT_UNAUTHORIZED: false,
-      DATABASE_URL: 'postgresql://user:password@example.com:5432/app',
+      DATABASE_URL: 'mariadb://user:password@example.com:3306/app',
       DB_POOL_MIN: 2,
       DB_POOL_MAX: 10,
       DB_CONNECT_TIMEOUT_MS: 5000,

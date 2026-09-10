@@ -54,7 +54,7 @@ Swagger를 구성한다. 운영 환경에서는 Swagger를 노출하지 않는�
 TLS 인증서가 필요한 RDS 설정 누락, 잘못된 커넥션 풀 범위를 시작 단계에서 막는다.
 
 `src/database/database-options.ts`와 `src/database/data-source.ts`는 TypeORM
-연결 옵션 및 CLI 마이그레이션 설정을 제공한다. PostgreSQL이 기본이며
+연결 옵션 및 CLI 마이그레이션 설정을 제공한다. MariaDB가 유일한 지원 DB이며
 `DATABASE_URL`이 있으면 개별 `DB_*` 값보다 우선한다. 공유 환경에서는
 `DB_SYNCHRONIZE=false`를 유지하고 `src/database/migrations`의 마이그레이션만
 사용하는 현재 원칙이 적절하다.
@@ -154,12 +154,12 @@ TLS 인증서가 필요한 RDS 설정 누락, 잘못된 커넥션 풀 범위를 
      트랜잭션으로 정의한다.
    - 여러 저장을 묶는 향후 기능(예: 플레이리스트 복제, 다건 순서 변경,
      소셜 가입 후 부가 프로필 생성)은 TypeORM transaction으로 원자성을 보장한다.
-   - 마이그레이션 적용과 되돌리기를 임시 PostgreSQL에서 CI로 검증한다.
+  - 마이그레이션 적용과 되돌리기를 격리된 MariaDB 테스트 환경에서 검증한다.
 
 ### P2: 운영 성숙화
 
 1. 테스트를 Unit, Repository Integration, API E2E로 분리하고 Testcontainers
-   PostgreSQL로 E2E를 격리한다.
+  MariaDB로 E2E를 격리한다.
 2. OpenAPI 계약 테스트와 오류 응답 스키마 검증을 추가한다.
 3. 의존성 취약점 스캔(`npm audit`)과 라이선스 점검을 CI에 추가한다.
 4. 배포 전 migration, readiness 확인, 롤백 기준을 포함한 릴리스 파이프라인을
@@ -177,7 +177,7 @@ TLS 인증서가 필요한 RDS 설정 누락, 잘못된 커넥션 풀 범위를 
 | 우선순위 | 테스트 |
 | --- | --- |
 | 높음 | 음악 쓰기 API가 관리자 또는 소유자가 아닌 요청을 403으로 거부 |
-| 높음 | 고립된 PostgreSQL에서 회원 가입, 로그인, JWT 보호 프로필, 음악 CRUD E2E |
+| 높음 | 고립된 MariaDB에서 회원 가입, 로그인, JWT 보호 프로필, 음악 CRUD E2E |
 | 높음 | `npm ci && npm run build && npm test`를 CI 필수 단계로 설정 |
 | 중간 | 잘못된 JWT, 만료 JWT, 로그인 실패 제한, CORS 운영 설정 |
 | 중간 | 플레이리스트 트랙 중복/순서 규칙과 동시 수정 시나리오 |

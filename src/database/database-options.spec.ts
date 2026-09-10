@@ -2,7 +2,7 @@ import { createDatabaseOptions, DatabaseConfig } from './database-options';
 
 const baseConfig: DatabaseConfig = {
   DB_HOST: 'localhost',
-  DB_PORT: 5432,
+  DB_PORT: 3306,
   DB_USERNAME: 'user',
   DB_PASSWORD: 'pass',
   DB_DATABASE: 'testdb',
@@ -15,10 +15,10 @@ describe('createDatabaseOptions', () => {
   it('uses DATABASE_URL when provided', () => {
     const options = createDatabaseOptions({
       ...baseConfig,
-      DATABASE_URL: '******host:5432/db',
+      DATABASE_URL: 'mariadb://user:pass@host:3306/db',
     });
 
-    expect(options).toMatchObject({ url: '******host:5432/db' });
+    expect(options).toMatchObject({ url: 'mariadb://user:pass@host:3306/db' });
     expect(options).not.toHaveProperty('host');
     expect(options).not.toHaveProperty('port');
     expect(options).not.toHaveProperty('username');
@@ -31,7 +31,7 @@ describe('createDatabaseOptions', () => {
 
     expect(options).toMatchObject({
       host: 'localhost',
-      port: 5432,
+      port: 3306,
       username: 'user',
       password: 'pass',
       database: 'testdb',
@@ -82,10 +82,10 @@ describe('createDatabaseOptions', () => {
     expect(options.logging).toBe(true);
   });
 
-  it('sets type to postgres', () => {
+  it('sets type to mariadb', () => {
     const options = createDatabaseOptions(baseConfig);
 
-    expect(options.type).toBe('postgres');
+    expect(options.type).toBe('mariadb');
   });
 
   it('loads SSL CA bundle when DB_SSL_CA is configured', () => {
@@ -106,7 +106,7 @@ describe('createDatabaseOptions', () => {
     });
   });
 
-  it('sets pg extra options when timeout and pool config are provided', () => {
+  it('sets mariadb extra options when timeout and pool config are provided', () => {
     const options = createDatabaseOptions({
       ...baseConfig,
       DB_POOL_MIN: 2,
@@ -116,10 +116,10 @@ describe('createDatabaseOptions', () => {
 
     expect(options).toMatchObject({
       extra: {
-        min: 2,
-        max: 10,
-        connectionTimeoutMillis: 5000,
+        connectionLimit: 10,
+        connectTimeout: 5000,
       },
     });
+    expect(options.extra).not.toHaveProperty('min');
   });
 });

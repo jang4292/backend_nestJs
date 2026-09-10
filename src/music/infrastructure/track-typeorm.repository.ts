@@ -56,20 +56,25 @@ export class TrackTypeOrmRepository implements TrackRepositoryPort {
       .leftJoinAndSelect('track.artist', 'artist');
 
     if (search) {
-      qb.andWhere('(track.title ILIKE :search OR artist.name ILIKE :search)', {
-        search: `%${search}%`,
-      });
+      qb.andWhere(
+        '(LOWER(track.title) LIKE LOWER(:search) OR LOWER(artist.name) LIKE LOWER(:search))',
+        {
+          search: `%${search}%`,
+        },
+      );
     }
     if (artistId) {
       qb.andWhere('artist.id = :artistId', { artistId });
     }
     if (artistName) {
-      qb.andWhere('artist.name ILIKE :artistName', {
+      qb.andWhere('LOWER(artist.name) LIKE LOWER(:artistName)', {
         artistName: `%${artistName}%`,
       });
     }
     if (title) {
-      qb.andWhere('track.title ILIKE :title', { title: `%${title}%` });
+      qb.andWhere('LOWER(track.title) LIKE LOWER(:title)', {
+        title: `%${title}%`,
+      });
     }
     if (minBpm !== undefined) {
       qb.andWhere('track.bpm >= :minBpm', { minBpm });

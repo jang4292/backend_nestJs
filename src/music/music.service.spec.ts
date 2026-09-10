@@ -211,6 +211,8 @@ describe('MusicService', () => {
 
       const result = await service.getTrackList({
         search: 'Song',
+        artistName: 'Artist',
+        title: 'Song A',
         minBpm: 100,
         maxBpm: 140,
         page: 1,
@@ -220,8 +222,16 @@ describe('MusicService', () => {
       });
 
       expect(qb.andWhere).toHaveBeenCalledWith(
-        '(track.title ILIKE :search OR artist.name ILIKE :search)',
+        '(LOWER(track.title) LIKE LOWER(:search) OR LOWER(artist.name) LIKE LOWER(:search))',
         { search: '%Song%' },
+      );
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        'LOWER(artist.name) LIKE LOWER(:artistName)',
+        { artistName: '%Artist%' },
+      );
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        'LOWER(track.title) LIKE LOWER(:title)',
+        { title: '%Song A%' },
       );
       expect(qb.andWhere).toHaveBeenCalledWith('track.bpm >= :minBpm', {
         minBpm: 100,

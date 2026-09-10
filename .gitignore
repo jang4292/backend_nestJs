@@ -69,6 +69,17 @@ web_modules/
 .env
 .env.*
 !.env.example
+!.env.*.example
+/deploy/*.env
+!/deploy/*.env.example
+
+# Database TLS material and credential exports
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+*.jks
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache

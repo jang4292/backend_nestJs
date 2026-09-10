@@ -70,7 +70,7 @@ describe('GlobalExceptionFilter', () => {
 
   it('keeps server error responses generic and redacts logged stacks', () => {
     filter.catch(
-      new Error('Failed for postgresql://app_user:super-secret@db.example/app'),
+      new Error('Failed for mariadb://app:super-secret@db.example/app'),
       createHost(response),
     );
 
@@ -88,6 +88,9 @@ describe('GlobalExceptionFilter', () => {
 
     expect(typeof loggedStack === 'string' ? loggedStack : '').not.toContain(
       'super-secret',
+    );
+    expect(typeof loggedStack === 'string' ? loggedStack : '').toContain(
+      'mariadb://app:<redacted>@db.example/app',
     );
   });
 });

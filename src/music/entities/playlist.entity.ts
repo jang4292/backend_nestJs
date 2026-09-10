@@ -21,7 +21,7 @@ export class Playlist {
   @Column({ type: 'date', nullable: true })
   playDate!: string | null;
 
-  @Column({ length: 500, nullable: true })
+  @Column({ type: 'varchar', length: 500, nullable: true })
   description!: string | null;
 
   @OneToMany(() => PlaylistTrack, (pt) => pt.playlist)

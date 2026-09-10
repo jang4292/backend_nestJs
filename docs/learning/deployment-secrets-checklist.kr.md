@@ -1,24 +1,26 @@
-# 배포/시크릿 운영 체크리스트 (EC2 + RDS + Secrets Manager)
+# 배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)
 
 이 문서는 현재 프로젝트를 기준으로, 로컬 개발과 운영 배포에서 시크릿을 어떻게 다루는지 체크리스트 형태로 정리한 문서입니다.
 
 ## 1) 로컬 개발 체크리스트
 
 1. 현재 코드 기준 기본 환경 파일은 `.env`입니다.
-2. 이 프로젝트는 RDS 연결을 기본 공유 DB 경로로 보고, 로컬 PostgreSQL은 보조 경로로 둡니다.
+2. 이 프로젝트의 공식 DB 경로는 MariaDB이며, EC2에서는 기본적으로 `localhost:3306`을 사용합니다.
 3. `.env`에는 로컬 개발에 필요한 최소값만 둡니다.
-4. RDS endpoint, DB 계정명, DB 이름은 `.env`처럼 Git에서 제외된 파일이나 EC2 환경변수에만 둡니다.
+4. MariaDB endpoint, DB 계정명, DB 이름은 `.env`처럼 Git에서 제외된 파일이나 EC2 환경변수에만 둡니다.
 5. 실제 운영 시크릿 값은 로컬 파일에 복사하지 않습니다.
 6. `.env`는 Git 추적 대상이 아니어야 합니다.
-7. 로컬에서 RDS에 연결할 때는 RDS 보안 그룹이 현재 개발 환경의 접근을 허용해야 합니다.
+7. 원격 MariaDB에 연결할 때는 방화벽과 네트워크 경계가 애플리케이션 실행 위치의 접근을 허용해야 합니다.
 8. 로컬 점검 순서:
    - `npm run migration:show`
    - `npm run migration:run`
    - `npm test -- --runInBand`
    - `npm run build`
-9. 로컬 PostgreSQL을 보조로 사용할 때도 `DB_SYNCHRONIZE=false`를 유지하고 migration으로 스키마를 맞춥니다.
+9. 개발/운영 MariaDB에서도 `DB_SYNCHRONIZE=false`를 유지하고 migration으로 스키마를 맞춥니다.
+10. 현재 E2E는 테스트 계정 권한 문제로 `app_db`를 임시 사용합니다.
+11. [ ] `app_db_test` 생성 및 테스트 계정 권한 부여 후 `.env.test.local`을 `app_db_test`로 복구합니다.
 
-현재 로컬에 PostgreSQL/RDS 연결이 없으면 `migration:show`와 `npm run test:e2e`는 DB 연결 단계에서 실패합니다. 이 경우 단위 테스트와 build로 코드 상태를 먼저 확인하고, DB 접근 경로를 준비한 뒤 e2e를 실행합니다.
+현재 MariaDB 연결이 없으면 `migration:show`와 `npm run test:e2e`는 DB 연결 단계에서 실패합니다. 이 경우 단위 테스트와 build로 코드 상태를 먼저 확인하고, DB 접근 경로를 준비한 뒤 e2e를 실행합니다.
 
 ## 2) 운영 배포 체크리스트 (Secrets Manager 기반)
 
@@ -43,7 +45,7 @@ Secrets Manager secret 형식은 아래 세 가지를 지원합니다.
   "username": "app_user",
   "password": "...",
   "host": "...",
-  "port": 5432,
+   "port": 3306,
   "dbname": "nestjs_db"
 }
 ```
@@ -135,5 +137,5 @@ password-only-secret
 
 ## 8) 참고
 
-- RDS 연결 가이드: `docs/learning/postgresql-rds-nestjs-guide.kr.md`
+- 과거 PostgreSQL 참고: `docs/learning/postgresql-rds-nestjs-guide.kr.md`
 - 보안 가이드: `docs/learning/security-guide.kr.md`

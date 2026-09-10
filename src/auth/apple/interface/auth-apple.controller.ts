@@ -9,6 +9,7 @@ import {
   UseFilters,
   UseInterceptors,
 } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { successResponse } from '../../../common/http/api-response';
 import { RequestIdInterceptor } from '../../../common/request-id/request-id.interceptor';
 import { RequestIdService } from '../../../common/request-id/request-id.service';
@@ -39,6 +40,7 @@ type AppleLoginResponseData = {
 };
 
 @Controller('auth/apple')
+@ApiTags('auth/apple')
 @UseInterceptors(RequestIdInterceptor)
 @UseFilters(AppleAuthExceptionFilter)
 export class AuthAppleController {
@@ -62,6 +64,7 @@ export class AuthAppleController {
   }
 
   @Post('verify-id-token')
+  @ApiOperation({ summary: 'Apple ID token 검증' })
   @HttpCode(HttpStatus.OK)
   async verifyIdToken(
     @Body(ValidationPipe) dto: VerifyIdTokenDto,
@@ -81,6 +84,7 @@ export class AuthAppleController {
   }
 
   @Post('exchange-code')
+  @ApiOperation({ summary: 'Apple authorization code 교환' })
   @HttpCode(HttpStatus.OK)
   async exchangeCode(
     @Body(ValidationPipe) dto: ExchangeCodeDto,
@@ -102,6 +106,7 @@ export class AuthAppleController {
   }
 
   @Post('login')
+  @ApiOperation({ summary: 'Apple social login' })
   @HttpCode(HttpStatus.OK)
   async login(
     @Body(ValidationPipe) dto: AppleLoginDto,
