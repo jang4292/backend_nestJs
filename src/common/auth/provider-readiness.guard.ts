@@ -36,6 +36,7 @@ export class ProviderReadinessGuard implements CanActivate {
 
   private getProvider(path: string): string | undefined {
     const match = /^\/auth\/([^/]+)/.exec(path);
-    return match?.[1];
+    const provider = match?.[1];
+    return provider && provider in PROVIDER_BY_PATH ? provider : undefined;
   }
 }

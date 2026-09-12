@@ -82,6 +82,9 @@ export function validateAppEnv(config: RawEnv): AppEnv {
   );
   const corsOrigin = optionalString(config.CORS_ORIGIN);
   const jwtSecret = requiredString(config.JWT_SECRET, 'JWT_SECRET');
+  const dbUsername = requiredString(config.DB_USERNAME, 'DB_USERNAME');
+  const dbPassword = requiredString(config.DB_PASSWORD, 'DB_PASSWORD');
+  const dbDatabase = requiredString(config.DB_DATABASE, 'DB_DATABASE');
   const googleAllowedAudiences = optionalString(
     config.GOOGLE_ALLOWED_AUDIENCES,
   );
@@ -150,18 +153,46 @@ export function validateAppEnv(config: RawEnv): AppEnv {
   validateEnabledProviderConfig(nodeEnv, authGoogleEnabled, [
     ['GOOGLE_ALLOWED_AUDIENCES', googleAllowedAudiences],
   ]);
+  validateOptionalProviderConfig(nodeEnv, authGoogleEnabled, [
+    ['GOOGLE_OAUTH_CLIENT_ID', optionalString(config.GOOGLE_OAUTH_CLIENT_ID)],
+    [
+      'GOOGLE_OAUTH_CLIENT_SECRET',
+      optionalString(config.GOOGLE_OAUTH_CLIENT_SECRET),
+    ],
+    [
+      'GOOGLE_OAUTH_REDIRECT_URIS',
+      optionalString(config.GOOGLE_OAUTH_REDIRECT_URIS),
+    ],
+  ]);
   validateEnabledProviderConfig(nodeEnv, authAppleEnabled, [
     ['APPLE_ALLOWED_AUDIENCES', optionalString(config.APPLE_ALLOWED_AUDIENCES)],
+  ]);
+  validateOptionalProviderConfig(nodeEnv, authAppleEnabled, [
+    ['APPLE_SERVICE_ID', optionalString(config.APPLE_SERVICE_ID)],
+    ['APPLE_TEAM_ID', optionalString(config.APPLE_TEAM_ID)],
+    ['APPLE_KEY_ID', optionalString(config.APPLE_KEY_ID)],
+    ['APPLE_PRIVATE_KEY', optionalString(config.APPLE_PRIVATE_KEY)],
+    ['APPLE_REDIRECT_URIS', optionalString(config.APPLE_REDIRECT_URIS)],
   ]);
   validateEnabledProviderConfig(nodeEnv, authKakaoEnabled, [
     ['KAKAO_REST_API_KEY', optionalString(config.KAKAO_REST_API_KEY)],
   ]);
+  validateOptionalProviderConfig(nodeEnv, authKakaoEnabled, [
+    ['KAKAO_REDIRECT_URIS', optionalString(config.KAKAO_REDIRECT_URIS)],
+  ]);
   validateEnabledProviderConfig(nodeEnv, authNaverEnabled, [
     ['NAVER_CLIENT_ID', optionalString(config.NAVER_CLIENT_ID)],
+  ]);
+  validateOptionalProviderConfig(nodeEnv, authNaverEnabled, [
+    ['NAVER_CLIENT_SECRET', optionalString(config.NAVER_CLIENT_SECRET)],
+    ['NAVER_REDIRECT_URIS', optionalString(config.NAVER_REDIRECT_URIS)],
   ]);
   validateEnabledProviderConfig(nodeEnv, authFacebookEnabled, [
     ['FACEBOOK_APP_ID', optionalString(config.FACEBOOK_APP_ID)],
     ['FACEBOOK_APP_SECRET', optionalString(config.FACEBOOK_APP_SECRET)],
+  ]);
+  validateOptionalProviderConfig(nodeEnv, authFacebookEnabled, [
+    ['FACEBOOK_REDIRECT_URIS', optionalString(config.FACEBOOK_REDIRECT_URIS)],
   ]);
 
   const dbType = optionalString(config.DB_TYPE) ?? 'mariadb';
@@ -169,7 +200,6 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     throw new Error('Only DB_TYPE=mariadb is supported.');
   }
 
-  const dbDatabase = requiredString(config.DB_DATABASE, 'DB_DATABASE');
   // TODO(db-test-isolation): Keep this temporary exception for app_db because the
   // current shared test account is still scoped to that schema.
   // Follow-up work: provision dedicated *_test credentials/database (ex: app_db_test)
@@ -190,8 +220,8 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     DB_TYPE: 'mariadb',
     DB_HOST: optionalString(config.DB_HOST) ?? 'localhost',
     DB_PORT: parseInteger(config.DB_PORT, 'DB_PORT', 3306, { min: 1 }),
-    DB_USERNAME: requiredString(config.DB_USERNAME, 'DB_USERNAME'),
-    DB_PASSWORD: requiredString(config.DB_PASSWORD, 'DB_PASSWORD'),
+    DB_USERNAME: dbUsername,
+    DB_PASSWORD: dbPassword,
     DB_DATABASE: dbDatabase,
     DATABASE_URL: optionalString(config.DATABASE_URL),
     DB_SYNCHRONIZE: dbSynchronize,
@@ -284,6 +314,19 @@ function validateEnabledProviderConfig(
       `Enabled provider configuration is missing: ${missing.join(', ')}.`,
     );
   }
+}
+
+function validateOptionalProviderConfig(
+  nodeEnv: NodeEnvironment,
+  enabled: boolean,
+  values: Array<[string, string | undefined]>,
+): void {
+  if (nodeEnv !== 'production' || !enabled) return;
+
+  const configured = values.some(([, value]) => value !== undefined);
+  if (!configured) return;
+
+  validateEnabledProviderConfig(nodeEnv, true, values);
 }
 
 function parseNodeEnv(value: unknown): NodeEnvironment {

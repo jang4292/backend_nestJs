@@ -17,28 +17,39 @@ describe('ProviderReadinessGuard', () => {
     expect(guard.canActivate(contextFor('/health'))).toBe(true);
   });
 
-  it('blocks a disabled provider before controller execution', () => {
+  it('allows the local login route', () => {
     const guard = new ProviderReadinessGuard({
-      get: jest.fn().mockReturnValue(false),
+      get: jest.fn(),
     } as never);
 
-    let thrown: unknown;
-    try {
-      guard.canActivate(contextFor('/auth/google/login'));
-    } catch (error) {
-      thrown = error;
-    }
-
-    expect(thrown).toBeInstanceOf(ServiceUnavailableException);
-    expect(thrown).toEqual(
-      expect.objectContaining({
-        response: {
-          errorCode: 'AUTH_GOOGLE_DISABLED',
-          message: 'This authentication provider is not available.',
-        },
-      }),
-    );
+    expect(guard.canActivate(contextFor('/auth/login'))).toBe(true);
   });
+
+  it.each(['google', 'apple', 'kakao', 'naver', 'facebook'])(
+    'blocks disabled %s before controller execution',
+    (provider) => {
+      const guard = new ProviderReadinessGuard({
+        get: jest.fn().mockReturnValue(false),
+      } as never);
+
+      let thrown: unknown;
+      try {
+        guard.canActivate(contextFor(`/auth/${provider}/login`));
+      } catch (error) {
+        thrown = error;
+      }
+
+      expect(thrown).toBeInstanceOf(ServiceUnavailableException);
+      expect(thrown).toEqual(
+        expect.objectContaining({
+          response: {
+            errorCode: `AUTH_${provider.toUpperCase()}_DISABLED`,
+            message: 'This authentication provider is not available.',
+          },
+        }),
+      );
+    },
+  );
 
   it('allows an enabled provider', () => {
     const guard = new ProviderReadinessGuard({

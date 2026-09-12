@@ -5,11 +5,11 @@
 
 ## 1. 요약
 
-현재 로그인 기능은 provider별 모듈과 공용 `SessionModule`/`UsersModule`을 분리한 구조이며, Google/Apple은 토큰 검증과 인가코드 교환을 분리하고 Kakao/Naver/Facebook은 access token 또는 인가코드 흐름을 지원합니다. provider별 adapter는 누락된 자격증명을 대체로 요청 처리 시점에 검사하고 `*_CONFIG_MISSING` 오류를 반환하도록 구현되어 있습니다.
+현재 로그인 기능은 provider별 모듈과 공용 `SessionModule`/`UsersModule`을 분리한 구조이며, Google/Apple은 토큰 검증과 인가코드 교환을 분리하고 Kakao/Naver/Facebook은 access token 또는 인가코드 흐름을 지원합니다. `AUTH_{PROVIDER}_ENABLED`와 전역 `ProviderReadinessGuard`가 provider route를 보호하며, 비활성 provider는 외부 호출 전에 `503`을 반환합니다.
 
-다만 현재 상태는 “키가 없으면 해당 provider가 비활성화되어 동작하지 않는다”는 정책을 명시적으로 모델링한 상태라기보다, 모든 provider의 controller가 항상 등록된 뒤 일부 외부 호출 단계에서 실패하는 구조입니다. 따라서 다음 단계에서 provider readiness를 중앙에서 계산하고, 각 endpoint가 같은 정책으로 `503 Service Unavailable`을 반환하도록 정리하는 것이 권장됩니다.
+provider 활성화와 authorization-code flow 활성화는 별도입니다. token-only 운영은 허용되며, production에서 code-flow 설정을 일부만 입력한 경우에는 startup validation이 실패합니다. provider route는 안정적인 API surface 유지를 위해 항상 등록됩니다.
 
-이번 점검에서는 키를 추가하거나 실제 OAuth 연동을 수행하지 않았습니다.
+이번 점검에서는 실제 provider credential을 추가하거나 실계정 OAuth 연동을 수행하지 않았습니다. mock 기반 계약 테스트와 환경 validation으로 실패 동작을 고정하는 범위입니다.
 
 ## 2. 실제 요청 흐름
 
@@ -70,7 +70,8 @@ SessionModule --> JWT
 - `idToken/accessToken`과 `code`를 동시에 보내거나 둘 다 생략하면 provider별 `BAD_REQUEST`가 발생합니다.
 - code flow에는 `redirectUri`가 필요합니다.
 - 설정된 allowlist가 있을 때만 `redirectUri`를 비교합니다. allowlist가 비어 있으면 모든 redirect URI를 허용하는 현재 구현이므로 운영에서는 allowlist를 필수화하는 편이 안전합니다.
-- Google/Apple/Naver/Kakao/Facebook 모듈은 `AppModule`에서 항상 import되므로, 설정이 없어도 route 자체는 등록됩니다.
+- Google/Apple/Naver/Kakao/Facebook 모듈은 `AppModule`에서 항상 import되므로 route 자체는 등록됩니다. 단, 비활성 provider는 controller 실행 전 `503 AUTH_{PROVIDER}_DISABLED`를 반환합니다.
+- `/auth/login`은 로컬 로그인 경로이므로 SNS readiness guard의 대상이 아닙니다.
 - 세션 발급은 provider별 구현이 아니라 `SessionModule`의 `SessionIssuerJwtAdapter` 하나로 통합되어 있습니다.
 - 계정 연결은 `users.social_accounts`의 provider/providerUserId unique 조합을 사용하므로 한 사용자가 여러 SNS 계정을 가질 수 있는 방향입니다.
 
@@ -85,17 +86,17 @@ SessionModule --> JWT
 
 ### 현재 구조의 한계
 
-1. **provider 활성화 상태가 명시적이지 않음**
+1. **flow별 readiness를 더 세분화할 필요**
    
-   `AppModule`은 모든 SNS 모듈을 무조건 등록합니다. “설정이 없으면 route를 숨길지”, “route는 노출하되 503을 반환할지”가 코드 수준의 단일 정책으로 결정되어 있지 않습니다.
+   provider 전체 활성화는 `AUTH_{PROVIDER}_ENABLED`로 결정하고, code-flow 설정은 production에서 부분 입력을 fail-fast하도록 보강했습니다. 향후 health/readiness 응답에 token/code flow 상태를 별도로 노출할지는 후속 과제입니다.
 
 2. **flow별 필수 설정과 provider 전체 활성화 조건이 섞여 있음**
    
    예를 들어 Kakao와 Naver는 서버 access token을 검증하는 profile API 흐름과 code exchange 흐름에서 필요한 설정이 다릅니다. 현재는 code exchange에서만 client 설정을 검사하므로, provider 전체를 키 기준으로 차단하려는 요구와 불일치할 수 있습니다.
 
-3. **Google 설정의 전역 필수화가 provider 선택 정책과 다름**
+3. **Google 설정의 기본 활성화 정책 확인 필요**
    
-   `GOOGLE_ALLOWED_AUDIENCES`는 provider가 실제 사용되지 않아도 앱 기동을 막습니다. Google만 사용하지 않는 배포 환경까지 고려한다면 Google 관련 설정도 provider readiness 정책 안으로 이동해야 합니다. 반대로 모든 배포가 Google을 반드시 제공해야 한다면 이 제약을 문서와 테스트에 명시해야 합니다.
+   Google은 flag를 지정하지 않으면 기존 호환성을 위해 활성화로 추론됩니다. Google을 사용하지 않는 환경은 `AUTH_GOOGLE_ENABLED=false`를 명시해야 하며, enabled 상태에서는 `GOOGLE_ALLOWED_AUDIENCES`가 필수입니다.
 
 4. **redirect URI allowlist가 비어 있으면 검사가 생략됨**
    
@@ -154,7 +155,7 @@ ProviderConfig/readiness
 - 운영 provider의 redirect URI allowlist를 비워 둬도 code flow가 진행될 수 있음
 - provider별 설정 누락을 앱 시작 시점에 감지하지 않아 배포 후 첫 로그인에서 장애가 발견될 수 있음
 - provider별 exception filter, 전역 exception filter, 응답 envelope의 실제 통합 동작을 고정한 e2e 테스트가 필요함
-- social account 생성과 user 생성이 하나의 transaction으로 묶여 있는지 확인이 필요함. 현재 adapter는 user 저장 후 social account 저장을 수행하므로 두 번째 저장 실패 시 orphan user가 남을 가능성이 있음
+- social account 생성과 user 생성은 현재 `SocialAccountLinkerTypeOrmAdapter`의 TypeORM transaction으로 묶여 있습니다. transaction rollback과 동시 upsert 테스트를 추가 검증 대상으로 유지합니다.
 
 ### 우선순위 중간
 
@@ -175,7 +176,7 @@ ProviderConfig/readiness
 
 추가해야 할 테스트는 다음과 같습니다.
 
-1. provider 설정이 없을 때 각 login/exchange/verify endpoint가 정확히 503과 `*_CONFIG_MISSING`을 반환하는지
+1. provider flag가 꺼졌을 때 각 login/exchange/verify endpoint가 외부 호출 없이 정확히 503과 `AUTH_{PROVIDER}_DISABLED`를 반환하는지
 2. 설정 누락 상태에서 외부 `fetch` 또는 Google SDK가 호출되지 않는지
 3. provider별 최소 설정 조합과 flow별 설정 조합이 readiness 계산과 일치하는지
 4. redirect URI allowlist가 비어 있거나 일치하지 않을 때 운영 정책대로 차단되는지

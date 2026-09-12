@@ -89,6 +89,41 @@ describe('validateAppEnv', () => {
     ).toThrow('DB_PASSWORD is required.');
   });
 
+  it('allows token-only Google login when code flow is not configured', () => {
+    expect(
+      validateAppEnv({
+        ...baseEnv,
+        NODE_ENV: 'production',
+        CORS_ORIGIN: 'https://example.com',
+      }).AUTH_GOOGLE_ENABLED,
+    ).toBe(true);
+  });
+
+  it('requires complete Google code-flow configuration when partially configured', () => {
+    expect(() =>
+      validateAppEnv({
+        ...baseEnv,
+        NODE_ENV: 'production',
+        CORS_ORIGIN: 'https://example.com',
+        GOOGLE_OAUTH_CLIENT_ID: 'client-id',
+      }),
+    ).toThrow(
+      'Enabled provider configuration is missing: GOOGLE_OAUTH_CLIENT_SECRET, GOOGLE_OAUTH_REDIRECT_URIS.',
+    );
+  });
+
+  it('allows a disabled provider without provider credentials in production', () => {
+    expect(
+      validateAppEnv({
+        ...baseEnv,
+        NODE_ENV: 'production',
+        CORS_ORIGIN: 'https://example.com',
+        AUTH_GOOGLE_ENABLED: 'false',
+        GOOGLE_ALLOWED_AUDIENCES: undefined,
+      }).AUTH_GOOGLE_ENABLED,
+    ).toBe(false);
+  });
+
   it.each(['DB_USERNAME', 'DB_PASSWORD', 'DB_DATABASE'] as const)(
     'requires %s',
     (variable) => {

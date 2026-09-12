@@ -26,6 +26,9 @@
 - Google을 제외한 provider는 기존 설정 존재 여부를 flag 미지정 시 활성화 추론값으로 사용해 기존 환경과 호환한다.
 - 모든 provider code flow에서 state와 expectedState 중 하나만 전달되는 경우를 거부한다.
 - provider flag와 readiness guard에 대한 단위 테스트를 추가했다.
+- production에서 활성 provider의 선택된 code-flow 설정이 부분 입력되면 startup validation이 실패하도록 보강했다.
+- local `/auth/login`이 SNS provider readiness guard에 의해 차단되지 않도록 provider path 매칭을 제한했다.
+- 다섯 provider의 disabled route `503` 계약과 SNS 빌드·운영·학습 가이드를 문서화했다.
 
 ### 검증 결과
 
@@ -34,13 +37,14 @@
 - 변경 파일 대상 ESLint: 통과
 - 전체 ESLint: 기존 music/legacy 파일의 unrelated formatting 및 규칙 오류가 남아 있어 전체 통과하지 않음
 - `npm run test:e2e`: 전용 `.env.test.local`과 MariaDB 테스트 DB가 필요하므로 별도 환경에서 실행해야 함
+- 추가 검증: `src/config/app-env.spec.ts` 18개, `src/common/auth/provider-readiness.guard.spec.ts` 8개 통과
 
 ### 다음 구현 순서
 
-1. provider readiness 및 feature flag를 중앙화한다.
-2. disabled provider의 `503` 계약과 외부 호출 미수행 테스트를 추가한다.
-3. production redirect URI allowlist와 state 입력 검증을 강화한다.
-4. MariaDB/TypeORM 오류를 안전한 API 오류로 매핑한다.
+1. route별 token/code flow readiness와 public health 상태 노출을 검토한다.
+2. disabled provider HTTP 수준 e2e에서 외부 호출 미수행과 request ID envelope을 고정한다.
+3. production redirect URI allowlist와 실제 provider staging 연동을 검증한다.
+4. MariaDB/TypeORM 오류의 HTTP 매핑과 transaction rollback 통합 테스트를 보강한다.
 5. refresh session, logout, revoke를 별도 migration 단계로 구현한다.
 
 ## 현재 구현과 계획의 차이
