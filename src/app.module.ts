@@ -13,6 +13,7 @@ import { AuthNaverModule } from './auth/naver/auth-naver.module';
 import { AuthFacebookModule } from './auth/facebook/auth-facebook.module';
 import { CommonModule } from './common/common.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { ProviderReadinessGuard } from './common/auth/provider-readiness.guard';
 import { RequestIdInterceptor } from './common/request-id/request-id.interceptor';
 import { validateAppEnv } from './config/app-env';
 import { UsersModule } from './users/users.module';
@@ -20,9 +21,7 @@ import { MusicModule } from './music/music.module';
 import { createDatabaseOptions } from './database/database-options';
 
 const envFilePath =
-  process.env.NODE_ENV === 'test'
-    ? ['.env.test.local', '.env.test']
-    : ['.env'];
+  process.env.NODE_ENV === 'test' ? ['.env.test.local', '.env.test'] : ['.env'];
 
 @Module({
   imports: [
@@ -93,6 +92,10 @@ const envFilePath =
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ProviderReadinessGuard,
     },
   ],
 })

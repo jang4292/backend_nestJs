@@ -27,8 +27,7 @@ export class ExchangeFacebookAuthCodeUseCase {
     input: ExchangeFacebookAuthCodeInput,
   ): Promise<FacebookAccessTokenSet> {
     if (
-      input.state !== undefined &&
-      input.expectedState !== undefined &&
+      (input.state === undefined) !== (input.expectedState === undefined) ||
       input.state !== input.expectedState
     ) {
       throw new FacebookAuthError(

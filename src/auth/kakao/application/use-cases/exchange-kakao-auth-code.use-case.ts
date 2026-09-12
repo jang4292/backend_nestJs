@@ -27,8 +27,7 @@ export class ExchangeKakaoAuthCodeUseCase {
     input: ExchangeKakaoAuthCodeInput,
   ): Promise<KakaoAccessTokenSet> {
     if (
-      input.state !== undefined &&
-      input.expectedState !== undefined &&
+      (input.state === undefined) !== (input.expectedState === undefined) ||
       input.state !== input.expectedState
     ) {
       throw new KakaoAuthError(

@@ -69,8 +69,7 @@ export class GoogleLoginUseCase {
         );
       }
       if (
-        input.state !== undefined &&
-        input.expectedState !== undefined &&
+        (input.state === undefined) !== (input.expectedState === undefined) ||
         input.state !== input.expectedState
       ) {
         throw new GoogleAuthError(

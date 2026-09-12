@@ -22,6 +22,11 @@ export interface AppEnv {
   THROTTLE_TTL: number;
   THROTTLE_LIMIT: number;
   CORS_ORIGIN?: string;
+  AUTH_GOOGLE_ENABLED: boolean;
+  AUTH_APPLE_ENABLED: boolean;
+  AUTH_KAKAO_ENABLED: boolean;
+  AUTH_NAVER_ENABLED: boolean;
+  AUTH_FACEBOOK_ENABLED: boolean;
   GOOGLE_ALLOWED_AUDIENCES: string;
   GOOGLE_ALLOWED_ISSUERS: string;
   GOOGLE_OAUTH_CLIENT_ID?: string;
@@ -77,6 +82,39 @@ export function validateAppEnv(config: RawEnv): AppEnv {
   );
   const corsOrigin = optionalString(config.CORS_ORIGIN);
   const jwtSecret = requiredString(config.JWT_SECRET, 'JWT_SECRET');
+  const googleAllowedAudiences = optionalString(
+    config.GOOGLE_ALLOWED_AUDIENCES,
+  );
+  const authGoogleEnabled = parseProviderEnabled(
+    config.AUTH_GOOGLE_ENABLED,
+    true,
+  );
+  const authAppleEnabled = parseProviderEnabled(
+    config.AUTH_APPLE_ENABLED,
+    hasAnyValue(config, [
+      'APPLE_ALLOWED_AUDIENCES',
+      'APPLE_SERVICE_ID',
+      'APPLE_TEAM_ID',
+      'APPLE_KEY_ID',
+      'APPLE_PRIVATE_KEY',
+    ]),
+  );
+  const authKakaoEnabled = parseProviderEnabled(
+    config.AUTH_KAKAO_ENABLED,
+    optionalString(config.KAKAO_REST_API_KEY) !== undefined,
+  );
+  const authNaverEnabled = parseProviderEnabled(
+    config.AUTH_NAVER_ENABLED,
+    optionalString(config.NAVER_CLIENT_ID) !== undefined,
+  );
+  const authFacebookEnabled = parseProviderEnabled(
+    config.AUTH_FACEBOOK_ENABLED,
+    optionalString(config.FACEBOOK_APP_ID) !== undefined,
+  );
+
+  if (authGoogleEnabled && googleAllowedAudiences === undefined) {
+    throw new Error('GOOGLE_ALLOWED_AUDIENCES is required.');
+  }
 
   if (nodeEnv === 'production' && !corsOrigin) {
     throw new Error('CORS_ORIGIN is required when NODE_ENV=production.');
@@ -108,6 +146,23 @@ export function validateAppEnv(config: RawEnv): AppEnv {
   if (nodeEnv === 'production' && isPlaceholderSecret(jwtSecret)) {
     throw new Error('JWT_SECRET must be a strong production secret.');
   }
+
+  validateEnabledProviderConfig(nodeEnv, authGoogleEnabled, [
+    ['GOOGLE_ALLOWED_AUDIENCES', googleAllowedAudiences],
+  ]);
+  validateEnabledProviderConfig(nodeEnv, authAppleEnabled, [
+    ['APPLE_ALLOWED_AUDIENCES', optionalString(config.APPLE_ALLOWED_AUDIENCES)],
+  ]);
+  validateEnabledProviderConfig(nodeEnv, authKakaoEnabled, [
+    ['KAKAO_REST_API_KEY', optionalString(config.KAKAO_REST_API_KEY)],
+  ]);
+  validateEnabledProviderConfig(nodeEnv, authNaverEnabled, [
+    ['NAVER_CLIENT_ID', optionalString(config.NAVER_CLIENT_ID)],
+  ]);
+  validateEnabledProviderConfig(nodeEnv, authFacebookEnabled, [
+    ['FACEBOOK_APP_ID', optionalString(config.FACEBOOK_APP_ID)],
+    ['FACEBOOK_APP_SECRET', optionalString(config.FACEBOOK_APP_SECRET)],
+  ]);
 
   const dbType = optionalString(config.DB_TYPE) ?? 'mariadb';
   if (dbType !== 'mariadb') {
@@ -155,10 +210,12 @@ export function validateAppEnv(config: RawEnv): AppEnv {
       min: 1,
     }),
     CORS_ORIGIN: corsOrigin,
-    GOOGLE_ALLOWED_AUDIENCES: requiredString(
-      config.GOOGLE_ALLOWED_AUDIENCES,
-      'GOOGLE_ALLOWED_AUDIENCES',
-    ),
+    AUTH_GOOGLE_ENABLED: authGoogleEnabled,
+    AUTH_APPLE_ENABLED: authAppleEnabled,
+    AUTH_KAKAO_ENABLED: authKakaoEnabled,
+    AUTH_NAVER_ENABLED: authNaverEnabled,
+    AUTH_FACEBOOK_ENABLED: authFacebookEnabled,
+    GOOGLE_ALLOWED_AUDIENCES: googleAllowedAudiences ?? '',
     GOOGLE_ALLOWED_ISSUERS:
       optionalString(config.GOOGLE_ALLOWED_ISSUERS) ?? DEFAULT_ALLOWED_ISSUERS,
     GOOGLE_OAUTH_CLIENT_ID: optionalString(config.GOOGLE_OAUTH_CLIENT_ID),
@@ -200,6 +257,33 @@ function parseOptionalInteger(
   }
 
   return parseInteger(parsed, name, 0, options);
+}
+
+function parseProviderEnabled(value: unknown, inferredValue: boolean): boolean {
+  return value === undefined
+    ? inferredValue
+    : parseBoolean(value, 'AUTH_PROVIDER_ENABLED', inferredValue);
+}
+
+function hasAnyValue(config: RawEnv, names: string[]): boolean {
+  return names.some((name) => optionalString(config[name]) !== undefined);
+}
+
+function validateEnabledProviderConfig(
+  nodeEnv: NodeEnvironment,
+  enabled: boolean,
+  values: Array<[string, string | undefined]>,
+): void {
+  if (nodeEnv !== 'production' || !enabled) return;
+
+  const missing = values
+    .filter(([, value]) => value === undefined)
+    .map(([name]) => name);
+  if (missing.length > 0) {
+    throw new Error(
+      `Enabled provider configuration is missing: ${missing.join(', ')}.`,
+    );
+  }
 }
 
 function parseNodeEnv(value: unknown): NodeEnvironment {

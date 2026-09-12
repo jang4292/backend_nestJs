@@ -27,8 +27,7 @@ export class ExchangeNaverAuthCodeUseCase {
     input: ExchangeNaverAuthCodeInput,
   ): Promise<NaverAccessTokenSet> {
     if (
-      input.state !== undefined &&
-      input.expectedState !== undefined &&
+      (input.state === undefined) !== (input.expectedState === undefined) ||
       input.state !== input.expectedState
     ) {
       throw new NaverAuthError(
