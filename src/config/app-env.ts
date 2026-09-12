@@ -56,6 +56,7 @@ const DEFAULT_ALLOWED_ISSUERS =
   'accounts.google.com,https://accounts.google.com';
 
 export function validateAppEnv(config: RawEnv): AppEnv {
+  // 환경변수는 앱 기동 전에 파싱합니다. 잘못된 설정은 외부 OAuth 호출이나 DB 연결보다 먼저 실패시킵니다.
   const nodeEnv = parseNodeEnv(config.NODE_ENV);
   const dbSynchronize = parseBoolean(
     config.DB_SYNCHRONIZE,
@@ -85,9 +86,11 @@ export function validateAppEnv(config: RawEnv): AppEnv {
   const dbUsername = requiredString(config.DB_USERNAME, 'DB_USERNAME');
   const dbPassword = requiredString(config.DB_PASSWORD, 'DB_PASSWORD');
   const dbDatabase = requiredString(config.DB_DATABASE, 'DB_DATABASE');
+  // Google audience는 활성화된 Google ID Token 검증에 필수입니다.
   const googleAllowedAudiences = optionalString(
     config.GOOGLE_ALLOWED_AUDIENCES,
   );
+  // 명시적인 AUTH_*_ENABLED가 없으면 기존 환경과의 호환을 위해 credential 존재 여부로 추론합니다.
   const authGoogleEnabled = parseProviderEnabled(
     config.AUTH_GOOGLE_ENABLED,
     true,
@@ -150,9 +153,11 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     throw new Error('JWT_SECRET must be a strong production secret.');
   }
 
+  // 활성 provider의 기본 검증 설정은 production에서 반드시 존재해야 합니다.
   validateEnabledProviderConfig(nodeEnv, authGoogleEnabled, [
     ['GOOGLE_ALLOWED_AUDIENCES', googleAllowedAudiences],
   ]);
+  // code flow 설정은 전부 생략하거나 전부 입력해야 합니다. token-only 운영은 허용합니다.
   validateOptionalProviderConfig(nodeEnv, authGoogleEnabled, [
     ['GOOGLE_OAUTH_CLIENT_ID', optionalString(config.GOOGLE_OAUTH_CLIENT_ID)],
     [
