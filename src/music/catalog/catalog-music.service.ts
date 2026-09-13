@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { AUDIO_ASSET_REPOSITORY_PORT } from './application/ports/audio-asset-repository.port';
 import type { AudioAssetRepositoryPort } from './application/ports/audio-asset-repository.port';
 import { CATALOG_TRACK_REPOSITORY_PORT } from './application/ports/catalog-track-repository.port';
@@ -139,7 +139,7 @@ export class CatalogMusicService {
       order: { publishedAt: 'DESC', id: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
-      relations: { playlistItems: { track: true } },
+      relations: { playlistItems: true },
     });
     return { items, total, page, limit };
   }
@@ -171,14 +171,21 @@ export class CatalogMusicService {
     if (existingPosition) {
       throw new BadRequestException('Playlist position is already occupied');
     }
-    return this.playlistTrackRepo.save(
-      this.playlistTrackRepo.create({
-        playlist,
-        track,
-        position: dto.position,
-        note: dto.note ?? null,
-      }),
-    );
+    try {
+      return await this.playlistTrackRepo.save(
+        this.playlistTrackRepo.create({
+          playlist,
+          track,
+          position: dto.position,
+          note: dto.note ?? null,
+        }),
+      );
+    } catch (error) {
+      if (isDuplicateKeyError(error)) {
+        throw new BadRequestException('Playlist position is already occupied');
+      }
+      throw error;
+    }
   }
 
   async reorderPlaylist(
@@ -247,4 +254,12 @@ export class CatalogMusicService {
     }
     return playlist;
   }
+}
+
+function isDuplicateKeyError(error: unknown): boolean {
+  if (!(error instanceof QueryFailedError)) {
+    return false;
+  }
+  const driverError = error.driverError as { code?: unknown } | undefined;
+  return driverError?.code === 'ER_DUP_ENTRY' || driverError?.code === '23505';
 }

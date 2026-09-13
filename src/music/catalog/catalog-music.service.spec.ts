@@ -1,8 +1,11 @@
 import { NotFoundException } from '@nestjs/common';
+import { Repository } from 'typeorm';
 import type { AudioAssetRepositoryPort } from './application/ports/audio-asset-repository.port';
 import type { CatalogTrackRepositoryPort } from './application/ports/catalog-track-repository.port';
 import { CatalogMusicService } from './catalog-music.service';
 import type { AudioAsset } from './entities/audio-asset.entity';
+import type { CatalogPlaylist } from './entities/catalog-playlist.entity';
+import type { CatalogPlaylistTrack } from './entities/catalog-playlist-track.entity';
 import type { CatalogTrack } from './entities/catalog-track.entity';
 
 describe('CatalogMusicService', () => {
@@ -23,6 +26,13 @@ describe('CatalogMusicService', () => {
 
   let trackRepo: jest.Mocked<CatalogTrackRepositoryPort>;
   let audioAssetRepo: jest.Mocked<AudioAssetRepositoryPort>;
+  let playlistRepo: jest.Mocked<Pick<Repository<CatalogPlaylist>, 'findOne'>>;
+  let playlistTrackRepo: jest.Mocked<
+    Pick<
+      Repository<CatalogPlaylistTrack>,
+      'findOne' | 'save' | 'create' | 'find' | 'manager'
+    >
+  >;
   let service: CatalogMusicService;
 
   beforeEach(() => {
@@ -40,7 +50,24 @@ describe('CatalogMusicService', () => {
       findByTrackId: jest.fn(),
       remove: jest.fn(),
     };
-    service = new CatalogMusicService(trackRepo, audioAssetRepo);
+    playlistRepo = {
+      findOne: jest.fn(),
+    };
+    playlistTrackRepo = {
+      findOne: jest.fn(),
+      save: jest.fn(),
+      create: jest.fn(),
+      find: jest.fn(),
+      manager: {
+        transaction: jest.fn(),
+      } as never,
+    };
+    service = new CatalogMusicService(
+      trackRepo,
+      audioAssetRepo,
+      playlistRepo as Repository<CatalogPlaylist>,
+      playlistTrackRepo as Repository<CatalogPlaylistTrack>,
+    );
   });
 
   it('creates a track without an audio asset', async () => {

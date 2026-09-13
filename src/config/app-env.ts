@@ -182,7 +182,7 @@ export function validateAppEnv(config: RawEnv): AppEnv {
   validateEnabledProviderConfig(nodeEnv, authKakaoEnabled, [
     ['KAKAO_REST_API_KEY', optionalString(config.KAKAO_REST_API_KEY)],
   ]);
-  validateOptionalProviderConfig(nodeEnv, authKakaoEnabled, [
+  validateEnabledProviderConfig(nodeEnv, authKakaoEnabled, [
     ['KAKAO_REDIRECT_URIS', optionalString(config.KAKAO_REDIRECT_URIS)],
   ]);
   validateEnabledProviderConfig(nodeEnv, authNaverEnabled, [
@@ -196,7 +196,7 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     ['FACEBOOK_APP_ID', optionalString(config.FACEBOOK_APP_ID)],
     ['FACEBOOK_APP_SECRET', optionalString(config.FACEBOOK_APP_SECRET)],
   ]);
-  validateOptionalProviderConfig(nodeEnv, authFacebookEnabled, [
+  validateEnabledProviderConfig(nodeEnv, authFacebookEnabled, [
     ['FACEBOOK_REDIRECT_URIS', optionalString(config.FACEBOOK_REDIRECT_URIS)],
   ]);
 

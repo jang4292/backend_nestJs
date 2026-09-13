@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, QueryFailedError, Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { SocialAccount } from '../entities/social-account.entity';
 import { SocialIdentity } from '../domain/social-identity';
@@ -51,26 +51,44 @@ export class SocialAccountLinkerTypeOrmAdapter implements SocialAccountLinkerPor
       }
 
       const username = `${identity.provider}_${identity.sub}`;
-      const user = await usersRepository.save(
-        usersRepository.create({
-          username,
-          password: null,
-          email: identity.email,
-          name: identity.name,
-        }),
-      );
+      try {
+        const user = await usersRepository.save(
+          usersRepository.create({
+            username,
+            password: null,
+            email: identity.email,
+            name: identity.name,
+          }),
+        );
 
-      await socialAccountsRepository.save(
-        socialAccountsRepository.create({
-          userId: user.id,
-          provider: identity.provider,
-          providerUserId: identity.sub,
-          email: identity.email,
-          name: identity.name,
-        }),
-      );
+        await socialAccountsRepository.save(
+          socialAccountsRepository.create({
+            userId: user.id,
+            provider: identity.provider,
+            providerUserId: identity.sub,
+            email: identity.email,
+            name: identity.name,
+          }),
+        );
 
-      return this.toRecord(user);
+        return this.toRecord(user);
+      } catch (error) {
+        if (!isDuplicateKeyError(error)) {
+          throw error;
+        }
+
+        const concurrentAccount = await socialAccountsRepository.findOne({
+          where: {
+            provider: identity.provider,
+            providerUserId: identity.sub,
+          },
+          relations: ['user'],
+        });
+        if (concurrentAccount) {
+          return this.toRecord(concurrentAccount.user);
+        }
+        throw error;
+      }
     });
   }
 
@@ -82,4 +100,13 @@ export class SocialAccountLinkerTypeOrmAdapter implements SocialAccountLinkerPor
       name: user.name,
     };
   }
+}
+
+function isDuplicateKeyError(error: unknown): boolean {
+  if (!(error instanceof QueryFailedError)) {
+    return false;
+  }
+
+  const driverError = error.driverError as { code?: unknown } | undefined;
+  return driverError?.code === 'ER_DUP_ENTRY' || driverError?.code === '23505';
 }

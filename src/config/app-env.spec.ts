@@ -124,6 +124,31 @@ describe('validateAppEnv', () => {
     ).toBe(false);
   });
 
+  it('requires Kakao redirect allowlist when Kakao is enabled in production', () => {
+    expect(() =>
+      validateAppEnv({
+        ...baseEnv,
+        NODE_ENV: 'production',
+        CORS_ORIGIN: 'https://example.com',
+        KAKAO_REST_API_KEY: 'kakao-rest-key',
+      }),
+    ).toThrow('Enabled provider configuration is missing: KAKAO_REDIRECT_URIS.');
+  });
+
+  it('requires Facebook redirect allowlist when Facebook is enabled in production', () => {
+    expect(() =>
+      validateAppEnv({
+        ...baseEnv,
+        NODE_ENV: 'production',
+        CORS_ORIGIN: 'https://example.com',
+        FACEBOOK_APP_ID: 'facebook-app-id',
+        FACEBOOK_APP_SECRET: 'facebook-app-secret',
+      }),
+    ).toThrow(
+      'Enabled provider configuration is missing: FACEBOOK_REDIRECT_URIS.',
+    );
+  });
+
   it.each(['DB_USERNAME', 'DB_PASSWORD', 'DB_DATABASE'] as const)(
     'requires %s',
     (variable) => {

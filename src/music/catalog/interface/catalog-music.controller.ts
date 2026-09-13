@@ -42,7 +42,14 @@ export class CatalogMusicController {
   @ApiOperation({ summary: '트랙 목록 조회' })
   @Get('tracks')
   listTracks() {
-    return this.musicService.listTracks();
+    return this.musicService.listTracks().then((tracks) =>
+      tracks.map((track) => ({
+        id: track.id,
+        title: track.title,
+        artist: track.artist,
+        bpm: track.bpm,
+      })),
+    );
   }
 
   @ApiOperation({ summary: '트랙 상세 조회' })
