@@ -78,6 +78,27 @@ password-only-secret
 - `GOOGLE_OAUTH_CLIENT_ID`
 - `GOOGLE_OAUTH_CLIENT_SECRET`
 - `GOOGLE_OAUTH_REDIRECT_URIS`
+- `AUTH_GOOGLE_ENABLED`
+- `AUTH_APPLE_ENABLED`
+- `AUTH_KAKAO_ENABLED`
+- `AUTH_NAVER_ENABLED`
+- `AUTH_FACEBOOK_ENABLED`
+- `APPLE_ALLOWED_AUDIENCES`
+- `APPLE_SERVICE_ID`
+- `APPLE_TEAM_ID`
+- `APPLE_KEY_ID`
+- `APPLE_PRIVATE_KEY`
+- `APPLE_REDIRECT_URIS`
+- `FACEBOOK_APP_ID`
+- `FACEBOOK_APP_SECRET`
+- `FACEBOOK_REDIRECT_URIS`
+- `FACEBOOK_GRAPH_API_VERSION`
+- `KAKAO_REST_API_KEY`
+- `KAKAO_CLIENT_SECRET`
+- `KAKAO_REDIRECT_URIS`
+- `NAVER_CLIENT_ID`
+- `NAVER_CLIENT_SECRET`
+- `NAVER_REDIRECT_URIS`
 - `CORS_ORIGIN`
 
 ## 4) 배포 실행 순서 (권장)
@@ -106,6 +127,8 @@ password-only-secret
    npm run pm2:reload
    ```
 7. `/health`와 로그인/보호 API 최소 스모크 테스트를 실행합니다.
+8. `AUTH_*_ENABLED=false` provider가 외부 호출 없이 `503`을 반환하는지 확인합니다.
+9. 활성 provider의 code flow를 사용하는 경우 등록된 redirect URI와 credential이 모두 주입됐는지 확인합니다.
 
 ## 5) 비밀번호 회전(runbook) 체크리스트
 
@@ -139,3 +162,4 @@ password-only-secret
 
 - 과거 PostgreSQL 참고: `docs/learning/postgresql-rds-nestjs-guide.kr.md`
 - 보안 가이드: `docs/learning/security-guide.kr.md`
+- SNS 로그인 운영·학습 가이드: `docs/learning/sns-login-operational-guide.kr.md`

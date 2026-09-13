@@ -22,6 +22,11 @@ export interface AppEnv {
   THROTTLE_TTL: number;
   THROTTLE_LIMIT: number;
   CORS_ORIGIN?: string;
+  AUTH_GOOGLE_ENABLED: boolean;
+  AUTH_APPLE_ENABLED: boolean;
+  AUTH_KAKAO_ENABLED: boolean;
+  AUTH_NAVER_ENABLED: boolean;
+  AUTH_FACEBOOK_ENABLED: boolean;
   GOOGLE_ALLOWED_AUDIENCES: string;
   GOOGLE_ALLOWED_ISSUERS: string;
   GOOGLE_OAUTH_CLIENT_ID?: string;
@@ -51,6 +56,7 @@ const DEFAULT_ALLOWED_ISSUERS =
   'accounts.google.com,https://accounts.google.com';
 
 export function validateAppEnv(config: RawEnv): AppEnv {
+  // 환경변수는 앱 기동 전에 파싱합니다. 잘못된 설정은 외부 OAuth 호출이나 DB 연결보다 먼저 실패시킵니다.
   const nodeEnv = parseNodeEnv(config.NODE_ENV);
   const dbSynchronize = parseBoolean(
     config.DB_SYNCHRONIZE,
@@ -77,6 +83,44 @@ export function validateAppEnv(config: RawEnv): AppEnv {
   );
   const corsOrigin = optionalString(config.CORS_ORIGIN);
   const jwtSecret = requiredString(config.JWT_SECRET, 'JWT_SECRET');
+  const dbUsername = requiredString(config.DB_USERNAME, 'DB_USERNAME');
+  const dbPassword = requiredString(config.DB_PASSWORD, 'DB_PASSWORD');
+  const dbDatabase = requiredString(config.DB_DATABASE, 'DB_DATABASE');
+  // Google audience는 활성화된 Google ID Token 검증에 필수입니다.
+  const googleAllowedAudiences = optionalString(
+    config.GOOGLE_ALLOWED_AUDIENCES,
+  );
+  // 명시적인 AUTH_*_ENABLED가 없으면 기존 환경과의 호환을 위해 credential 존재 여부로 추론합니다.
+  const authGoogleEnabled = parseProviderEnabled(
+    config.AUTH_GOOGLE_ENABLED,
+    true,
+  );
+  const authAppleEnabled = parseProviderEnabled(
+    config.AUTH_APPLE_ENABLED,
+    hasAnyValue(config, [
+      'APPLE_ALLOWED_AUDIENCES',
+      'APPLE_SERVICE_ID',
+      'APPLE_TEAM_ID',
+      'APPLE_KEY_ID',
+      'APPLE_PRIVATE_KEY',
+    ]),
+  );
+  const authKakaoEnabled = parseProviderEnabled(
+    config.AUTH_KAKAO_ENABLED,
+    optionalString(config.KAKAO_REST_API_KEY) !== undefined,
+  );
+  const authNaverEnabled = parseProviderEnabled(
+    config.AUTH_NAVER_ENABLED,
+    optionalString(config.NAVER_CLIENT_ID) !== undefined,
+  );
+  const authFacebookEnabled = parseProviderEnabled(
+    config.AUTH_FACEBOOK_ENABLED,
+    optionalString(config.FACEBOOK_APP_ID) !== undefined,
+  );
+
+  if (authGoogleEnabled && googleAllowedAudiences === undefined) {
+    throw new Error('GOOGLE_ALLOWED_AUDIENCES is required.');
+  }
 
   if (nodeEnv === 'production' && !corsOrigin) {
     throw new Error('CORS_ORIGIN is required when NODE_ENV=production.');
@@ -109,12 +153,58 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     throw new Error('JWT_SECRET must be a strong production secret.');
   }
 
+  // 활성 provider의 기본 검증 설정은 production에서 반드시 존재해야 합니다.
+  validateEnabledProviderConfig(nodeEnv, authGoogleEnabled, [
+    ['GOOGLE_ALLOWED_AUDIENCES', googleAllowedAudiences],
+  ]);
+  // code flow 설정은 전부 생략하거나 전부 입력해야 합니다. token-only 운영은 허용합니다.
+  validateOptionalProviderConfig(nodeEnv, authGoogleEnabled, [
+    ['GOOGLE_OAUTH_CLIENT_ID', optionalString(config.GOOGLE_OAUTH_CLIENT_ID)],
+    [
+      'GOOGLE_OAUTH_CLIENT_SECRET',
+      optionalString(config.GOOGLE_OAUTH_CLIENT_SECRET),
+    ],
+    [
+      'GOOGLE_OAUTH_REDIRECT_URIS',
+      optionalString(config.GOOGLE_OAUTH_REDIRECT_URIS),
+    ],
+  ]);
+  validateEnabledProviderConfig(nodeEnv, authAppleEnabled, [
+    ['APPLE_ALLOWED_AUDIENCES', optionalString(config.APPLE_ALLOWED_AUDIENCES)],
+  ]);
+  validateOptionalProviderConfig(nodeEnv, authAppleEnabled, [
+    ['APPLE_SERVICE_ID', optionalString(config.APPLE_SERVICE_ID)],
+    ['APPLE_TEAM_ID', optionalString(config.APPLE_TEAM_ID)],
+    ['APPLE_KEY_ID', optionalString(config.APPLE_KEY_ID)],
+    ['APPLE_PRIVATE_KEY', optionalString(config.APPLE_PRIVATE_KEY)],
+    ['APPLE_REDIRECT_URIS', optionalString(config.APPLE_REDIRECT_URIS)],
+  ]);
+  validateEnabledProviderConfig(nodeEnv, authKakaoEnabled, [
+    ['KAKAO_REST_API_KEY', optionalString(config.KAKAO_REST_API_KEY)],
+  ]);
+  validateEnabledProviderConfig(nodeEnv, authKakaoEnabled, [
+    ['KAKAO_REDIRECT_URIS', optionalString(config.KAKAO_REDIRECT_URIS)],
+  ]);
+  validateEnabledProviderConfig(nodeEnv, authNaverEnabled, [
+    ['NAVER_CLIENT_ID', optionalString(config.NAVER_CLIENT_ID)],
+  ]);
+  validateOptionalProviderConfig(nodeEnv, authNaverEnabled, [
+    ['NAVER_CLIENT_SECRET', optionalString(config.NAVER_CLIENT_SECRET)],
+    ['NAVER_REDIRECT_URIS', optionalString(config.NAVER_REDIRECT_URIS)],
+  ]);
+  validateEnabledProviderConfig(nodeEnv, authFacebookEnabled, [
+    ['FACEBOOK_APP_ID', optionalString(config.FACEBOOK_APP_ID)],
+    ['FACEBOOK_APP_SECRET', optionalString(config.FACEBOOK_APP_SECRET)],
+  ]);
+  validateEnabledProviderConfig(nodeEnv, authFacebookEnabled, [
+    ['FACEBOOK_REDIRECT_URIS', optionalString(config.FACEBOOK_REDIRECT_URIS)],
+  ]);
+
   const dbType = optionalString(config.DB_TYPE) ?? 'mariadb';
   if (dbType !== 'mariadb') {
     throw new Error('Only DB_TYPE=mariadb is supported.');
   }
 
-  const dbDatabase = requiredString(config.DB_DATABASE, 'DB_DATABASE');
   // TODO(db-test-isolation): Keep this temporary exception for app_db because the
   // current shared test account is still scoped to that schema.
   // Follow-up work: provision dedicated *_test credentials/database (ex: app_db_test)
@@ -135,8 +225,8 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     DB_TYPE: 'mariadb',
     DB_HOST: optionalString(config.DB_HOST) ?? 'localhost',
     DB_PORT: parseInteger(config.DB_PORT, 'DB_PORT', 3306, { min: 1 }),
-    DB_USERNAME: requiredString(config.DB_USERNAME, 'DB_USERNAME'),
-    DB_PASSWORD: requiredString(config.DB_PASSWORD, 'DB_PASSWORD'),
+    DB_USERNAME: dbUsername,
+    DB_PASSWORD: dbPassword,
     DB_DATABASE: dbDatabase,
     DATABASE_URL: optionalString(config.DATABASE_URL),
     DB_SYNCHRONIZE: dbSynchronize,
@@ -155,10 +245,12 @@ export function validateAppEnv(config: RawEnv): AppEnv {
       min: 1,
     }),
     CORS_ORIGIN: corsOrigin,
-    GOOGLE_ALLOWED_AUDIENCES: requiredString(
-      config.GOOGLE_ALLOWED_AUDIENCES,
-      'GOOGLE_ALLOWED_AUDIENCES',
-    ),
+    AUTH_GOOGLE_ENABLED: authGoogleEnabled,
+    AUTH_APPLE_ENABLED: authAppleEnabled,
+    AUTH_KAKAO_ENABLED: authKakaoEnabled,
+    AUTH_NAVER_ENABLED: authNaverEnabled,
+    AUTH_FACEBOOK_ENABLED: authFacebookEnabled,
+    GOOGLE_ALLOWED_AUDIENCES: googleAllowedAudiences ?? '',
     GOOGLE_ALLOWED_ISSUERS:
       optionalString(config.GOOGLE_ALLOWED_ISSUERS) ?? DEFAULT_ALLOWED_ISSUERS,
     GOOGLE_OAUTH_CLIENT_ID: optionalString(config.GOOGLE_OAUTH_CLIENT_ID),
@@ -200,6 +292,46 @@ function parseOptionalInteger(
   }
 
   return parseInteger(parsed, name, 0, options);
+}
+
+function parseProviderEnabled(value: unknown, inferredValue: boolean): boolean {
+  return value === undefined
+    ? inferredValue
+    : parseBoolean(value, 'AUTH_PROVIDER_ENABLED', inferredValue);
+}
+
+function hasAnyValue(config: RawEnv, names: string[]): boolean {
+  return names.some((name) => optionalString(config[name]) !== undefined);
+}
+
+function validateEnabledProviderConfig(
+  nodeEnv: NodeEnvironment,
+  enabled: boolean,
+  values: Array<[string, string | undefined]>,
+): void {
+  if (nodeEnv !== 'production' || !enabled) return;
+
+  const missing = values
+    .filter(([, value]) => value === undefined)
+    .map(([name]) => name);
+  if (missing.length > 0) {
+    throw new Error(
+      `Enabled provider configuration is missing: ${missing.join(', ')}.`,
+    );
+  }
+}
+
+function validateOptionalProviderConfig(
+  nodeEnv: NodeEnvironment,
+  enabled: boolean,
+  values: Array<[string, string | undefined]>,
+): void {
+  if (nodeEnv !== 'production' || !enabled) return;
+
+  const configured = values.some(([, value]) => value !== undefined);
+  if (!configured) return;
+
+  validateEnabledProviderConfig(nodeEnv, true, values);
 }
 
 function parseNodeEnv(value: unknown): NodeEnvironment {

@@ -10,7 +10,7 @@ import {
 import { Playlist } from './playlist.entity';
 import { Track } from './track.entity';
 
-@Entity('playlist_track')
+@Entity('legacy_playlist_track')
 export class PlaylistTrack {
   @PrimaryGeneratedColumn()
   id!: number;

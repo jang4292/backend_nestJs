@@ -208,30 +208,44 @@ PATCH /users/profile
 Music endpoints:
 
 ```http
-GET    /music/artists
-GET    /music/artists/:id
-POST   /music/artists
-PATCH  /music/artists/:id
-DELETE /music/artists/:id
+GET    /music/public/playlists
+GET    /music/public/playlists/:id
 
 POST   /music/tracks
 GET    /music/tracks
 GET    /music/tracks/:id
 PATCH  /music/tracks/:id
 DELETE /music/tracks/:id
+POST   /music/tracks/:trackId/audio-assets
+GET    /music/tracks/:trackId/audio-assets
+PATCH  /music/audio-assets/:id
+DELETE /music/audio-assets/:id
 
 POST   /music/playlists
-GET    /music/playlists
-GET    /music/playlists/by-date?date=YYYY-MM-DD
-GET    /music/playlists/:id
-PATCH  /music/playlists/:id
-DELETE /music/playlists/:id
-
-GET    /music/playlists/:playlistId/tracks
+PATCH  /music/playlists/:id/publish
 POST   /music/playlists/:playlistId/tracks
-PATCH  /music/playlists/:playlistId/tracks/:playlistTrackId
-DELETE /music/playlists/:playlistId/tracks/:playlistTrackId
+PATCH  /music/playlists/:playlistId/tracks/reorder
+
+GET    /music/legacy/artists
+GET    /music/legacy/artists/:id
+POST   /music/legacy/artists
+PATCH  /music/legacy/artists/:id
+DELETE /music/legacy/artists/:id
+
+POST   /music/legacy/playlists
+GET    /music/legacy/playlists
+GET    /music/legacy/playlists/by-date?date=YYYY-MM-DD
+GET    /music/legacy/playlists/:id
+PATCH  /music/legacy/playlists/:id
+DELETE /music/legacy/playlists/:id
+
+GET    /music/legacy/playlists/:playlistId/tracks
+POST   /music/legacy/playlists/:playlistId/tracks
+PATCH  /music/legacy/playlists/:playlistId/tracks/:playlistTrackId
+DELETE /music/legacy/playlists/:playlistId/tracks/:playlistTrackId
 ```
+
+`/music/public/*`와 Catalog Track 조회는 로그인 없이 사용할 수 있습니다. 공개 응답은 화면용 메타데이터와 Track 순서만 반환하며 AudioAsset의 S3 URL이나 내부 저장소 식별자를 포함하지 않습니다. Catalog 생성·수정·Playlist 관리와 AudioAsset 목록 조회는 JWT가 필요합니다. 자세한 학습 흐름은 [Music 학습 가이드](docs/music/learning-guide.kr.md)를 참고하세요.
 
 ## Project Structure
 

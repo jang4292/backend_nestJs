@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { Track } from './track.entity';
 
-@Entity('artist')
+@Entity('legacy_artist')
 export class Artist {
   @PrimaryGeneratedColumn()
   id!: number;

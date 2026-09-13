@@ -25,8 +25,7 @@ export class ExchangeAppleAuthCodeUseCase {
 
   async execute(input: ExchangeAppleAuthCodeInput): Promise<TokenSet> {
     if (
-      input.state !== undefined &&
-      input.expectedState !== undefined &&
+      (input.state === undefined) !== (input.expectedState === undefined) ||
       input.state !== input.expectedState
     ) {
       throw new AppleAuthError(

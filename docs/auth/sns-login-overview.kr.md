@@ -53,8 +53,14 @@ Google/Apple은 `POST /auth/{provider}/verify-id-token`으로 id_token 검증만
 | Kakao | `KAKAO_REST_API_KEY`, `KAKAO_CLIENT_SECRET`(선택), `KAKAO_REDIRECT_URIS` | Kakao Developers에서 앱 생성 후 REST API 키 발급 |
 | Naver | `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`, `NAVER_REDIRECT_URIS` | Naver Developers에서 애플리케이션 등록 후 발급 |
 
-위 환경변수가 설정되지 않아도 서버는 정상 기동됩니다. 해당 provider의 엔드포인트를 호출할 때만
-`*_CONFIG_MISSING` 에러(503)로 명확하게 실패합니다.
+`AUTH_{PROVIDER}_ENABLED=false`인 provider는 route를 유지하지만 외부 API를 호출하지 않고
+`503 Service Unavailable`과 `AUTH_{PROVIDER}_DISABLED`를 반환합니다. 로컬 로그인
+`POST /auth/login`은 provider readiness 검사 대상이 아니며 SNS 설정과 독립적으로 동작합니다.
+
+개발/테스트 환경에서는 비활성 provider의 secret 없이도 build와 앱 기동이 가능합니다. 운영에서
+활성화한 provider는 최소 검증 설정이 필요하고, authorization-code flow 설정을 일부만 입력하면
+startup validation이 실패합니다. code flow를 사용하지 않는 token-only 배포는 허용하되,
+redirect URI allowlist와 client credential을 임의의 placeholder로 채우지 않습니다.
 
 ## 에러 코드 네이밍 규칙
 
@@ -63,7 +69,8 @@ Google/Apple은 `POST /auth/{provider}/verify-id-token`으로 id_token 검증만
 
 - `*_BAD_REQUEST` (400): 잘못된 요청 (idToken/code/accessToken 동시 전달 등)
 - `*_STATE_MISMATCH` / `*_INVALID_AUDIENCE` / `*_INVALID_ISSUER` / `*_TOKEN_EXPIRED` / `*_MISSING_SUB` / `*_EXCHANGE_FAILED` / `*_PROFILE_FETCH_FAILED` / `*_INVALID_TOKEN` (401)
-- `*_CONFIG_MISSING` (503): 서버에 필요한 자격증명이 설정되지 않음
+- `*_CONFIG_MISSING` (503): 활성 flow에 필요한 자격증명이 설정되지 않음
+- `AUTH_{PROVIDER}_DISABLED` (503): provider flag가 비활성화됨
 - `*_INTERNAL_ERROR` (500)
 
 ## 참고
@@ -72,3 +79,4 @@ Google/Apple은 `POST /auth/{provider}/verify-id-token`으로 id_token 검증만
   `social_accounts`로 이관한 뒤 `users.provider`/`users.googleId` 컬럼을 제거합니다.
   운영 DB에 적용하기 전 반드시 백업하세요.
 - Google 로그인 상세 가이드는 [google-login.kr.md](./google-login.kr.md) 참고.
+- 운영 배포와 secret 주입은 [배포/시크릿 운영 체크리스트](../learning/deployment-secrets-checklist.kr.md)를 참고.

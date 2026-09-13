@@ -232,3 +232,16 @@ Repository port는 entity CRUD의 단순 복사보다 유스케이스가 필요�
 ## 10. 현재 결론
 
 기본적인 도메인 분리와 CRUD 유스케이스는 이미 갖춰져 있고, 집중 단위 테스트도 통과한다. 다음 투자 우선순위는 새 CRUD를 더 추가하는 것이 아니라 권한, Playlist 항목의 DB 무결성, transaction, HTTP 응답 계약을 확정하는 일이다. 이 네 가지를 먼저 고정한 뒤 facade/module을 도메인 단위로 정리하면 기능 확장과 AI 협업 모두에서 변경 충돌과 운영 리스크를 크게 줄일 수 있다.
+
+## 11. 이후 Catalog Playlist 구현 반영
+
+위 검토 이후 Catalog 영역에 다음 구현이 추가되었다.
+
+- `/music/public/playlists`와 `/music/public/playlists/:id` 공개 조회
+- `draft`/`published`/`archived` Playlist 상태
+- `playlist_track.position` 기반 순서와 `(playlistId, position)` unique index
+- 인증된 Playlist 생성, publish, Track 추가, 전체 순서 변경 API
+- 공개 presenter를 통한 AudioAsset URL 비노출
+- MariaDB용 `CreateCatalogPlaylistSchema` Migration
+
+이 구현은 기존 Legacy API를 제거하지 않는다. Legacy API는 `/music/legacy`와 `legacy_*` 테이블에 남아 있으며, Catalog는 `/music` 및 `/music/public` 경로를 사용한다. 따라서 이 문서의 기존 위험 분석 중 owner/role, presigned playback, Legacy-to-Catalog 이관은 여전히 후속 과제다.
