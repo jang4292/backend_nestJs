@@ -32,7 +32,7 @@ import type {
 } from './presenters/track.presenter';
 
 @ApiTags('music')
-@Controller('music')
+@Controller('music/legacy')
 export class MusicController {
   constructor(private readonly musicService: MusicService) {}
 

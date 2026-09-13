@@ -18,6 +18,7 @@ import { RequestIdInterceptor } from './common/request-id/request-id.interceptor
 import { validateAppEnv } from './config/app-env';
 import { UsersModule } from './users/users.module';
 import { MusicModule } from './music/music.module';
+import { CatalogMusicModule } from './music/catalog/catalog-music.module';
 import { createDatabaseOptions } from './database/database-options';
 
 const envFilePath =
@@ -77,6 +78,7 @@ const envFilePath =
     AuthFacebookModule,
     CommonModule,
     MusicModule,
+    CatalogMusicModule,
   ],
   controllers: [AppController],
   providers: [

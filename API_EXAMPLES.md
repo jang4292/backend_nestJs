@@ -255,26 +255,27 @@ Google and Apple also expose `POST /auth/{provider}/verify-id-token`.
 Provider-specific credentials and error codes are documented in
 [the SNS login overview](docs/auth/sns-login-overview.kr.md).
 
-### 8. Music Artists
+### 8. Legacy Music API
 
-All music endpoints require `Authorization: Bearer YOUR_ACCESS_TOKEN_HERE`.
+Existing Artist, Playlist, and their Track APIs are preserved below `/music/legacy`.
+They require `Authorization: Bearer YOUR_ACCESS_TOKEN_HERE`.
 
 ```bash
-curl http://localhost:3000/music/artists \
+curl http://localhost:3000/music/legacy/artists \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE"
 
-curl -X POST http://localhost:3000/music/artists \
+curl -X POST http://localhost:3000/music/legacy/artists \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
   -d '{"name":"Artist X"}'
 ```
 
-Use `GET /music/artists/:id`, `PATCH /music/artists/:id`, and
-`DELETE /music/artists/:id` for single-artist operations.
+Use `GET /music/legacy/artists/:id`, `PATCH /music/legacy/artists/:id`, and
+`DELETE /music/legacy/artists/:id` for single-artist operations.
 
-### 9. Music Tracks
+### 9. Catalog Tracks and Audio Assets
 
-Create and list tracks:
+Create a catalog Track. It may exist before any audio file URL is known:
 
 ```bash
 curl -X POST http://localhost:3000/music/tracks \
@@ -283,20 +284,79 @@ curl -X POST http://localhost:3000/music/tracks \
   -d '{
     "title": "Song A",
     "artist": "Artist X",
-    "bpm": 120,
-    "lengthSec": 210
+    "bpm": 120
   }'
 
-curl http://localhost:3000/music/tracks \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE"
+curl http://localhost:3000/music/tracks
+
+curl -X POST http://localhost:3000/music/tracks/1/audio-assets \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
+  -d '{
+    "url": "https://media.example.com/song-a.mp3",
+    "duration": 210,
+    "bpm": 121
+  }'
 ```
 
-### 10. Music Playlists
+`Track.bpm` is the catalog value. `AudioAsset.bpm` is file or analysis metadata;
+changing it does not modify the Track BPM. Catalog writes require a bearer token;
+catalog metadata reads are public. Public responses intentionally do not expose
+the stored audio URL as a playback authorization mechanism.
+
+### 10. Public Catalog Playlists
+
+Only `published` playlists are returned to anonymous clients. First request the
+playlist page, then request the selected playlist to receive its ordered tracks:
+
+```bash
+curl 'http://localhost:3000/music/public/playlists?page=1&limit=20'
+
+curl http://localhost:3000/music/public/playlists/1
+```
+
+The detail response contains playlist metadata, Track summaries, and each Track's
+`position`. It does not contain `audio_asset.url`, S3 object keys, or playback
+tokens. `draft` and `archived` playlists are not public.
+
+### 11. Manage Catalog Playlists (Protected)
+
+Create a draft playlist, add tracks, publish it, and reorder all items. These
+operations require a bearer token:
+
+```bash
+curl -X POST http://localhost:3000/music/playlists \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
+  -d '{
+    "title": "Evening Set",
+    "description": "A public catalog playlist",
+    "anonymousPlayable": false
+  }'
+
+curl -X POST http://localhost:3000/music/playlists/1/tracks \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
+  -d '{"trackId":1,"position":1,"note":"Opening track"}'
+
+curl -X PATCH http://localhost:3000/music/playlists/1/publish \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE"
+
+curl -X PATCH http://localhost:3000/music/playlists/1/tracks/reorder \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
+  -d '{"items":[{"id":2,"position":1},{"id":1,"position":2}]}'
+```
+
+The reorder request must include every existing playlist item exactly once. The
+database also enforces one position per playlist.
+
+### 12. Legacy Music Playlists
 
 Create a playlist and add a track:
 
 ```bash
-curl -X POST http://localhost:3000/music/playlists \
+curl -X POST http://localhost:3000/music/legacy/playlists \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
   -d '{
@@ -305,7 +365,7 @@ curl -X POST http://localhost:3000/music/playlists \
     "description": "Main playlist"
   }'
 
-curl -X POST http://localhost:3000/music/playlists/1/tracks \
+curl -X POST http://localhost:3000/music/legacy/playlists/1/tracks \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
   -d '{
