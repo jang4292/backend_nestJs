@@ -16,13 +16,15 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 import { ProviderReadinessGuard } from './common/auth/provider-readiness.guard';
 import { RequestIdInterceptor } from './common/request-id/request-id.interceptor';
 import { validateAppEnv } from './config/app-env';
+import { assertEnvFileAvailable, resolveEnvFilePath } from './config/env-files';
 import { UsersModule } from './users/users.module';
 import { MusicModule } from './music/music.module';
 import { CatalogMusicModule } from './music/catalog/catalog-music.module';
 import { createDatabaseOptions } from './database/database-options';
 
-const envFilePath =
-  process.env.NODE_ENV === 'test' ? ['.env.test.local', '.env.test'] : ['.env'];
+// NODE_ENV별 env 파일(.env / .env.test.local / .env.production, ENV_FILE로 재지정 가능)
+const envFilePath = resolveEnvFilePath();
+assertEnvFileAvailable(envFilePath);
 
 @Module({
   imports: [

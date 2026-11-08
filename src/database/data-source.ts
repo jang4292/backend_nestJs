@@ -1,17 +1,21 @@
 import { config } from 'dotenv';
-import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { DataSource } from 'typeorm';
 import { validateAppEnv } from '../config/app-env';
+import {
+  assertEnvFileAvailable,
+  resolveEnvFilePath,
+} from '../config/env-files';
 import { createDatabaseOptions } from './database-options';
 
-const isTestEnvironment = process.env.NODE_ENV === 'test';
-const envFilePath = isTestEnvironment ? '.env.test.local' : '.env';
-if (isTestEnvironment && !existsSync(envFilePath)) {
-  throw new Error(
-    'Missing .env.test.local. Copy .env.test.example and enter dedicated test database credentials.',
-  );
-}
-config({ path: envFilePath });
+// 앱과 같은 규칙으로 env 파일을 고릅니다(NODE_ENV별, ENV_FILE 우선).
+const envFilePath = resolveEnvFilePath();
+assertEnvFileAvailable(envFilePath);
+config({ path: envFilePath, quiet: true });
+
+// ts-node(src/*.ts)와 빌드 결과(dist/*.js) 양쪽에서 같은 data-source를 씁니다.
+// dist에는 .d.ts도 있으므로 실행 중인 파일의 확장자로만 migration을 찾습니다.
+const migrationExtension = __filename.endsWith('.ts') ? 'ts' : 'js';
 
 const appEnv = validateAppEnv(process.env);
 
@@ -31,7 +35,7 @@ const dataSource = new DataSource(
     DB_POOL_MIN: appEnv.DB_POOL_MIN,
     DB_POOL_MAX: appEnv.DB_POOL_MAX,
     DB_CONNECT_TIMEOUT_MS: appEnv.DB_CONNECT_TIMEOUT_MS,
-    migrations: ['src/database/migrations/*.ts'],
+    migrations: [join(__dirname, 'migrations', `*.${migrationExtension}`)],
   }),
 );
 

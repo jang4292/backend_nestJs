@@ -38,6 +38,8 @@ export interface AppEnv {
   AUTH_KAKAO_ENABLED: boolean;
   AUTH_NAVER_ENABLED: boolean;
   AUTH_FACEBOOK_ENABLED: boolean;
+  /** Naver 클라이언트 accessToken 로그인 허용 여부(기본 false: code flow만) */
+  AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED: boolean;
   GOOGLE_ALLOWED_AUDIENCES: string;
   GOOGLE_ALLOWED_ISSUERS: string;
   GOOGLE_OAUTH_CLIENT_ID?: string;
@@ -110,32 +112,34 @@ export function validateAppEnv(config: RawEnv): AppEnv {
   const googleAllowedAudiences = optionalString(
     config.GOOGLE_ALLOWED_AUDIENCES,
   );
-  // 명시적인 AUTH_*_ENABLED가 없으면 기존 환경과의 호환을 위해 credential 존재 여부로 추론합니다.
+  // SNS provider는 명시적 opt-in입니다. AUTH_<PROVIDER>_ENABLED=true일 때만 활성화되며,
+  // credential 키가 있어도 플래그가 없으면 꺼진 상태(라우트는 503)로 기동합니다.
+  // 재활성화 전 점검: docs/auth/sns-reenable-checklist.kr.md
   const authGoogleEnabled = parseProviderEnabled(
     config.AUTH_GOOGLE_ENABLED,
-    true,
+    'AUTH_GOOGLE_ENABLED',
   );
   const authAppleEnabled = parseProviderEnabled(
     config.AUTH_APPLE_ENABLED,
-    hasAnyValue(config, [
-      'APPLE_ALLOWED_AUDIENCES',
-      'APPLE_SERVICE_ID',
-      'APPLE_TEAM_ID',
-      'APPLE_KEY_ID',
-      'APPLE_PRIVATE_KEY',
-    ]),
+    'AUTH_APPLE_ENABLED',
   );
   const authKakaoEnabled = parseProviderEnabled(
     config.AUTH_KAKAO_ENABLED,
-    optionalString(config.KAKAO_REST_API_KEY) !== undefined,
+    'AUTH_KAKAO_ENABLED',
   );
   const authNaverEnabled = parseProviderEnabled(
     config.AUTH_NAVER_ENABLED,
-    optionalString(config.NAVER_CLIENT_ID) !== undefined,
+    'AUTH_NAVER_ENABLED',
   );
   const authFacebookEnabled = parseProviderEnabled(
     config.AUTH_FACEBOOK_ENABLED,
-    optionalString(config.FACEBOOK_APP_ID) !== undefined,
+    'AUTH_FACEBOOK_ENABLED',
+  );
+  // Naver는 클라이언트 accessToken의 발급 앱을 검증할 수 없으므로 기본적으로 code flow만 허용합니다.
+  const authNaverAccessTokenLoginEnabled = parseBoolean(
+    config.AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED,
+    'AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED',
+    false,
   );
 
   if (authGoogleEnabled && googleAllowedAudiences === undefined) {
@@ -143,7 +147,9 @@ export function validateAppEnv(config: RawEnv): AppEnv {
   }
 
   if (nodeEnv === 'production' && !corsOrigin) {
-    throw new Error('CORS_ORIGIN is required when NODE_ENV=production.');
+    throw new Error(
+      'CORS_ORIGIN is required when NODE_ENV=production (use CORS_ORIGIN=none to disable CORS explicitly).',
+    );
   }
 
   if (nodeEnv === 'production' && dbSynchronize) {
@@ -245,18 +251,9 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     throw new Error('Only DB_TYPE=mariadb is supported.');
   }
 
-  // TODO(db-test-isolation): Keep this temporary exception for app_db because the
-  // current shared test account is still scoped to that schema.
-  // Follow-up work: provision dedicated *_test credentials/database (ex: app_db_test)
-  // and then remove the app_db bypass to enforce strict *_test-only validation again.
-  if (
-    nodeEnv === 'test' &&
-    dbDatabase !== 'app_db' &&
-    !dbDatabase.endsWith('_test')
-  ) {
-    throw new Error(
-      'DB_DATABASE must be app_db or end with _test when NODE_ENV=test.',
-    );
+  // e2e가 개발·운영 데이터를 바꾸지 않도록 test 환경은 *_test DB만 허용합니다(예: app_db_test).
+  if (nodeEnv === 'test' && !dbDatabase.endsWith('_test')) {
+    throw new Error('DB_DATABASE must end with _test when NODE_ENV=test.');
   }
 
   return {
@@ -292,6 +289,7 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     AUTH_KAKAO_ENABLED: authKakaoEnabled,
     AUTH_NAVER_ENABLED: authNaverEnabled,
     AUTH_FACEBOOK_ENABLED: authFacebookEnabled,
+    AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED: authNaverAccessTokenLoginEnabled,
     GOOGLE_ALLOWED_AUDIENCES: googleAllowedAudiences ?? '',
     GOOGLE_ALLOWED_ISSUERS:
       optionalString(config.GOOGLE_ALLOWED_ISSUERS) ?? DEFAULT_ALLOWED_ISSUERS,
@@ -337,14 +335,8 @@ function parseOptionalInteger(
   return parseInteger(parsed, name, 0, options);
 }
 
-function parseProviderEnabled(value: unknown, inferredValue: boolean): boolean {
-  return value === undefined
-    ? inferredValue
-    : parseBoolean(value, 'AUTH_PROVIDER_ENABLED', inferredValue);
-}
-
-function hasAnyValue(config: RawEnv, names: string[]): boolean {
-  return names.some((name) => optionalString(config[name]) !== undefined);
+function parseProviderEnabled(value: unknown, name: string): boolean {
+  return parseBoolean(value, name, false);
 }
 
 function validateEnabledProviderConfig(
@@ -455,8 +447,11 @@ function parseInteger(
   return numberValue;
 }
 
+/** CORS를 명시적으로 끄는 값. 브라우저 클라이언트가 없는(모바일 전용) 운영에서 사용합니다. */
+export const CORS_DISABLED_VALUE = 'none';
+
 function parseCorsOrigins(value: string | undefined): string[] {
-  if (value === undefined) {
+  if (value === undefined || value.toLowerCase() === CORS_DISABLED_VALUE) {
     return [];
   }
   const origins = value

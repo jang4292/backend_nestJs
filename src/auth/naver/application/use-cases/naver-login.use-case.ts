@@ -3,6 +3,8 @@ import {
   NaverAuthErrorCode,
   NaverAuthError,
 } from '../../domain/naver-auth.errors';
+import { NAVER_LOGIN_POLICY } from '../naver-login.policy';
+import type { NaverLoginPolicy } from '../naver-login.policy';
 import { NAVER_OAUTH_PORT } from '../ports/naver-oauth.port';
 import type { NaverOAuthPort } from '../ports/naver-oauth.port';
 import { SOCIAL_ACCOUNT_LINKER_PORT } from '../../../../users/application/ports/social-account-linker.port';
@@ -39,6 +41,8 @@ export class NaverLoginUseCase {
     private readonly userRepo: SocialAccountLinkerPort,
     @Inject(SESSION_ISSUER_PORT)
     private readonly sessionIssuer: SessionIssuerPort,
+    @Inject(NAVER_LOGIN_POLICY)
+    private readonly policy: NaverLoginPolicy,
   ) {}
 
   async execute(input: NaverLoginInput): Promise<NaverLoginOutput> {
@@ -54,6 +58,12 @@ export class NaverLoginUseCase {
 
     let accessToken: string;
     if (hasAccessToken) {
+      if (!this.policy.allowAccessTokenLogin) {
+        throw new NaverAuthError(
+          NaverAuthErrorCode.AUTH_NAVER_BAD_REQUEST,
+          'accessToken login is disabled; use the authorization code flow.',
+        );
+      }
       accessToken = input.accessToken!;
     } else {
       if (!input.redirectUri) {

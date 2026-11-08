@@ -1,3 +1,5 @@
+# PM2 대신 systemd로 실행할 때의 예시입니다(기본 운영 경로는 PM2: npm run pm2:reload).
+# 앱은 WorkingDirectory의 .env.production 을 직접 읽으므로 EnvironmentFile이 필요 없습니다.
 [Unit]
 Description=Backend NestJS API
 After=network.target mariadb.service
@@ -6,10 +8,12 @@ After=network.target mariadb.service
 Type=simple
 User=backend-nestjs
 WorkingDirectory=/opt/backend-nestjs
-EnvironmentFile=/etc/backend-nestjs/backend-nestjs.env
+Environment=NODE_ENV=production
 ExecStart=/usr/bin/node /opt/backend-nestjs/dist/main.js
 Restart=on-failure
 RestartSec=5
+# graceful shutdown(enableShutdownHooks)에 시간을 줍니다.
+TimeoutStopSec=15
 
 [Install]
 WantedBy=multi-user.target

@@ -15,6 +15,8 @@ import {
   SessionTokens,
 } from '../../../session/application/ports/session-issuer.port';
 import { NaverAuthErrorCode } from '../../domain/naver-auth.errors';
+import { NAVER_LOGIN_POLICY } from '../naver-login.policy';
+import type { NaverLoginPolicy } from '../naver-login.policy';
 import { SocialIdentity } from '../../../../users/domain/social-identity';
 import { Test } from '@nestjs/testing';
 
@@ -23,6 +25,7 @@ describe('NaverLoginUseCase', () => {
   let oauth: jest.Mocked<NaverOAuthPort>;
   let userRepo: jest.Mocked<SocialAccountLinkerPort>;
   let sessionIssuer: jest.Mocked<SessionIssuerPort>;
+  let policy: NaverLoginPolicy;
 
   const identity: SocialIdentity = {
     provider: 'naver',
@@ -41,6 +44,8 @@ describe('NaverLoginUseCase', () => {
     oauth = { exchange: jest.fn(), fetchProfile: jest.fn() };
     userRepo = { findBySocialId: jest.fn(), upsert: jest.fn() };
     sessionIssuer = { issue: jest.fn() };
+    // accessToken flow 테스트를 위해 허용 상태로 시작하고, 차단 기본값은 아래에서 별도로 검증합니다.
+    policy = { allowAccessTokenLogin: true };
 
     const module = await Test.createTestingModule({
       providers: [
@@ -48,10 +53,41 @@ describe('NaverLoginUseCase', () => {
         { provide: NAVER_OAUTH_PORT, useValue: oauth },
         { provide: SOCIAL_ACCOUNT_LINKER_PORT, useValue: userRepo },
         { provide: SESSION_ISSUER_PORT, useValue: sessionIssuer },
+        { provide: NAVER_LOGIN_POLICY, useValue: policy },
       ],
     }).compile();
 
     useCase = module.get(NaverLoginUseCase);
+  });
+
+  describe('accessToken login policy (default: disabled)', () => {
+    it('rejects accessToken login when the policy disallows it, before calling Naver', async () => {
+      policy.allowAccessTokenLogin = false;
+
+      await expect(
+        useCase.execute({ accessToken: 'client.supplied.token' }),
+      ).rejects.toMatchObject({
+        errorCode: NaverAuthErrorCode.AUTH_NAVER_BAD_REQUEST,
+      });
+      expect(oauth.fetchProfile).not.toHaveBeenCalled();
+      expect(userRepo.upsert).not.toHaveBeenCalled();
+    });
+
+    it('still allows the authorization code flow when accessToken login is disabled', async () => {
+      policy.allowAccessTokenLogin = false;
+      oauth.exchange.mockResolvedValue(tokenSet);
+      oauth.fetchProfile.mockResolvedValue(identity);
+      userRepo.upsert.mockResolvedValue(userRecord);
+      sessionIssuer.issue.mockResolvedValue(tokens);
+
+      const result = await useCase.execute({
+        code: 'auth-code',
+        redirectUri: 'https://example.com/callback',
+        state: 's',
+        expectedState: 's',
+      });
+      expect(result.user).toEqual(userRecord);
+    });
   });
 
   describe('accessToken flow', () => {

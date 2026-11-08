@@ -11,6 +11,7 @@
  */
 const RUNTIME_ENV_KEYS = Object.freeze([
   // Application
+  'ENV_FILE',
   'PORT',
   'NODE_ENV',
   'TRUST_PROXY',
@@ -41,6 +42,7 @@ const RUNTIME_ENV_KEYS = Object.freeze([
   'AUTH_KAKAO_ENABLED',
   'AUTH_NAVER_ENABLED',
   'AUTH_FACEBOOK_ENABLED',
+  'AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED',
   // Google
   'GOOGLE_ALLOWED_AUDIENCES',
   'GOOGLE_ALLOWED_ISSUERS',

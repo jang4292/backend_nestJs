@@ -5,6 +5,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { CORS_DISABLED_VALUE } from './config/app-env';
 import type { TrustProxySetting } from './config/app-env';
 import { REQUEST_ID_HEADER } from './common/request-id/request-id.constants';
 
@@ -28,9 +29,12 @@ async function bootstrap() {
 
   // Security: Enable CORS (CORS_ORIGIN은 app-env.ts에서 쉼표 목록으로 파싱·검증됩니다)
   const corsOrigins = configService.get<string[]>('CORS_ORIGINS', []);
-  if (corsOrigins.length === 0) {
+  const corsExplicitlyDisabled =
+    configService.get<string>('CORS_ORIGIN')?.toLowerCase() ===
+    CORS_DISABLED_VALUE;
+  if (corsOrigins.length === 0 && !corsExplicitlyDisabled) {
     logger.warn(
-      'CORS_ORIGIN is not set. CORS is disabled. Set CORS_ORIGIN in production!',
+      'CORS_ORIGIN is not set. CORS is disabled. Set CORS_ORIGIN (or CORS_ORIGIN=none) explicitly.',
     );
   }
 

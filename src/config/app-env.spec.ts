@@ -40,13 +40,66 @@ describe('validateAppEnv', () => {
     ).toThrow('JWT_SECRET is required.');
   });
 
-  it('requires Google allowed audiences', () => {
-    const env: Record<string, unknown> = { ...baseEnv };
+  it('requires Google allowed audiences when Google is enabled', () => {
+    const env: Record<string, unknown> = {
+      ...baseEnv,
+      AUTH_GOOGLE_ENABLED: 'true',
+    };
     delete env.GOOGLE_ALLOWED_AUDIENCES;
 
     expect(() => validateAppEnv(env)).toThrow(
       'GOOGLE_ALLOWED_AUDIENCES is required.',
     );
+  });
+
+  describe('SNS providers are explicit opt-in', () => {
+    it('keeps every provider disabled when no AUTH_*_ENABLED flag is set, even if credentials exist', () => {
+      const env = validateAppEnv({
+        ...baseEnv,
+        APPLE_ALLOWED_AUDIENCES: 'com.example.web',
+        KAKAO_REST_API_KEY: 'kakao-key',
+        NAVER_CLIENT_ID: 'naver-id',
+        FACEBOOK_APP_ID: 'fb-id',
+      });
+
+      expect(env).toMatchObject({
+        AUTH_GOOGLE_ENABLED: false,
+        AUTH_APPLE_ENABLED: false,
+        AUTH_KAKAO_ENABLED: false,
+        AUTH_NAVER_ENABLED: false,
+        AUTH_FACEBOOK_ENABLED: false,
+        AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED: false,
+      });
+    });
+
+    it('starts in production with only local login (no SNS settings at all)', () => {
+      const env = validateAppEnv({
+        JWT_SECRET: 'a'.repeat(40),
+        DB_USERNAME: 'app',
+        DB_PASSWORD: 'pw',
+        DB_DATABASE: 'app_db',
+        NODE_ENV: 'production',
+        CORS_ORIGIN: 'none',
+      });
+
+      expect(env.AUTH_GOOGLE_ENABLED).toBe(false);
+      expect(env.CORS_ORIGINS).toEqual([]);
+    });
+
+    it('rejects a non-boolean provider flag with its own name', () => {
+      expect(() =>
+        validateAppEnv({ ...baseEnv, AUTH_KAKAO_ENABLED: 'yes' }),
+      ).toThrow('AUTH_KAKAO_ENABLED must be true or false.');
+    });
+
+    it('parses the Naver accessToken login switch', () => {
+      expect(
+        validateAppEnv({
+          ...baseEnv,
+          AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED: 'true',
+        }).AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED,
+      ).toBe(true);
+    });
   });
 
   it('blocks synchronize in production', () => {
@@ -66,7 +119,17 @@ describe('validateAppEnv', () => {
         ...baseEnv,
         NODE_ENV: 'production',
       }),
-    ).toThrow('CORS_ORIGIN is required when NODE_ENV=production.');
+    ).toThrow('CORS_ORIGIN is required when NODE_ENV=production');
+  });
+
+  it('accepts CORS_ORIGIN=none as an explicit opt-out in production', () => {
+    expect(
+      validateAppEnv({
+        ...baseEnv,
+        NODE_ENV: 'production',
+        CORS_ORIGIN: 'none',
+      }).CORS_ORIGINS,
+    ).toEqual([]);
   });
 
   it('only supports MariaDB', () => {
@@ -95,6 +158,7 @@ describe('validateAppEnv', () => {
         ...baseEnv,
         NODE_ENV: 'production',
         CORS_ORIGIN: 'https://example.com',
+        AUTH_GOOGLE_ENABLED: 'true',
       }).AUTH_GOOGLE_ENABLED,
     ).toBe(true);
   });
@@ -105,6 +169,7 @@ describe('validateAppEnv', () => {
         ...baseEnv,
         NODE_ENV: 'production',
         CORS_ORIGIN: 'https://example.com',
+        AUTH_GOOGLE_ENABLED: 'true',
         GOOGLE_OAUTH_CLIENT_ID: 'client-id',
       }),
     ).toThrow(
@@ -130,6 +195,7 @@ describe('validateAppEnv', () => {
         ...baseEnv,
         NODE_ENV: 'production',
         CORS_ORIGIN: 'https://example.com',
+        AUTH_KAKAO_ENABLED: 'true',
         KAKAO_REST_API_KEY: 'kakao-rest-key',
       }),
     ).toThrow(
@@ -143,6 +209,7 @@ describe('validateAppEnv', () => {
         ...baseEnv,
         NODE_ENV: 'production',
         CORS_ORIGIN: 'https://example.com',
+        AUTH_FACEBOOK_ENABLED: 'true',
         FACEBOOK_APP_ID: 'facebook-app-id',
         FACEBOOK_APP_SECRET: 'facebook-app-secret',
       }),
@@ -161,31 +228,30 @@ describe('validateAppEnv', () => {
     },
   );
 
-  it('allows the current shared test database and dedicated test databases', () => {
+  it('only allows *_test databases in the test environment', () => {
     expect(() =>
       validateAppEnv({
         ...baseEnv,
         NODE_ENV: 'test',
       }),
-    ).toThrow(
-      'DB_DATABASE must be app_db or end with _test when NODE_ENV=test.',
-    );
+    ).toThrow('DB_DATABASE must end with _test when NODE_ENV=test.');
 
-    expect(
+    // 개발 DB(app_db)를 e2e에서 쓰던 예외는 제거되었습니다.
+    expect(() =>
       validateAppEnv({
         ...baseEnv,
         NODE_ENV: 'test',
         DB_DATABASE: 'app_db',
-      }).DB_DATABASE,
-    ).toBe('app_db');
+      }),
+    ).toThrow('DB_DATABASE must end with _test when NODE_ENV=test.');
 
     expect(
       validateAppEnv({
         ...baseEnv,
         NODE_ENV: 'test',
-        DB_DATABASE: 'nestjs_test',
+        DB_DATABASE: 'app_db_test',
       }).DB_DATABASE,
-    ).toBe('nestjs_test');
+    ).toBe('app_db_test');
   });
 
   it('parses RDS SSL settings and an optional connection URL', () => {
@@ -326,6 +392,7 @@ describe('validateAppEnv', () => {
         ...baseEnv,
         NODE_ENV: 'production',
         CORS_ORIGIN: 'https://example.com',
+        AUTH_KAKAO_ENABLED: 'true',
         KAKAO_REST_API_KEY: 'kakao-rest-key',
         KAKAO_REDIRECT_URIS: 'https://example.com/auth/kakao/callback',
       }),
