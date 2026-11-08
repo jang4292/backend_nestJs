@@ -39,6 +39,35 @@ export const MIGRATION_PRIVILEGES = [
   'INDEX',
 ] as const;
 
+/**
+ * 이 앱의 migration이 만들거나 이름을 바꿔 소유하는 테이블입니다.
+ * 이 목록 밖의 객체(다른 테이블, 뷰, 루틴, 이벤트)가 있는 DB는 다른 앱과 공유 중으로 보고
+ * db:setup·db:reset이 아무것도 바꾸지 않습니다. spec이 entity·migration 소스와 이 목록을 대조합니다.
+ */
+export const APP_TABLES: readonly string[] = [
+  'users',
+  'social_accounts',
+  'artist',
+  'track',
+  'playlist',
+  'playlist_track',
+  'audio_asset',
+  'legacy_artist',
+  'legacy_track',
+  'legacy_playlist',
+  'legacy_playlist_track',
+  'migrations',
+  'typeorm_metadata',
+];
+
+export interface OwnershipReport {
+  database: string;
+  /** 앱이 관리하는 테이블 */
+  appTables: string[];
+  /** 앱이 관리하지 않는 객체(`table:x`, `view:x`, `procedure:x`, `function:x`, `event:x` 등) */
+  foreignObjects: string[];
+}
+
 export interface PrivilegeReport {
   database: string;
   /** 대상 DB에 적용되는 권한(전역 *.* 포함). ALL이면 ['ALL PRIVILEGES'] */
@@ -73,10 +102,6 @@ export interface AdminConnection {
   end(): Promise<void>;
 }
 
-export type AdminConnectionFactory = (
-  server: ServerTarget,
-) => Promise<AdminConnection>;
-
 export interface DatabaseStatus {
   serverVersion: string;
   currentUser: string;
@@ -95,6 +120,8 @@ export interface DatabaseStatus {
   privileges: PrivilegeReport;
   /** 이 계정에서 보이는 DB 목록(시스템 DB 제외) */
   visibleDatabases: string[];
+  /** 대상 DB가 있을 때, 앱 소유 여부 */
+  ownership?: OwnershipReport;
 }
 
 export class DatabaseAdminError extends Error {
@@ -195,6 +222,10 @@ export async function inspectDatabase(
     .map((row) => stringValue(Object.values(row)[0]))
     .filter((name) => name.length > 0 && !SYSTEM_DATABASES.has(name));
 
+  const ownership = schema
+    ? await inspectOwnership(connection, database)
+    : undefined;
+
   return {
     serverVersion: stringValue(identity?.version),
     currentUser: stringValue(identity?.currentUser),
@@ -213,7 +244,74 @@ export async function inspectDatabase(
     grants,
     privileges: evaluatePrivileges(grants, database),
     visibleDatabases,
+    ...(ownership ? { ownership } : {}),
   };
+}
+
+/**
+ * 읽기 전용: 대상 DB 안의 객체가 모두 이 앱 소유인지 확인합니다.
+ * 계정에 보이는 객체만 조회되므로, 권한은 DB 단위로 주어 그 DB의 객체가 모두 보이게 합니다.
+ */
+export async function inspectOwnership(
+  connection: AdminConnection,
+  database: string,
+): Promise<OwnershipReport> {
+  const tables = await connection.query(
+    'SELECT TABLE_NAME AS name, TABLE_TYPE AS type FROM information_schema.TABLES WHERE TABLE_SCHEMA = ?',
+    [database],
+  );
+  const routines = await connection.query(
+    'SELECT ROUTINE_NAME AS name, ROUTINE_TYPE AS type FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA = ?',
+    [database],
+  );
+  const events = await connection.query(
+    'SELECT EVENT_NAME AS name FROM information_schema.EVENTS WHERE EVENT_SCHEMA = ?',
+    [database],
+  );
+
+  const appTables: string[] = [];
+  const foreignObjects: string[] = [];
+  for (const row of tables) {
+    const name = stringValue(row.name);
+    const type = stringValue(row.type).toUpperCase();
+    const isTable = type === 'BASE TABLE' || type === 'SYSTEM VERSIONED';
+    if (isTable && APP_TABLES.includes(name)) {
+      appTables.push(name);
+    } else {
+      foreignObjects.push(`${isTable ? 'table' : type.toLowerCase()}:${name}`);
+    }
+  }
+  for (const row of routines) {
+    foreignObjects.push(
+      `${stringValue(row.type).toLowerCase() || 'routine'}:${stringValue(row.name)}`,
+    );
+  }
+  for (const row of events) {
+    foreignObjects.push(`event:${stringValue(row.name)}`);
+  }
+
+  return {
+    database,
+    appTables: appTables.sort(),
+    foreignObjects: foreignObjects.sort(),
+  };
+}
+
+function assertDedicated(ownership: OwnershipReport, command: string): void {
+  if (ownership.foreignObjects.length === 0) {
+    return;
+  }
+  const shown = ownership.foreignObjects.slice(0, 10).join(', ');
+  const more =
+    ownership.foreignObjects.length > 10
+      ? ` and ${ownership.foreignObjects.length - 10} more`
+      : '';
+  throw new DatabaseAdminError(
+    [
+      `\`${ownership.database}\` contains ${ownership.foreignObjects.length} object(s) not managed by this app: ${shown}${more}.`,
+      `${command} only works on a database dedicated to this app, so nothing was changed. Point DB_DATABASE at a new database (for example app_db_dev).`,
+    ].join('\n'),
+  );
 }
 
 /**
@@ -233,6 +331,11 @@ export async function ensureDatabase(
   const account = formatAccount(stringValue(identity?.currentUser));
   const privileges = evaluatePrivileges(await readGrants(connection), database);
   const exists = await databaseExists(connection, database);
+
+  // 다른 앱의 객체가 있는 DB는 공유 DB로 보고 아무것도 바꾸지 않습니다.
+  if (exists) {
+    assertDedicated(await inspectOwnership(connection, database), 'db:setup');
+  }
 
   // 권한이 부족하면 아무것도 만들지 않고 멈춥니다. db:setup은 `&&`로 이어지므로
   // migration:run이 시작되지 않아, 체인이 중간에서 멈춘 상태가 생기지 않습니다.
@@ -265,6 +368,11 @@ export async function resetTestDatabase(
   nodeEnv: NodeEnvironment,
 ): Promise<void> {
   assertResetAllowed(database, nodeEnv);
+
+  // 앱 소유가 확인된 *_test DB만 지웁니다. 다른 객체가 하나라도 있으면 거부합니다.
+  if (await databaseExists(connection, database)) {
+    assertDedicated(await inspectOwnership(connection, database), 'db:reset');
+  }
 
   await connection.query(`DROP DATABASE IF EXISTS \`${database}\``);
   await connection.query(createDatabaseSql(database));

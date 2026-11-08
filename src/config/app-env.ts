@@ -152,8 +152,12 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     );
   }
 
-  if (nodeEnv === 'production' && dbSynchronize) {
-    throw new Error('DB_SYNCHRONIZE must be false in production.');
+  // synchronize는 entity와 다른 컬럼·인덱스를 자동으로 삭제할 수 있어(데이터 손실) 어떤 환경에서도 쓰지 않습니다.
+  // 스키마는 migration으로만 바꿉니다(docs/learning/database-schema-management.kr.md).
+  if (dbSynchronize) {
+    throw new Error(
+      'DB_SYNCHRONIZE must be false. The schema changes only through migrations; synchronize can drop columns and their data.',
+    );
   }
 
   if (

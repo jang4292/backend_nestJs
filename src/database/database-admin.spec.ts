@@ -1,5 +1,9 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { getMetadataArgsStorage } from 'typeorm';
 import {
   AdminConnection,
+  APP_TABLES,
   assertSafeDatabaseName,
   createDatabaseSql,
   DatabaseAdminError,
@@ -10,6 +14,7 @@ import {
   formatAccount,
   grantSqlFor,
   inspectDatabase,
+  inspectOwnership,
   matchesDatabasePattern,
   MIGRATION_PRIVILEGES,
   parseGrant,
@@ -17,6 +22,7 @@ import {
   resetTestDatabase,
   resolveDatabaseTarget,
 } from './database-admin';
+import { databaseEntities } from './database-options';
 
 type Responder = (sql: string, params?: unknown[]) => Record<string, unknown>[];
 
@@ -124,7 +130,17 @@ const FULL_GRANTS = [
   'GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX ON `app_db`.* TO `dev_user`@`%`',
 ];
 
-function adminResponder(grants: string[], existing: string[]): Responder {
+interface DbObjects {
+  tables?: { name: string; type?: string }[];
+  routines?: { name: string; type: string }[];
+  events?: string[];
+}
+
+function adminResponder(
+  grants: string[],
+  existing: string[],
+  objects: DbObjects = {},
+): Responder {
   return (sql, params) => {
     if (sql.startsWith('SELECT CURRENT_USER()')) {
       return [{ currentUser: 'dev_user@%' }];
@@ -137,8 +153,36 @@ function adminResponder(grants: string[], existing: string[]): Responder {
         ? [{ SCHEMA_NAME: params?.[0] }]
         : [];
     }
+    if (sql.includes('information_schema.TABLES')) {
+      return (objects.tables ?? []).map((table) => ({
+        name: table.name,
+        type: table.type ?? 'BASE TABLE',
+      }));
+    }
+    if (sql.includes('information_schema.ROUTINES')) {
+      return objects.routines ?? [];
+    }
+    if (sql.includes('information_schema.EVENTS')) {
+      return (objects.events ?? []).map((name) => ({ name }));
+    }
     return [];
   };
+}
+
+/** 실행된 쓰기 SQL이 대상 DB 하나만 참조하는지 확인합니다(다른 DB는 절대 바꾸지 않음). */
+function expectWritesOnlyTouch(
+  queries: { sql: string }[],
+  database: string,
+): void {
+  const writes = queries.filter((q) =>
+    /^(CREATE|DROP|ALTER|RENAME|GRANT|REVOKE|TRUNCATE|DELETE|INSERT|UPDATE)\b/i.test(
+      q.sql,
+    ),
+  );
+  for (const { sql } of writes) {
+    const referenced = [...sql.matchAll(/`([^`]+)`/g)].map((m) => m[1]);
+    expect(referenced).toEqual([database]);
+  }
 }
 
 describe('ensureDatabase', () => {
@@ -195,6 +239,36 @@ describe('ensureDatabase', () => {
     expect(queries.some((q) => q.sql.startsWith('CREATE DATABASE'))).toBe(
       false,
     );
+  });
+
+  it('refuses a shared database that contains objects of other apps, without changing anything', async () => {
+    const { connection, queries } = fakeConnection(
+      adminResponder(FULL_GRANTS, ['app_db'], {
+        tables: [
+          { name: 'users' },
+          { name: 'orders' },
+          { name: 'v_sales', type: 'VIEW' },
+        ],
+        routines: [{ name: 'calc', type: 'PROCEDURE' }],
+      }),
+    );
+
+    await expect(
+      ensureDatabase(connection, 'app_db', 'development'),
+    ).rejects.toThrow(
+      '`app_db` contains 3 object(s) not managed by this app: procedure:calc, table:orders, view:v_sales.',
+    );
+    expect(queries.some((q) => /^(CREATE|DROP|ALTER)/.test(q.sql))).toBe(false);
+  });
+
+  it('only ever writes to the target database', async () => {
+    const { connection, queries } = fakeConnection(
+      adminResponder(FULL_GRANTS, []),
+    );
+
+    await ensureDatabase(connection, 'app_db', 'development');
+
+    expectWritesOnlyTouch(queries, 'app_db');
   });
 
   it('does not block when privileges cannot be determined (role grants)', async () => {
@@ -317,15 +391,47 @@ describe('privilege evaluation', () => {
 });
 
 describe('resetTestDatabase', () => {
-  it('drops and recreates a *_test database in the test environment', async () => {
-    const { connection, queries } = fakeConnection(() => []);
+  it('drops and recreates an app-owned *_test database', async () => {
+    const { connection, queries } = fakeConnection(
+      adminResponder(FULL_GRANTS, ['app_db_test'], {
+        tables: [{ name: 'users' }, { name: 'migrations' }, { name: 'track' }],
+      }),
+    );
 
     await resetTestDatabase(connection, 'app_db_test', 'test');
 
-    expect(queries.map((q) => q.sql)).toEqual([
+    const writes = queries.filter((q) => /^(CREATE|DROP)/.test(q.sql));
+    expect(writes.map((q) => q.sql)).toEqual([
       'DROP DATABASE IF EXISTS `app_db_test`',
       createDatabaseSql('app_db_test'),
     ]);
+    expectWritesOnlyTouch(queries, 'app_db_test');
+  });
+
+  it('creates a missing *_test database', async () => {
+    const { connection, queries } = fakeConnection(
+      adminResponder(FULL_GRANTS, []),
+    );
+
+    await resetTestDatabase(connection, 'app_db_test', 'test');
+
+    expect(queries.at(-1)?.sql).toBe(createDatabaseSql('app_db_test'));
+  });
+
+  it('refuses to drop a *_test database that contains objects of other apps', async () => {
+    const { connection, queries } = fakeConnection(
+      adminResponder(FULL_GRANTS, ['app_db_test'], {
+        tables: [{ name: 'users' }, { name: 'customer_notes' }],
+        events: ['nightly_cleanup'],
+      }),
+    );
+
+    await expect(
+      resetTestDatabase(connection, 'app_db_test', 'test'),
+    ).rejects.toThrow(
+      '`app_db_test` contains 2 object(s) not managed by this app: event:nightly_cleanup, table:customer_notes.',
+    );
+    expect(queries.some((q) => q.sql.startsWith('DROP'))).toBe(false);
   });
 
   it.each([
@@ -339,6 +445,71 @@ describe('resetTestDatabase', () => {
       resetTestDatabase(connection, database, nodeEnv),
     ).rejects.toThrow(DatabaseAdminError);
     expect(queries).toHaveLength(0);
+  });
+});
+
+describe('inspectOwnership', () => {
+  it('separates app tables from tables, views, routines and events of other apps', async () => {
+    const { connection } = fakeConnection(
+      adminResponder([], ['app_db'], {
+        tables: [
+          { name: 'users' },
+          { name: 'legacy_track' },
+          { name: 'users_backup' },
+          { name: 'track', type: 'VIEW' },
+          { name: 'seq_orders', type: 'SEQUENCE' },
+        ],
+        routines: [{ name: 'fn_total', type: 'FUNCTION' }],
+        events: ['purge'],
+      }),
+    );
+
+    await expect(inspectOwnership(connection, 'app_db')).resolves.toEqual({
+      database: 'app_db',
+      appTables: ['legacy_track', 'users'],
+      foreignObjects: [
+        'event:purge',
+        'function:fn_total',
+        'sequence:seq_orders',
+        'table:users_backup',
+        'view:track',
+      ],
+    });
+  });
+});
+
+describe('APP_TABLES', () => {
+  it('covers every entity table', () => {
+    const entityTables = getMetadataArgsStorage()
+      .tables.filter((table) =>
+        (databaseEntities as unknown[]).includes(table.target),
+      )
+      .map((table) => table.name);
+
+    expect(entityTables.length).toBe(databaseEntities.length);
+    for (const name of entityTables) {
+      expect(APP_TABLES).toContain(name);
+    }
+  });
+
+  it('covers every table that a migration creates or renames', () => {
+    const dir = join(__dirname, 'migrations');
+    const names = new Set<string>();
+    for (const file of readdirSync(dir).filter((f) => f.endsWith('.ts'))) {
+      const source = readFileSync(join(dir, file), 'utf8');
+      for (const m of source.matchAll(/new Table\(\{\s*name:\s*'([a-z_]+)'/g)) {
+        names.add(m[1]);
+      }
+      for (const m of source.matchAll(/(\w+)\s+TO\s+(\w+)/g)) {
+        names.add(m[1]);
+        names.add(m[2]);
+      }
+    }
+
+    expect(names.size).toBeGreaterThan(5);
+    for (const name of names) {
+      expect(APP_TABLES).toContain(name);
+    }
   });
 });
 
@@ -357,8 +528,17 @@ describe('inspectDatabase', () => {
       if (sql.includes('information_schema.SCHEMATA')) {
         return [{ charset: 'utf8mb4', collation: 'utf8mb4_unicode_ci' }];
       }
-      if (sql.includes('information_schema.TABLES')) {
+      if (sql.startsWith('SELECT COUNT(*)')) {
         return [{ count: 7 }];
+      }
+      if (sql.includes('information_schema.TABLES')) {
+        return [{ name: 'users', type: 'BASE TABLE' }];
+      }
+      if (sql.includes('information_schema.ROUTINES')) {
+        return [];
+      }
+      if (sql.includes('information_schema.EVENTS')) {
+        return [];
       }
       if (sql === 'SHOW DATABASES') {
         return [
@@ -392,6 +572,11 @@ describe('inspectDatabase', () => {
         determinate: true,
       },
       visibleDatabases: ['app_db'],
+      ownership: {
+        database: 'app_db',
+        appTables: ['users'],
+        foreignObjects: [],
+      },
     });
   });
 

@@ -14,7 +14,7 @@ describe('validateAppEnv', () => {
       ...baseEnv,
       PORT: '4000',
       DB_PORT: '13306',
-      DB_SYNCHRONIZE: 'true',
+      DB_SYNCHRONIZE: 'false',
       THROTTLE_TTL: '120',
       THROTTLE_LIMIT: '20',
     });
@@ -24,7 +24,7 @@ describe('validateAppEnv', () => {
       NODE_ENV: 'development',
       DB_TYPE: 'mariadb',
       DB_PORT: 13306,
-      DB_SYNCHRONIZE: true,
+      DB_SYNCHRONIZE: false,
       DB_SSL: false,
       DB_SSL_REJECT_UNAUTHORIZED: true,
       THROTTLE_TTL: 120,
@@ -102,16 +102,20 @@ describe('validateAppEnv', () => {
     });
   });
 
-  it('blocks synchronize in production', () => {
-    expect(() =>
-      validateAppEnv({
-        ...baseEnv,
-        NODE_ENV: 'production',
-        CORS_ORIGIN: 'https://app.example.com',
-        DB_SYNCHRONIZE: 'true',
-      }),
-    ).toThrow('DB_SYNCHRONIZE must be false in production.');
-  });
+  it.each(['development', 'test', 'production'])(
+    'blocks synchronize with NODE_ENV=%s (schema changes only through migrations)',
+    (nodeEnv) => {
+      expect(() =>
+        validateAppEnv({
+          ...baseEnv,
+          NODE_ENV: nodeEnv,
+          DB_DATABASE: nodeEnv === 'test' ? 'app_db_test' : 'app_db',
+          CORS_ORIGIN: 'https://app.example.com',
+          DB_SYNCHRONIZE: 'true',
+        }),
+      ).toThrow('DB_SYNCHRONIZE must be false.');
+    },
+  );
 
   it('requires CORS_ORIGIN in production', () => {
     expect(() =>

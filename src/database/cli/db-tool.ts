@@ -5,7 +5,10 @@
  *   ensure  대상 DB가 없으면 utf8mb4로 생성(dev/test 전용). 테이블은 이어서 migration:run이 만듭니다.
  *   reset   test 전용. *_test DB를 비우고 다시 생성(빈 DB에서 migration 전체 체인 검증용)
  *
- * 옵션: --strict (check에서 DB가 없거나, migration 권한이 부족하거나, pending migration이 있으면 종료 코드 1)
+ * 옵션: --strict (check에서 DB가 없거나, 다른 앱의 객체가 있거나, migration 권한이 부족하거나, pending migration이 있으면 종료 코드 1)
+ *
+ * 안전 원칙: 대상 DB(DB_DATABASE) 하나만 다룹니다. 다른 DB는 조회만 하고(SHOW DATABASES) 절대 바꾸지 않으며,
+ * 대상 DB에 앱이 관리하지 않는 객체가 있으면 ensure·reset은 아무것도 하지 않고 거부합니다.
  *
  * env 파일은 앱과 같은 규칙(src/config/env-files.ts)으로 읽고, 비밀번호는 출력하지 않습니다.
  */
@@ -147,6 +150,19 @@ async function runCheck(
   write(
     `    database : ${target.database} (${status.database.charset}/${status.database.collation}, ${status.database.tableCount} tables)`,
   );
+  const shared = (status.ownership?.foreignObjects.length ?? 0) > 0;
+  if (status.ownership && shared) {
+    write(
+      `    ownership: shared — ${status.ownership.foreignObjects.length} object(s) not managed by this app: ${status.ownership.foreignObjects.slice(0, 10).join(', ')}`,
+    );
+    write(
+      '      db:setup and db:reset will refuse this database; use one dedicated to this app',
+    );
+  } else if (status.ownership) {
+    write(
+      `    ownership: dedicated (${status.ownership.appTables.length} app tables)`,
+    );
+  }
   if (status.database.charset !== 'utf8mb4') {
     write('    warning  : database charset is not utf8mb4');
   }
@@ -160,6 +176,13 @@ async function runCheck(
   }
   printGrants(status.grants);
 
+  if (shared) {
+    write();
+    write(
+      'Next: set DB_DATABASE to a database dedicated to this app (other apps’ objects are never changed)',
+    );
+    return strict ? 1 : 0;
+  }
   if (!privilegesOk) {
     write();
     write(
