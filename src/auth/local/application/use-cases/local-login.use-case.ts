@@ -1,12 +1,13 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { UnauthorizedError } from '../../../../common/errors/domain-error';
 import { UsersService } from '../../../../users/users.service';
+import type { User } from '../../../../users/entities/user.entity';
 import { LoginIdentifierType } from '../../../../users/domain/login-identifier-type.enum';
-import {
-  PublicUser,
-  toPublicUser,
-} from '../../../../users/interface/presenters/public-user.presenter';
 import { SESSION_ISSUER_PORT } from '../../../session/application/ports/session-issuer.port';
-import type { SessionIssuerPort } from '../../../session/application/ports/session-issuer.port';
+import type {
+  SessionIssuerPort,
+  SessionTokens,
+} from '../../../session/application/ports/session-issuer.port';
 
 export interface LocalLoginInput {
   identifierType: LoginIdentifierType;
@@ -15,8 +16,8 @@ export interface LocalLoginInput {
 }
 
 export interface LocalLoginOutput {
-  access_token: string;
-  user: PublicUser;
+  user: User;
+  session: SessionTokens;
 }
 
 @Injectable()
@@ -28,23 +29,17 @@ export class LocalLoginUseCase {
   ) {}
 
   async execute(input: LocalLoginInput): Promise<LocalLoginOutput> {
-    const user = await this.usersService.findByIdentifier(
+    // 계정 없음/비밀번호 없음/불일치를 구분하지 않고 같은 비용으로 실패시킵니다.
+    const user = await this.usersService.verifyCredentials(
       input.identifierType,
       input.identifier,
+      input.password,
     );
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const isPasswordValid = await this.usersService.validatePassword(
-      input.password,
-      user.password,
-    );
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedError('Invalid credentials');
     }
 
     const session = await this.sessionIssuer.issue(user);
-    return { access_token: session.accessToken, user: toPublicUser(user) };
+    return { user, session };
   }
 }

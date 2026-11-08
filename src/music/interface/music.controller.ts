@@ -1,5 +1,5 @@
 import {
-  applyDecorators,
+  BadRequestException,
   Controller,
   Get,
   Post,
@@ -9,10 +9,12 @@ import {
   Query,
   Body,
   ParseIntPipe,
-  UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../auth/session/interface/jwt-auth.guard';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  AdminOnly,
+  Authenticated,
+} from '../../auth/session/interface/auth-route.decorators';
 import { MusicService } from '../music.service';
 import type { Track } from '../entities/track.entity';
 import { CreateArtistDto } from './dto/create-artist.dto';
@@ -39,28 +41,28 @@ export class MusicController {
   // ===== Artist =====
 
   @ApiOperation({ summary: '아티스트 목록 조회' })
-  @AuthenticatedMusicRoute()
+  @Authenticated()
   @Get('artists')
   getArtistList() {
     return this.musicService.getArtistList();
   }
 
   @ApiOperation({ summary: '아티스트 단건 조회' })
-  @AuthenticatedMusicRoute()
+  @Authenticated()
   @Get('artists/:id')
   getArtist(@Param('id', ParseIntPipe) id: number) {
     return this.musicService.getArtist(id);
   }
 
   @ApiOperation({ summary: '아티스트 등록' })
-  @AuthenticatedMusicRoute()
+  @AdminOnly()
   @Post('artists')
   createArtist(@Body() dto: CreateArtistDto) {
     return this.musicService.createArtist(dto);
   }
 
   @ApiOperation({ summary: '아티스트 수정' })
-  @AuthenticatedMusicRoute()
+  @AdminOnly()
   @Patch('artists/:id')
   updateArtist(
     @Param('id', ParseIntPipe) id: number,
@@ -70,7 +72,7 @@ export class MusicController {
   }
 
   @ApiOperation({ summary: '아티스트 삭제' })
-  @AuthenticatedMusicRoute()
+  @AdminOnly()
   @Delete('artists/:id')
   deleteArtist(@Param('id', ParseIntPipe) id: number) {
     return this.musicService.deleteArtist(id);
@@ -79,7 +81,7 @@ export class MusicController {
   // ===== Track =====
 
   @ApiOperation({ summary: '트랙 등록 (아티스트/제목/BPM)' })
-  @AuthenticatedMusicRoute()
+  @AdminOnly()
   @Post('tracks')
   createTrack(@Body() dto: CreateTrackDto) {
     return this.musicService.createTrack(dto);
@@ -100,7 +102,7 @@ export class MusicController {
   }
 
   @ApiOperation({ summary: '트랙 전체 목록 조회 (로그인 전용)' })
-  @AuthenticatedMusicRoute()
+  @Authenticated()
   @Get('tracks/full')
   async getFullTrackList(
     @Query() query: ListTracksQueryDto,
@@ -124,7 +126,7 @@ export class MusicController {
   }
 
   @ApiOperation({ summary: '트랙 전체 단건 조회 (로그인 전용)' })
-  @AuthenticatedMusicRoute()
+  @Authenticated()
   @Get('tracks/:id/full')
   async getFullTrack(
     @Param('id', ParseIntPipe) id: number,
@@ -134,7 +136,7 @@ export class MusicController {
   }
 
   @ApiOperation({ summary: '트랙 수정' })
-  @AuthenticatedMusicRoute()
+  @AdminOnly()
   @Patch('tracks/:id')
   updateTrack(
     @Param('id', ParseIntPipe) id: number,
@@ -144,7 +146,7 @@ export class MusicController {
   }
 
   @ApiOperation({ summary: '트랙 삭제' })
-  @AuthenticatedMusicRoute()
+  @AdminOnly()
   @Delete('tracks/:id')
   deleteTrack(@Param('id', ParseIntPipe) id: number) {
     return this.musicService.deleteTrack(id);
@@ -153,35 +155,39 @@ export class MusicController {
   // ===== Playlist =====
 
   // 생성
-  @AuthenticatedMusicRoute()
+  @AdminOnly()
   @Post('playlists')
   createPlaylist(@Body() dto: CreatePlaylistDto) {
     return this.musicService.createPlaylist(dto);
   }
 
   // 날짜 기준 플레이리스트 + 트랙 (반드시 :id 라우트보다 먼저 선언)
-  @AuthenticatedMusicRoute()
+  @Authenticated()
   @Get('playlists/by-date')
-  getPlaylistByDate(@Query('date') date: string) {
+  getPlaylistByDate(@Query('date') date?: string) {
+    // date가 없으면 조건 없는 조회가 되어 임의의 playlist가 반환되므로 400으로 막습니다.
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new BadRequestException('date query must be YYYY-MM-DD');
+    }
     return this.musicService.getPlaylistByDate(date);
   }
 
   // 리스트 (옵션: ?date=YYYY-MM-DD)
-  @AuthenticatedMusicRoute()
+  @Authenticated()
   @Get('playlists')
   getPlaylistList(@Query('date') date?: string) {
     return this.musicService.getPlaylistList(date);
   }
 
   // 단건 + 포함된 트랙 정보
-  @AuthenticatedMusicRoute()
+  @Authenticated()
   @Get('playlists/:id')
   getPlaylist(@Param('id', ParseIntPipe) id: number) {
     return this.musicService.getPlaylist(id);
   }
 
   // 수정
-  @AuthenticatedMusicRoute()
+  @AdminOnly()
   @Patch('playlists/:id')
   updatePlaylist(
     @Param('id', ParseIntPipe) id: number,
@@ -191,7 +197,7 @@ export class MusicController {
   }
 
   // 삭제
-  @AuthenticatedMusicRoute()
+  @AdminOnly()
   @Delete('playlists/:id')
   deletePlaylist(@Param('id', ParseIntPipe) id: number) {
     return this.musicService.deletePlaylist(id);
@@ -200,14 +206,14 @@ export class MusicController {
   // ===== PlaylistTrack (playlist와 track 관계 관리) =====
 
   // 해당 플레이리스트의 트랙 목록
-  @AuthenticatedMusicRoute()
+  @Authenticated()
   @Get('playlists/:playlistId/tracks')
   getTracksOfPlaylist(@Param('playlistId', ParseIntPipe) playlistId: number) {
     return this.musicService.getTracksOfPlaylist(playlistId);
   }
 
   // 플레이리스트에 트랙 추가
-  @AuthenticatedMusicRoute()
+  @AdminOnly()
   @Post('playlists/:playlistId/tracks')
   addTrackToPlaylist(
     @Param('playlistId', ParseIntPipe) playlistId: number,
@@ -217,7 +223,7 @@ export class MusicController {
   }
 
   // playlist_track 정보 수정 (seq, note 등)
-  @AuthenticatedMusicRoute()
+  @AdminOnly()
   @Patch('playlists/:playlistId/tracks/:playlistTrackId')
   updatePlaylistTrack(
     @Param('playlistId', ParseIntPipe) playlistId: number,
@@ -232,7 +238,7 @@ export class MusicController {
   }
 
   // 플레이리스트에서 트랙 제거
-  @AuthenticatedMusicRoute()
+  @AdminOnly()
   @Delete('playlists/:playlistId/tracks/:playlistTrackId')
   removeTrackFromPlaylist(
     @Param('playlistId', ParseIntPipe) playlistId: number,
@@ -243,10 +249,6 @@ export class MusicController {
       playlistTrackId,
     );
   }
-}
-
-function AuthenticatedMusicRoute(): MethodDecorator {
-  return applyDecorators(ApiBearerAuth(), UseGuards(JwtAuthGuard));
 }
 
 function toPublicTrackResponse(track: Track): PublicTrackResponse {
