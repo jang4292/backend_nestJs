@@ -26,8 +26,7 @@ export class ExchangeGoogleAuthCodeUseCase {
 
   async execute(input: ExchangeGoogleAuthCodeInput): Promise<TokenSet> {
     if (
-      input.state !== undefined &&
-      input.expectedState !== undefined &&
+      (input.state === undefined) !== (input.expectedState === undefined) ||
       input.state !== input.expectedState
     ) {
       throw new GoogleAuthError(

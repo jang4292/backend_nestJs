@@ -11,7 +11,7 @@ import {
 import { PlaylistTrack } from './playlist-track.entity';
 import { Artist } from './artist.entity';
 
-@Entity('track')
+@Entity('legacy_track')
 export class Track {
   @PrimaryGeneratedColumn()
   id!: number;

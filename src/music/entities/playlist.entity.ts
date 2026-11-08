@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { PlaylistTrack } from './playlist-track.entity';
 
-@Entity('playlist')
+@Entity('legacy_playlist')
 export class Playlist {
   @PrimaryGeneratedColumn()
   id!: number;

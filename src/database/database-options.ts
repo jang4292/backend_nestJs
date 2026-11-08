@@ -4,6 +4,10 @@ import { Artist } from '../music/entities/artist.entity';
 import { PlaylistTrack } from '../music/entities/playlist-track.entity';
 import { Playlist } from '../music/entities/playlist.entity';
 import { Track } from '../music/entities/track.entity';
+import { AudioAsset } from '../music/catalog/entities/audio-asset.entity';
+import { CatalogTrack } from '../music/catalog/entities/catalog-track.entity';
+import { CatalogPlaylist } from '../music/catalog/entities/catalog-playlist.entity';
+import { CatalogPlaylistTrack } from '../music/catalog/entities/catalog-playlist-track.entity';
 import { SocialAccount } from '../users/entities/social-account.entity';
 import { User } from '../users/entities/user.entity';
 
@@ -35,6 +39,10 @@ export const databaseEntities = [
   Track,
   Playlist,
   PlaylistTrack,
+  CatalogTrack,
+  AudioAsset,
+  CatalogPlaylist,
+  CatalogPlaylistTrack,
 ];
 
 export function createDatabaseOptions(
