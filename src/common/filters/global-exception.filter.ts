@@ -8,6 +8,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { DomainError, DomainErrorKind } from '../errors/domain-error';
 import { errorResponse } from '../http/api-response';
 import { REQUEST_ID_HEADER } from '../request-id/request-id.constants';
 import { RequestIdService } from '../request-id/request-id.service';
@@ -18,7 +19,20 @@ const ERROR_CODES_BY_STATUS: Readonly<Record<number, string>> = {
   [Number(HttpStatus.UNAUTHORIZED)]: 'UNAUTHORIZED',
   [Number(HttpStatus.FORBIDDEN)]: 'FORBIDDEN',
   [Number(HttpStatus.NOT_FOUND)]: 'NOT_FOUND',
+  [Number(HttpStatus.CONFLICT)]: 'CONFLICT',
+  [Number(HttpStatus.PAYLOAD_TOO_LARGE)]: 'PAYLOAD_TOO_LARGE',
+  [Number(HttpStatus.UNPROCESSABLE_ENTITY)]: 'UNPROCESSABLE_ENTITY',
   [Number(HttpStatus.TOO_MANY_REQUESTS)]: 'RATE_LIMITED',
+  [Number(HttpStatus.SERVICE_UNAVAILABLE)]: 'SERVICE_UNAVAILABLE',
+};
+
+/** application/domain 계층의 DomainError를 HTTP 상태로 변환하는 단일 매핑 */
+const STATUS_BY_DOMAIN_ERROR_KIND: Readonly<Record<DomainErrorKind, number>> = {
+  invalid_argument: HttpStatus.BAD_REQUEST,
+  unauthorized: HttpStatus.UNAUTHORIZED,
+  forbidden: HttpStatus.FORBIDDEN,
+  not_found: HttpStatus.NOT_FOUND,
+  conflict: HttpStatus.CONFLICT,
 };
 
 const INTERNAL_SERVER_ERROR_STATUS = Number(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -46,10 +60,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const response = http.getResponse<Response>();
     const requestId =
       request.requestId ?? this.requestIdService.resolve(request as Request);
-    const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+    const status = this.resolveStatus(exception);
     const isServerError = status >= INTERNAL_SERVER_ERROR_STATUS;
 
     const message = this.redactSensitiveText(
@@ -75,7 +86,21 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     response.status(status).json(errorResponse(requestId, errorCode, message));
   }
 
+  private resolveStatus(exception: unknown): number {
+    if (exception instanceof HttpException) {
+      return exception.getStatus();
+    }
+    if (exception instanceof DomainError) {
+      return STATUS_BY_DOMAIN_ERROR_KIND[exception.kind];
+    }
+    return HttpStatus.INTERNAL_SERVER_ERROR;
+  }
+
   private resolveMessage(exception: unknown, isServerError: boolean): string {
+    if (exception instanceof DomainError) {
+      return exception.message;
+    }
+
     if (exception instanceof HttpException) {
       const response = exception.getResponse();
       if (typeof response === 'string') {
@@ -109,6 +134,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   }
 
   private resolveErrorCode(exception: unknown, status: number): string {
+    if (exception instanceof DomainError && exception.code) {
+      return exception.code;
+    }
+
     if (
       exception instanceof HttpException &&
       typeof exception.getResponse() === 'object' &&

@@ -5,7 +5,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { QueryFailedError, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
+import { isDuplicateEntryError } from '../../database/mariadb-errors';
 import { AUDIO_ASSET_REPOSITORY_PORT } from './application/ports/audio-asset-repository.port';
 import type { AudioAssetRepositoryPort } from './application/ports/audio-asset-repository.port';
 import { CATALOG_TRACK_REPOSITORY_PORT } from './application/ports/catalog-track-repository.port';
@@ -181,7 +182,7 @@ export class CatalogMusicService {
         }),
       );
     } catch (error) {
-      if (isDuplicateKeyError(error)) {
+      if (isDuplicateEntryError(error)) {
         throw new BadRequestException('Playlist position is already occupied');
       }
       throw error;
@@ -254,12 +255,4 @@ export class CatalogMusicService {
     }
     return playlist;
   }
-}
-
-function isDuplicateKeyError(error: unknown): boolean {
-  if (!(error instanceof QueryFailedError)) {
-    return false;
-  }
-  const driverError = error.driverError as { code?: unknown } | undefined;
-  return driverError?.code === 'ER_DUP_ENTRY' || driverError?.code === '23505';
 }

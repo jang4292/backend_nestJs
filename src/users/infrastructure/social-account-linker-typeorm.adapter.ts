@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, QueryFailedError, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
+import { isDuplicateEntryError } from '../../database/mariadb-errors';
 import { User } from '../entities/user.entity';
 import { SocialAccount } from '../entities/social-account.entity';
 import { SocialIdentity } from '../domain/social-identity';
@@ -73,7 +74,7 @@ export class SocialAccountLinkerTypeOrmAdapter implements SocialAccountLinkerPor
 
         return this.toRecord(user);
       } catch (error) {
-        if (!isDuplicateKeyError(error)) {
+        if (!isDuplicateEntryError(error)) {
           throw error;
         }
 
@@ -100,13 +101,4 @@ export class SocialAccountLinkerTypeOrmAdapter implements SocialAccountLinkerPor
       name: user.name,
     };
   }
-}
-
-function isDuplicateKeyError(error: unknown): boolean {
-  if (!(error instanceof QueryFailedError)) {
-    return false;
-  }
-
-  const driverError = error.driverError as { code?: unknown } | undefined;
-  return driverError?.code === 'ER_DUP_ENTRY' || driverError?.code === '23505';
 }

@@ -1,5 +1,12 @@
 import { ArgumentsHost, BadRequestException, Logger } from '@nestjs/common';
 import { GlobalExceptionFilter } from './global-exception.filter';
+import {
+  ConflictError,
+  ForbiddenError,
+  InvalidArgumentError,
+  NotFoundError,
+  UnauthorizedError,
+} from '../errors/domain-error';
 import { REQUEST_ID_HEADER } from '../request-id/request-id.constants';
 import { RequestIdService } from '../request-id/request-id.service';
 
@@ -91,6 +98,39 @@ describe('GlobalExceptionFilter', () => {
     );
     expect(typeof loggedStack === 'string' ? loggedStack : '').toContain(
       'mariadb://app:<redacted>@db.example/app',
+    );
+  });
+
+  it.each([
+    [new InvalidArgumentError('bad input'), 400, 'BAD_REQUEST'],
+    [new UnauthorizedError('no'), 401, 'UNAUTHORIZED'],
+    [new ForbiddenError('denied'), 403, 'FORBIDDEN'],
+    [new NotFoundError('missing'), 404, 'NOT_FOUND'],
+    [new ConflictError('taken'), 409, 'CONFLICT'],
+  ])(
+    'maps %p to HTTP %p with error code %p',
+    (error, expectedStatus, expectedCode) => {
+      filter.catch(error, createHost(response));
+
+      expect(response.status).toHaveBeenCalledWith(expectedStatus);
+      expect(response.json).toHaveBeenCalledWith({
+        ok: false,
+        requestId: 'request-1',
+        errorCode: expectedCode,
+        message: error.message,
+      });
+      expect(errorSpy).not.toHaveBeenCalled();
+    },
+  );
+
+  it('prefers the explicit DomainError code', () => {
+    filter.catch(
+      new ConflictError('linked tracks', 'FOREIGN_KEY_CONSTRAINT'),
+      createHost(response),
+    );
+
+    expect(response.json).toHaveBeenCalledWith(
+      expect.objectContaining({ errorCode: 'FOREIGN_KEY_CONSTRAINT' }),
     );
   });
 });
