@@ -88,11 +88,18 @@ export class AppleLoginUseCase {
     }
 
     const identity = await this.verifier.verifyIdToken(idToken, input.nonce);
-    // Apple only sends name/email on first authorization – prefer client-supplied values.
+    // Apple은 최초 인증 시에만 클라이언트로 name/email을 보냅니다. 이 값은 서명되지 않았으므로
+    // 서명된 ID Token의 claim을 우선하고, token에 email이 없을 때만 클라이언트 값을 미검증으로 사용합니다.
+    const clientEmail = input.user?.email;
     const enrichedIdentity = {
       ...identity,
-      name: input.user?.name ?? identity.name,
-      email: input.user?.email ?? identity.email,
+      name: identity.name ?? input.user?.name,
+      email: identity.email ?? clientEmail,
+      emailVerified: identity.email
+        ? identity.emailVerified
+        : clientEmail
+          ? false
+          : identity.emailVerified,
     };
     const user = await this.userRepo.upsert(enrichedIdentity);
     const session = await this.sessionIssuer.issue(user);

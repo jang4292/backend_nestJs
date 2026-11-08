@@ -10,14 +10,14 @@ import { NaverLoginUseCase } from './application/use-cases/naver-login.use-case'
 import { NaverOAuthClientAdapter } from './infrastructure/naver-oauth-client.adapter';
 
 import { AuthNaverController } from './interface/auth-naver.controller';
-import { NaverAuthExceptionFilter } from './interface/naver-auth-exception.filter';
+import { SocialAuthExceptionFilter } from '../shared/interface/social-auth-exception.filter';
 
 @Module({
   imports: [CommonModule, UsersModule, SessionModule],
   controllers: [AuthNaverController],
   providers: [
     NaverOAuthClientAdapter,
-    NaverAuthExceptionFilter,
+    SocialAuthExceptionFilter,
 
     { provide: NAVER_OAUTH_PORT, useExisting: NaverOAuthClientAdapter },
 

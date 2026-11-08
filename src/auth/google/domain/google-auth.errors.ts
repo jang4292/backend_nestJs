@@ -1,3 +1,5 @@
+import { SocialAuthError } from '../../shared/domain/social-auth.error';
+
 /** Stable error code enum – no framework imports */
 export enum GoogleAuthErrorCode {
   AUTH_GOOGLE_BAD_REQUEST = 'AUTH_GOOGLE_BAD_REQUEST',
@@ -11,12 +13,14 @@ export enum GoogleAuthErrorCode {
   AUTH_GOOGLE_INTERNAL_ERROR = 'AUTH_GOOGLE_INTERNAL_ERROR',
 }
 
-export class GoogleAuthError extends Error {
+export class GoogleAuthError extends SocialAuthError {
+  declare readonly errorCode: GoogleAuthErrorCode;
+
   constructor(
-    public readonly errorCode: GoogleAuthErrorCode,
+    errorCode: GoogleAuthErrorCode,
     message: string,
+    options?: ErrorOptions,
   ) {
-    super(message);
-    this.name = 'GoogleAuthError';
+    super(errorCode, message, options);
   }
 }

@@ -55,6 +55,8 @@ export class KakaoLoginUseCase {
     let accessToken: string;
     if (hasAccessToken) {
       accessToken = input.accessToken!;
+      // 클라이언트가 보낸 토큰은 다른 앱에서 발급된 것일 수 있으므로 발급 앱을 확인합니다.
+      await this.oauth.verifyAccessTokenAudience(accessToken);
     } else {
       if (!input.redirectUri) {
         throw new KakaoAuthError(

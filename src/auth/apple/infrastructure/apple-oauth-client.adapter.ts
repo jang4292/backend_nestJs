@@ -9,6 +9,10 @@ import {
   AppleAuthCodeExchangerPort,
   TokenSet,
 } from '../application/ports/apple-auth-code-exchanger.port';
+import {
+  fetchWithTimeout,
+  readJsonSafely,
+} from '../../shared/infrastructure/fetch-with-timeout';
 
 const APPLE_TOKEN_URL = 'https://appleid.apple.com/auth/token';
 const APPLE_ISSUER = 'https://appleid.apple.com';
@@ -66,7 +70,7 @@ export class AppleOAuthClientAdapter implements AppleAuthCodeExchangerPort {
 
     let response: Response;
     try {
-      response = await fetch(APPLE_TOKEN_URL, {
+      response = await fetchWithTimeout(APPLE_TOKEN_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
@@ -84,7 +88,7 @@ export class AppleOAuthClientAdapter implements AppleAuthCodeExchangerPort {
       );
     }
 
-    const body = (await response.json()) as AppleTokenResponse;
+    const body = await readJsonSafely<AppleTokenResponse>(response);
     if (!response.ok || !body.id_token) {
       throw new AppleAuthError(
         AppleAuthErrorCode.AUTH_APPLE_EXCHANGE_FAILED,

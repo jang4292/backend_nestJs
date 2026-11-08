@@ -9,6 +9,10 @@ import {
   NaverAccessTokenSet,
   NaverOAuthPort,
 } from '../application/ports/naver-oauth.port';
+import {
+  fetchWithTimeout,
+  readJsonSafely,
+} from '../../shared/infrastructure/fetch-with-timeout';
 
 const NAVER_TOKEN_URL = 'https://nid.naver.com/oauth2.0/token';
 const NAVER_PROFILE_URL = 'https://openapi.naver.com/v1/nid/me';
@@ -88,7 +92,7 @@ export class NaverOAuthClientAdapter implements NaverOAuthPort {
         state: params.state,
       });
 
-      response = await fetch(NAVER_TOKEN_URL, {
+      response = await fetchWithTimeout(NAVER_TOKEN_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
@@ -102,7 +106,7 @@ export class NaverOAuthClientAdapter implements NaverOAuthPort {
       );
     }
 
-    const data = (await response.json()) as NaverTokenResponse;
+    const data = await readJsonSafely<NaverTokenResponse>(response);
     if (!response.ok || !data.access_token) {
       throw new NaverAuthError(
         NaverAuthErrorCode.AUTH_NAVER_EXCHANGE_FAILED,
@@ -120,7 +124,7 @@ export class NaverOAuthClientAdapter implements NaverOAuthPort {
   async fetchProfile(accessToken: string): Promise<SocialIdentity> {
     let response: Response;
     try {
-      response = await fetch(NAVER_PROFILE_URL, {
+      response = await fetchWithTimeout(NAVER_PROFILE_URL, {
         method: 'GET',
         headers: { Authorization: `Bearer ${accessToken}` },
       });
@@ -131,7 +135,7 @@ export class NaverOAuthClientAdapter implements NaverOAuthPort {
       );
     }
 
-    const data = (await response.json()) as NaverProfileResponse;
+    const data = await readJsonSafely<NaverProfileResponse>(response);
     if (!response.ok || data.resultcode !== '00' || !data.response?.id) {
       throw new NaverAuthError(
         NaverAuthErrorCode.AUTH_NAVER_PROFILE_FETCH_FAILED,

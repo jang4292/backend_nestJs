@@ -14,7 +14,10 @@ import {
   SessionIssuerPort,
   SessionTokens,
 } from '../../../session/application/ports/session-issuer.port';
-import { KakaoAuthErrorCode } from '../../domain/kakao-auth.errors';
+import {
+  KakaoAuthError,
+  KakaoAuthErrorCode,
+} from '../../domain/kakao-auth.errors';
 import { SocialIdentity } from '../../../../users/domain/social-identity';
 import { Test } from '@nestjs/testing';
 
@@ -38,7 +41,11 @@ describe('KakaoLoginUseCase', () => {
   const tokenSet: KakaoAccessTokenSet = { accessToken: 'kakao.access.token' };
 
   beforeEach(async () => {
-    oauth = { exchange: jest.fn(), fetchProfile: jest.fn() };
+    oauth = {
+      exchange: jest.fn(),
+      verifyAccessTokenAudience: jest.fn().mockResolvedValue(undefined),
+      fetchProfile: jest.fn(),
+    };
     userRepo = { findBySocialId: jest.fn(), upsert: jest.fn() };
     sessionIssuer = { issue: jest.fn() };
 
@@ -64,6 +71,26 @@ describe('KakaoLoginUseCase', () => {
       expect(result.user).toEqual(userRecord);
       expect(result.session).toEqual(tokens);
       expect(oauth.exchange.mock.calls).toHaveLength(0);
+      expect(oauth.verifyAccessTokenAudience).toHaveBeenCalledWith(
+        'valid.token',
+      );
+    });
+
+    it('should reject an accessToken issued for another Kakao app', async () => {
+      oauth.verifyAccessTokenAudience.mockRejectedValue(
+        new KakaoAuthError(
+          KakaoAuthErrorCode.AUTH_KAKAO_INVALID_TOKEN,
+          'Kakao access token was not issued for this application.',
+        ),
+      );
+
+      await expect(
+        useCase.execute({ accessToken: 'other-app.token' }),
+      ).rejects.toMatchObject({
+        errorCode: KakaoAuthErrorCode.AUTH_KAKAO_INVALID_TOKEN,
+      });
+      expect(oauth.fetchProfile).not.toHaveBeenCalled();
+      expect(userRepo.upsert).not.toHaveBeenCalled();
     });
   });
 

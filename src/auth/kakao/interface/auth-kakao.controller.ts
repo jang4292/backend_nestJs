@@ -5,13 +5,10 @@ import {
   Req,
   HttpCode,
   HttpStatus,
-  ValidationPipe,
   UseFilters,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { successResponse } from '../../../common/http/api-response';
-import { RequestIdInterceptor } from '../../../common/request-id/request-id.interceptor';
 import { RequestIdService } from '../../../common/request-id/request-id.service';
 import type { RequestWithId } from '../../../common/request-id/request-with-id';
 import type { KakaoAccessTokenSet } from '../application/ports/kakao-oauth.port';
@@ -20,7 +17,8 @@ import { KakaoLoginUseCase } from '../application/use-cases/kakao-login.use-case
 import type { KakaoLoginOutput } from '../application/use-cases/kakao-login.use-case';
 import { ExchangeCodeDto } from './dto/exchange-code.dto';
 import { KakaoLoginDto } from './dto/kakao-login.dto';
-import { KakaoAuthExceptionFilter } from './kakao-auth-exception.filter';
+import { SocialAuthExceptionFilter } from '../../shared/interface/social-auth-exception.filter';
+import { toSocialAuthError } from '../../shared/interface/to-social-auth-error';
 import {
   KakaoAuthError,
   KakaoAuthErrorCode,
@@ -36,10 +34,17 @@ type KakaoLoginResponseData = {
   };
 };
 
+/** 예상하지 못한 오류(DB 오류 등)는 메시지를 노출하지 않는 INTERNAL_ERROR로 감쌉니다. */
+const wrapUnexpected = (cause: unknown) =>
+  new KakaoAuthError(
+    KakaoAuthErrorCode.AUTH_KAKAO_INTERNAL_ERROR,
+    'Unexpected error during Kakao authentication.',
+    { cause },
+  );
+
 @Controller('auth/kakao')
 @ApiTags('auth/kakao')
-@UseInterceptors(RequestIdInterceptor)
-@UseFilters(KakaoAuthExceptionFilter)
+@UseFilters(SocialAuthExceptionFilter)
 export class AuthKakaoController {
   constructor(
     private readonly exchangeCodeUseCase: ExchangeKakaoAuthCodeUseCase,
@@ -51,21 +56,10 @@ export class AuthKakaoController {
     return req.requestId ?? this.requestIdService.resolve(req);
   }
 
-  private static toKakaoAuthError(err: unknown): KakaoAuthError {
-    if (err instanceof KakaoAuthError) return err;
-    return new KakaoAuthError(
-      KakaoAuthErrorCode.AUTH_KAKAO_INTERNAL_ERROR,
-      err instanceof Error ? err.message : String(err),
-    );
-  }
-
   @Post('exchange-code')
   @ApiOperation({ summary: 'Kakao authorization code 교환' })
   @HttpCode(HttpStatus.OK)
-  async exchangeCode(
-    @Body(ValidationPipe) dto: ExchangeCodeDto,
-    @Req() req: RequestWithId,
-  ) {
+  async exchangeCode(@Body() dto: ExchangeCodeDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);
     let tokenSet: KakaoAccessTokenSet;
     try {
@@ -76,7 +70,7 @@ export class AuthKakaoController {
         expectedState: dto.expectedState,
       });
     } catch (err) {
-      throw AuthKakaoController.toKakaoAuthError(err);
+      throw toSocialAuthError(err, wrapUnexpected);
     }
     return successResponse(requestId, tokenSet);
   }
@@ -84,10 +78,7 @@ export class AuthKakaoController {
   @Post('login')
   @ApiOperation({ summary: 'Kakao social login' })
   @HttpCode(HttpStatus.OK)
-  async login(
-    @Body(ValidationPipe) dto: KakaoLoginDto,
-    @Req() req: RequestWithId,
-  ) {
+  async login(@Body() dto: KakaoLoginDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);
     let result: KakaoLoginOutput;
     try {
@@ -99,7 +90,7 @@ export class AuthKakaoController {
         expectedState: dto.expectedState,
       });
     } catch (err) {
-      throw AuthKakaoController.toKakaoAuthError(err);
+      throw toSocialAuthError(err, wrapUnexpected);
     }
     const data: KakaoLoginResponseData = {
       accessToken: result.session.accessToken,

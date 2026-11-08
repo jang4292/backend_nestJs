@@ -1,3 +1,5 @@
+import { SocialAuthError } from '../../shared/domain/social-auth.error';
+
 /** Stable error code enum – no framework imports */
 export enum FacebookAuthErrorCode {
   AUTH_FACEBOOK_BAD_REQUEST = 'AUTH_FACEBOOK_BAD_REQUEST',
@@ -9,12 +11,14 @@ export enum FacebookAuthErrorCode {
   AUTH_FACEBOOK_INTERNAL_ERROR = 'AUTH_FACEBOOK_INTERNAL_ERROR',
 }
 
-export class FacebookAuthError extends Error {
+export class FacebookAuthError extends SocialAuthError {
+  declare readonly errorCode: FacebookAuthErrorCode;
+
   constructor(
-    public readonly errorCode: FacebookAuthErrorCode,
+    errorCode: FacebookAuthErrorCode,
     message: string,
+    options?: ErrorOptions,
   ) {
-    super(message);
-    this.name = 'FacebookAuthError';
+    super(errorCode, message, options);
   }
 }

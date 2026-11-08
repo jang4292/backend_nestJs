@@ -5,13 +5,10 @@ import {
   Req,
   HttpCode,
   HttpStatus,
-  ValidationPipe,
   UseFilters,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { successResponse } from '../../../common/http/api-response';
-import { RequestIdInterceptor } from '../../../common/request-id/request-id.interceptor';
 import { RequestIdService } from '../../../common/request-id/request-id.service';
 import type { RequestWithId } from '../../../common/request-id/request-with-id';
 import type { SocialIdentity } from '../../../users/domain/social-identity';
@@ -23,7 +20,8 @@ import type { AppleLoginOutput } from '../application/use-cases/apple-login.use-
 import { VerifyIdTokenDto } from './dto/verify-id-token.dto';
 import { ExchangeCodeDto } from './dto/exchange-code.dto';
 import { AppleLoginDto } from './dto/apple-login.dto';
-import { AppleAuthExceptionFilter } from './apple-auth-exception.filter';
+import { SocialAuthExceptionFilter } from '../../shared/interface/social-auth-exception.filter';
+import { toSocialAuthError } from '../../shared/interface/to-social-auth-error';
 import {
   AppleAuthError,
   AppleAuthErrorCode,
@@ -39,10 +37,17 @@ type AppleLoginResponseData = {
   };
 };
 
+/** 예상하지 못한 오류(DB 오류 등)는 메시지를 노출하지 않는 INTERNAL_ERROR로 감쌉니다. */
+const wrapUnexpected = (cause: unknown) =>
+  new AppleAuthError(
+    AppleAuthErrorCode.AUTH_APPLE_INTERNAL_ERROR,
+    'Unexpected error during Apple authentication.',
+    { cause },
+  );
+
 @Controller('auth/apple')
 @ApiTags('auth/apple')
-@UseInterceptors(RequestIdInterceptor)
-@UseFilters(AppleAuthExceptionFilter)
+@UseFilters(SocialAuthExceptionFilter)
 export class AuthAppleController {
   constructor(
     private readonly verifyIdTokenUseCase: VerifyAppleIdTokenUseCase,
@@ -55,19 +60,11 @@ export class AuthAppleController {
     return req.requestId ?? this.requestIdService.resolve(req);
   }
 
-  private static toAppleAuthError(err: unknown): AppleAuthError {
-    if (err instanceof AppleAuthError) return err;
-    return new AppleAuthError(
-      AppleAuthErrorCode.AUTH_APPLE_INTERNAL_ERROR,
-      err instanceof Error ? err.message : String(err),
-    );
-  }
-
   @Post('verify-id-token')
   @ApiOperation({ summary: 'Apple ID token 검증' })
   @HttpCode(HttpStatus.OK)
   async verifyIdToken(
-    @Body(ValidationPipe) dto: VerifyIdTokenDto,
+    @Body() dto: VerifyIdTokenDto,
     @Req() req: RequestWithId,
   ) {
     const requestId = this.getRequestId(req);
@@ -78,7 +75,7 @@ export class AuthAppleController {
         nonce: dto.nonce,
       });
     } catch (err) {
-      throw AuthAppleController.toAppleAuthError(err);
+      throw toSocialAuthError(err, wrapUnexpected);
     }
     return successResponse(requestId, identity);
   }
@@ -86,10 +83,7 @@ export class AuthAppleController {
   @Post('exchange-code')
   @ApiOperation({ summary: 'Apple authorization code 교환' })
   @HttpCode(HttpStatus.OK)
-  async exchangeCode(
-    @Body(ValidationPipe) dto: ExchangeCodeDto,
-    @Req() req: RequestWithId,
-  ) {
+  async exchangeCode(@Body() dto: ExchangeCodeDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);
     let tokenSet: TokenSet;
     try {
@@ -100,7 +94,7 @@ export class AuthAppleController {
         expectedState: dto.expectedState,
       });
     } catch (err) {
-      throw AuthAppleController.toAppleAuthError(err);
+      throw toSocialAuthError(err, wrapUnexpected);
     }
     return successResponse(requestId, tokenSet);
   }
@@ -108,10 +102,7 @@ export class AuthAppleController {
   @Post('login')
   @ApiOperation({ summary: 'Apple social login' })
   @HttpCode(HttpStatus.OK)
-  async login(
-    @Body(ValidationPipe) dto: AppleLoginDto,
-    @Req() req: RequestWithId,
-  ) {
+  async login(@Body() dto: AppleLoginDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);
     let result: AppleLoginOutput;
     try {
@@ -125,7 +116,7 @@ export class AuthAppleController {
         user: dto.user,
       });
     } catch (err) {
-      throw AuthAppleController.toAppleAuthError(err);
+      throw toSocialAuthError(err, wrapUnexpected);
     }
     const data: AppleLoginResponseData = {
       accessToken: result.session.accessToken,

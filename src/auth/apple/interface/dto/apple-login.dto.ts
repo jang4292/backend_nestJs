@@ -5,6 +5,7 @@ import {
   ValidateIf,
   ValidateNested,
   IsObject,
+  IsEmail,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -23,7 +24,7 @@ class AppleUserDto {
   @IsOptional()
   name?: string;
 
-  @IsString()
+  @IsEmail()
   @IsOptional()
   email?: string;
 

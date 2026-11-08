@@ -10,6 +10,7 @@ import {
 import type { Request, Response } from 'express';
 import { DomainError, DomainErrorKind } from '../errors/domain-error';
 import { errorResponse } from '../http/api-response';
+import { redactSensitiveText } from '../logging/redact-sensitive-text';
 import { REQUEST_ID_HEADER } from '../request-id/request-id.constants';
 import { RequestIdService } from '../request-id/request-id.service';
 import type { RequestWithId } from '../request-id/request-with-id';
@@ -36,16 +37,6 @@ const STATUS_BY_DOMAIN_ERROR_KIND: Readonly<Record<DomainErrorKind, number>> = {
 };
 
 const INTERNAL_SERVER_ERROR_STATUS = Number(HttpStatus.INTERNAL_SERVER_ERROR);
-const SENSITIVE_VALUE_PLACEHOLDER = '<redacted>';
-const SENSITIVE_KEY_PATTERN =
-  '(?:password|passwd|pwd|secret|token|authorization|api[_-]?key|access[_-]?key|private[_-]?key|database_url|jwt_secret|db_password|google_oauth_client_secret)';
-const KEY_VALUE_SECRET_PATTERN = new RegExp(
-  `(${SENSITIVE_KEY_PATTERN}\\s*[:=]\\s*)(["']?)([^"',\\s}\\]]+)(\\2)`,
-  'gi',
-);
-const DATABASE_URL_SECRET_PATTERN =
-  /((?:postgres(?:ql)?|mariadb):\/\/[^:\s/@]+:)([^@\s]+)(@)/gi;
-const BEARER_TOKEN_PATTERN = /(Bearer\s+)[A-Za-z0-9._~+/=-]+/gi;
 
 @Catch()
 @Injectable()
@@ -63,7 +54,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const status = this.resolveStatus(exception);
     const isServerError = status >= INTERNAL_SERVER_ERROR_STATUS;
 
-    const message = this.redactSensitiveText(
+    const message = redactSensitiveText(
       this.resolveMessage(exception, isServerError),
     );
     const errorCode = this.resolveErrorCode(exception, status);
@@ -155,20 +146,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
   private resolveStack(exception: unknown): string | undefined {
     if (exception instanceof Error) {
-      return exception.stack
-        ? this.redactSensitiveText(exception.stack)
-        : undefined;
+      return exception.stack ? redactSensitiveText(exception.stack) : undefined;
     }
     return undefined;
-  }
-
-  private redactSensitiveText(value: string): string {
-    return value
-      .replace(
-        DATABASE_URL_SECRET_PATTERN,
-        `$1${SENSITIVE_VALUE_PLACEHOLDER}$3`,
-      )
-      .replace(KEY_VALUE_SECRET_PATTERN, `$1$2${SENSITIVE_VALUE_PLACEHOLDER}$4`)
-      .replace(BEARER_TOKEN_PATTERN, `$1${SENSITIVE_VALUE_PLACEHOLDER}`);
   }
 }
