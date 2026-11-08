@@ -56,7 +56,9 @@ Google/Apple은 `POST /auth/{provider}/verify-id-token`으로 id_token 검증만
 | Kakao | `KAKAO_APP_ID`(production 필수), `KAKAO_REST_API_KEY`, `KAKAO_CLIENT_SECRET`(선택), `KAKAO_REDIRECT_URIS` | Kakao Developers에서 앱 생성 후 앱 ID·REST API 키 발급. `KAKAO_APP_ID`는 클라이언트가 보낸 accessToken의 발급 앱(`/v1/user/access_token_info`의 `app_id`) 검증에 사용 |
 | Naver | `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`, `NAVER_REDIRECT_URIS` | Naver Developers에서 애플리케이션 등록 후 발급 |
 
-`AUTH_{PROVIDER}_ENABLED=false`인 provider는 route를 유지하지만 외부 API를 호출하지 않고
+> **현재 상태(2026-11-08): SNS 5종 모두 비활성, 로컬 로그인만 운영합니다.** provider는 명시적 opt-in(`AUTH_{PROVIDER}_ENABLED=true`)일 때만 켜지고, credential 키가 있어도 플래그가 없으면 꺼져 있습니다. 다시 켜기 전에는 [재활성화 체크리스트](sns-reenable-checklist.kr.md)를 완료하세요. Naver는 켜더라도 accessToken 로그인이 기본 차단됩니다(`AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=false`, code flow만 허용).
+
+`AUTH_{PROVIDER}_ENABLED=false`(또는 미지정)인 provider는 route를 유지하지만 외부 API를 호출하지 않고
 `503 Service Unavailable`과 `AUTH_{PROVIDER}_DISABLED`를 반환합니다. 로컬 로그인
 `POST /auth/login`은 provider readiness 검사 대상이 아니며 SNS 설정과 독립적으로 동작합니다.
 
@@ -84,7 +86,7 @@ redirect URI allowlist와 client credential을 임의의 placeholder로 채우�
   - Google/Apple: ID Token `aud`
   - Facebook: `debug_token`의 `app_id`
   - Kakao: `access_token_info`의 `app_id`
-  - ⚠ Naver는 공식 앱 바인딩 검증 API를 확인하지 못했습니다. 운영에서는 code flow만 쓰는 것을 권장합니다([감사 로드맵 P0](../audit/2026-11-08-project-audit.kr.md#p0-main-배포-전-결정-또는-확인)).
+  - ⚠ Naver는 공식 앱 바인딩 검증 API를 확인하지 못했습니다. 그래서 accessToken 로그인을 기본 차단하고 code flow만 허용합니다(`AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=false`)([감사 로드맵 P0](../audit/2026-11-08-project-audit.kr.md#p0-main-배포-전-결정-또는-확인)).
 - **email 정책**: provider email은 `social_accounts.email`에 저장합니다. `users.email`은 비어 있을 때만 채우며, 미검증(`emailVerified === false`)이거나 다른 계정이 쓰는 email은 쓰지 않습니다. 같은 email이라도 로컬 계정과 자동 병합하지 않습니다.
 - **Apple email**: 서명된 ID Token의 email이 우선합니다. 최초 인증 시 클라이언트가 보낸 `user.email`은 token에 email이 없을 때만 미검증으로 사용합니다.
 - **username 예약**: SNS 계정 username은 `<provider>_<sub>`입니다. 로컬 가입에서는 이 접두사를 쓸 수 없습니다.

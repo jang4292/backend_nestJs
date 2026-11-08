@@ -8,7 +8,7 @@
 - `public`: 인증 불필요
 - `jwt`: `Authorization: Bearer <token>` 필요
 - `admin`: JWT 필요, `role = admin`이어야 하며 아니면 403
-- `public*`: SNS 라우트. `AUTH_<PROVIDER>_ENABLED=false`이면 503
+- `public*`: SNS 라우트. `AUTH_<PROVIDER>_ENABLED=true`가 아니면 503 — **현재 5종 모두 비활성**
 
 ## 시스템
 
@@ -41,7 +41,7 @@
 | POST | `/auth/kakao/exchange-code` | public* | `{code, redirectUri, state?, expectedState?}` | |
 | POST | `/auth/kakao/login` | public* | `{accessToken \| code, redirectUri?, state?, expectedState?}` | `accessToken`은 `KAKAO_APP_ID`로 발급 앱 검증, 불일치 시 401 `AUTH_KAKAO_INVALID_TOKEN` |
 | POST | `/auth/naver/exchange-code` | public* | `{code, redirectUri, state, expectedState?}` | |
-| POST | `/auth/naver/login` | public* | `{accessToken \| code, redirectUri?, state?, expectedState?}` | ⚠ `accessToken` 발급 앱 검증 없음 |
+| POST | `/auth/naver/login` | public* | `{code, redirectUri, state, expectedState?}` (`accessToken`은 `AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=true`일 때만) | accessToken 요청은 기본 400 `AUTH_NAVER_BAD_REQUEST` |
 | POST | `/auth/facebook/exchange-code` | public* | `{code, redirectUri, state?, expectedState?}` | |
 | POST | `/auth/facebook/login` | public* | `{accessToken \| code, redirectUri?, state?, expectedState?}` | `debug_token`으로 `app_id` 검증 |
 

@@ -16,7 +16,7 @@
   -> AppModule / DatabaseOptions / JwtModule / GoogleAuth
 ```
 
-- `.env`: 로컬 개발 환경의 실제 값을 담는 파일입니다. `.env.test.local`에는 E2E 전용 계정과 `nestjs_test` DB만 기록합니다. [.gitignore](../../.gitignore)에서 실제 `.env`와 `.env.*`를 제외하고 `*.example` 템플릿만 허용하므로, 실제 값은 절대 커밋되지 않습니다.
+- `.env`: 로컬 개발 환경의 실제 값을 담는 파일입니다. `.env.test.local`에는 E2E 전용 계정과 `*_test` DB(예: `app_db_test`)만 기록합니다. 운영 서버의 실제 값은 `.env.production`(chmod 600)에만 둡니다. [.gitignore](../../.gitignore)에서 실제 `.env`와 `.env.*`를 제외하고 `*.example` 템플릿만 허용하므로, 실제 값은 절대 커밋되지 않습니다.
 - `ConfigModule.forRoot`: 앱 시작 시 `.env`와 배포 환경변수를 읽습니다.
 - `validateAppEnv`: 값을 사용하기 전에 형식과 최소한의 안전 규칙을 강제로 검증합니다.
 - `ConfigService`: 검증을 통과한 값만 앱 코드(DB 연결, JWT 발급, Google OAuth 검증)로 전달됩니다.
@@ -41,7 +41,7 @@ if (nodeEnv === 'production' && jwtSecret.length < MIN_PRODUCTION_JWT_SECRET_LEN
 const PLACEHOLDER_SECRET_MARKERS = ['change-this', 'your-', 'replace-with'];
 ```
 
-예제 env 파일에 쓰인 placeholder(`replace-with-…`, `your-…`, `…change-this…`)가 운영에 그대로 들어가면 기동이 실패합니다. 2026-11-08 이전에는 `replace-with`가 탐지 목록에 없어 `deploy/backend-nestjs.env.example`의 placeholder가 운영 검증을 통과했습니다.
+예제 env 파일에 쓰인 placeholder(`replace-with-…`, `your-…`, `…change-this…`)가 운영에 그대로 들어가면 기동이 실패합니다. 2026-11-08 이전에는 `replace-with`가 탐지 목록에 없어 당시 운영 env 예제(현재 `.env.production.example`로 대체)의 placeholder가 운영 검증을 통과했습니다. 운영 서버에서는 `npm run env:check:prod`로 기동 전에 확인합니다.
 
 `.env.example`이나 README에 적힌 예시 값(`your-secret-key-change-this-in-production` 같은 문자열)을 프로덕션에 그대로 배포하면, 앱이 아예 시작하지 않고 즉시 에러를 던집니다. "예시 값을 실수로 그대로 쓰는" 흔한 사고를 코드 레벨에서 원천 차단하는 장치입니다.
 

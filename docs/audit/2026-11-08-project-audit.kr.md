@@ -2,6 +2,7 @@
 
 > 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
 > 이전 감사: [2026-09-02 감사](2026-09-02-project-audit.kr.md) (이력 문서)
+> 후속 조치(같은 날): 환경별 DB·env 파일 정리와 SNS 로그인 전면 비활성화 — [9장](#9-후속-조치-환경별-db-설정과-sns-비활성화)
 
 ## 0. 요약
 
@@ -95,7 +96,7 @@
 | --- | --- | --- | --- |
 | SEC-1 | **High** | 역할·소유자 개념이 없어, 가입한 누구나 카탈로그 트랙·음원·플레이리스트를 생성, 수정, 삭제, 공개할 수 있음 | ✅ 최소 RBAC 도입: `users.role`(user/admin) 마이그레이션, `@AdminOnly()`. catalog 쓰기 11개, legacy 쓰기 12개 라우트를 admin 전용으로 전환. 쓰기 라우트에 `@AdminOnly`가 빠지면 실패하는 메타데이터 spec 추가 |
 | SEC-2 | **High** | `trust proxy` 미설정. proxy 뒤에서는 Throttler가 proxy IP 하나로 집계해, 전역 10회/60초와 로그인 5회/분 제한을 전체 사용자가 공유함 | ✅ `TRUST_PROXY` 환경변수 추가 / 📝 배포 시 설정 필요 |
-| SEC-3 | **High** | Kakao·Naver는 클라이언트가 보낸 access token으로 프로필만 조회하고, 그 토큰이 이 앱에서 발급됐는지 확인하지 않음(토큰 치환 공격) | ✅ Kakao: `/v1/user/access_token_info`의 `app_id`를 `KAKAO_APP_ID`와 비교 / 📌 **P0** Naver: 앱 바인딩 검증 API를 확인하지 못해 code flow 전용 전환을 권고 |
+| SEC-3 | **High** | Kakao·Naver는 클라이언트가 보낸 access token으로 프로필만 조회하고, 그 토큰이 이 앱에서 발급됐는지 확인하지 않음(토큰 치환 공격) | ✅ Kakao: `/v1/user/access_token_info`의 `app_id`를 `KAKAO_APP_ID`와 비교 / ✅ Naver: accessToken 로그인 기본 차단(`AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=false`, code flow만). SNS 전체도 현재 비활성 |
 | SEC-4 | **High** | SNS 컨트롤러가 알 수 없는 오류(TypeORM "Duplicate entry 'x@y'…" 등)의 원문을 `*_INTERNAL_ERROR`로 클라이언트에 그대로 내려보내고 서버에는 로그를 남기지 않음 | ✅ 메시지를 마스킹하고 requestId·원인(`Error.cause`)을 redaction 후 로그에 기록 |
 | SEC-5 | Medium | OAuth `state`와 `expectedState`가 모두 클라이언트 body에서 들어와, 서버 측 비교는 CSRF 방어 효과가 없음 | 📝 state 검증은 redirect를 받는 클라이언트의 책임임을 문서화 / 📌 P1 서버 저장형 state/PKCE |
 | SEC-6 | Medium | `exchange-code`가 provider의 access/refresh token을 호출자에게 반환하고, `verify-id-token`은 공개 검증기로 동작함 | 📌 P1 필요성 재검토 후 제한 |
@@ -130,7 +131,7 @@
 | DB-3 | Medium | `migrations/mariadb/1763000000000-CreateMariaDbSchema.ts`가 비재귀 glob에 걸리지 않아 실행된 적이 없는 고아 파일(전체 스키마를 재생성하는 내용) | ✅ 삭제(Git 이력에는 보존) |
 | DB-4 | Medium | SNS 동시 최초 로그인 복구 시, 실패한 REPEATABLE READ 트랜잭션 스냅샷 안에서 다시 조회해 경쟁 행이 보이지 않음 | ✅ 트랜잭션 밖에서 재조회 |
 | DB-5 | Medium | `users.password`가 기본 조회에 포함됨(presenter에만 의존해 비밀번호를 숨김) | ✅ `select: false`, 로그인·비밀번호 변경 경로만 명시적으로 조회 |
-| DB-6 | Medium | 운영 서버의 migration이 ts-node와 `src`, devDependencies에 의존함 | 📌 P1 `dist` 기반 migration 명령 |
+| DB-6 | Medium | 운영 서버의 migration이 ts-node와 `src`, devDependencies에 의존함 | ✅ `migration:*:prod`가 `dist/database/data-source.js`를 node로 실행 |
 | DB-7 | Medium | `RepairLegacyMariaDbSchema.down()`은 비어 있고 `ArchiveLegacyMusicSchema.down()`은 예외를 던짐. MariaDB DDL은 암묵적으로 커밋됨 | 📝 배포 전 백업 필수, 롤백은 백업 복원으로 처리([5.4](#54-롤백)) |
 | DB-8 | Low | 플레이리스트 재정렬이 트랜잭션 밖에서 항목을 읽고, 2N회 UPDATE하며, 항목 수 상한이 없음 | 📌 P1 |
 | DB-9 | Low | 검색이 `LOWER(...) LIKE '%…%'`라 인덱스를 못 쓰고 `%`/`_`를 이스케이프하지 않음 | 📌 P2 |
@@ -148,7 +149,7 @@
 | OPS-5 | Medium | CI가 없고, `lint` 스크립트가 `--fix`만 있으며, Node 버전 고정이 없음 | ✅ GitHub Actions, `lint:check`·`typecheck`·`format:check`, `.nvmrc`(24)·`engines` |
 | OPS-6 | Medium | 구조화 로그와 액세스 로그가 없고, requestId는 오류일 때만 로그에 남음 | 📌 P1 |
 | OPS-7 | Medium | 의존성 취약점 11건 | ✅ `npm audit fix`로 5건까지 감소 / 📌 P1 NestJS 12·TypeORM 1.x 업그레이드(남은 high는 multer인데, 파일 업로드 미사용으로 실제 경로 없음) |
-| OPS-8 | Low | 배포 경로가 systemd와 PM2 두 가지로 문서화되어 있음 | 📝 [배포 문서](../deployment/mariadb-systemd.kr.md)에서 PM2를 기본으로 정리 / 📌 P2 하나로 통일 |
+| OPS-8 | Low | 배포 경로가 systemd와 PM2 두 가지로 문서화되어 있음 | ✅ PM2 + `.env.production`을 기본으로 통일, systemd는 같은 env 파일을 쓰는 대안으로만 유지 |
 | OPS-9 | Low | 의도된 503(provider 비활성)이 ERROR 등급으로 stack과 함께 로그에 남음 | 📌 P2 |
 | OPS-10 | Low | `main.ts`에서 `console.*` 사용 | ✅ Nest `Logger` |
 | OPS-11 | Low | `NODE_ENV`가 비어 있으면 development로 간주되어 Swagger가 노출됨 | 📝 배포 체크리스트에 `NODE_ENV=production` 명시 |
@@ -261,9 +262,9 @@
 
 ### P0: main 배포 전 결정 또는 확인
 
-- [ ] **Naver 토큰 치환 방어(SEC-3):** 다음 중 하나를 결정합니다.
-  - `accessToken` 로그인을 막고 code flow만 허용
-  - 공식 검증 API로 client_id 바인딩을 확인
+- [x] **Naver 토큰 치환 방어(SEC-3):** accessToken 로그인을 기본 차단하고 code flow만 허용했습니다. SNS 전체도 현재 비활성입니다.
+- [ ] 운영 서버에 `.env.production`을 작성하고 `npm run env:check:prod`가 OK인지 확인합니다([환경별 DB 가이드](../deployment/database-environments.kr.md)).
+- [ ] 개발 서버에 `app_db_test`와 테스트 계정을 만들고, 개발 DB에는 `npm run migration:run`으로 `AddRoleToUsers`를 적용합니다.
 - [ ] main 운영 DB의 PostgreSQL 데이터 이전 필요 여부를 확인합니다(브레이킹 변경 1).
 - [ ] 클라이언트에 로그인 body, 오류 envelope, `currentPassword` 변경을 공지하고 함께 배포합니다(브레이킹 변경 2–4).
 - [ ] 운영 `JWT_SECRET` 길이를 점검하고, proxy 구성에 맞게 `TRUST_PROXY`를 설정합니다.
@@ -287,9 +288,7 @@
   - 구조화 로그·액세스 로그, requestId 전파(OPS-6)
   - 로그인 감사 로그
 - 의존성: NestJS 12·TypeORM 1.x 업그레이드 검토로 남은 audit 5건 해소(OPS-7)
-- 마이그레이션
-  - `dist` 기반 migration 실행(DB-6)
-  - migration 실패 정책과 백업 자동화
+- 마이그레이션: migration 실패 정책과 백업 자동화
 - 테스트
   - MariaDB 서비스 컨테이너 기반 e2e를 CI에 추가: provider disabled, DB down, UNIQUE/FK, 트랜잭션 rollback, 오류 envelope(T-3)
   - legacy use-case와 catalog publish/reorder spec(T-2)
@@ -351,3 +350,47 @@ npm audit --omit=dev  → 5 vulnerabilities (3 moderate, 2 high)
 - **브랜치 흐름:** `feature/*` → PR → develop, develop → PR(`release: …`) → main. develop/main 직접 push 금지.
 - **PR 본문:** 변경 요약, 브레이킹 변경, 마이그레이션 여부, 검증 결과, 배포 메모.
 - **merge 방식:** squash 대신 merge commit을 쓰면 develop → main 릴리스 이력이 남습니다(현재 PR #2 방식).
+
+## 9. 후속 조치: 환경별 DB 설정과 SNS 비활성화
+
+같은 날 사용자 요청으로 추가로 반영한 내용입니다(PR #10에 커밋 추가).
+
+**환경별 env 파일 단일화** (`src/config/env-files.ts`)
+
+| 환경 | env 파일 | DB | 비고 |
+| --- | --- | --- | --- |
+| Dev | `.env` | 외부 개발 서버 `app_db` | |
+| Test | `.env.test.local` | 개발 서버 `app_db_test` | 파일 필수, `*_test` 외 DB 거부(`app_db` 예외 제거) |
+| Prod | `.env.production` | EC2 localhost MariaDB | PM2 `cwd` 고정 |
+
+- 앱, migration CLI, e2e가 같은 규칙을 씁니다. `ENV_FILE`로 재지정할 수 있습니다.
+- 셸 환경변수가 파일 값보다 우선합니다.
+- 상세: [환경별 DB·설정 가이드](../deployment/database-environments.kr.md)
+
+**명령 추가**
+
+- `env:check`·`env:check:test`·`env:check:prod`: DB에 접속하지 않고 기동 시와 같은 검증만 실행하며, 비밀번호·secret 값은 출력하지 않습니다.
+- `migration:*:test`, `migration:*:prod`: prod는 `dist` 기반이라 ts-node가 필요 없습니다.
+
+**SNS 로그인 비활성화**
+
+- 5종 모두 명시적 opt-in으로 바꿨습니다. credential 추론을 제거해 기본 비활성이고, 꺼진 provider는 설정 키가 없어도 빌드와 기동에 영향이 없습니다.
+- Naver는 켜더라도 accessToken 로그인이 기본 차단됩니다.
+- 재활성화 조건: [SNS 재활성화 체크리스트](../auth/sns-reenable-checklist.kr.md)
+
+**기타**
+
+- `CORS_ORIGIN=none`으로 CORS를 명시적으로 끌 수 있습니다(모바일 전용).
+- 운영 `TRUST_PROXY` 기본값은 `loopback`입니다. 같은 호스트의 nginx만 신뢰하고, proxy가 없어도 안전합니다.
+
+**검증**
+
+- 품질 게이트: lint, format, typecheck, unit tests, build 모두 통과
+- prod 설정 스모크(SNS 키 없음, `CORS_ORIGIN=none`, 가짜 DataSource)
+  - `/health` 200
+  - SNS 5종 503 `AUTH_*_DISABLED`
+  - `/api-docs` 404
+- prod 설정 실기동은 설정 검증을 통과한 뒤 DB 연결 단계에서 멈춤(의도한 결과)
+- placeholder `JWT_SECRET`은 기동 즉시 실패
+- `migration:show:prod`는 `dist`의 `.js` migration 9개를 인식
+- 개발 DB `migration:show`(읽기 전용): 8개 적용, `AddRoleToUsers`만 대기

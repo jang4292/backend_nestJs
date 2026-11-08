@@ -35,12 +35,17 @@
 
 ## 2. SNS 로그인
 
+> **현재 상태: 5종 모두 비활성입니다. 운영은 로컬 로그인만 사용합니다.**
+> - provider는 `AUTH_<PROVIDER>_ENABLED=true`로 명시해야 켜집니다.
+> - 꺼진 provider의 라우트는 503 `AUTH_<PROVIDER>_DISABLED`를 반환합니다.
+> - 다시 켜는 조건은 [재활성화 체크리스트](../auth/sns-reenable-checklist.kr.md)에 있습니다.
+
 | provider | 로그인 입력 | 서버 검증 |
 | --- | --- | --- |
 | Google | `idToken` 또는 `code`(+`redirectUri`, 선택 `codeVerifier`) | ID Token 서명, `aud`(`GOOGLE_ALLOWED_AUDIENCES`), `iss`, 만료, 선택 nonce |
 | Apple | `idToken` 또는 `code` | JWKS 서명, `aud`(`APPLE_ALLOWED_AUDIENCES` 필수), `iss`, 만료, 선택 nonce |
 | Kakao | `accessToken` 또는 `code` | `accessToken`이면 발급 앱(`app_id` = `KAKAO_APP_ID`) 확인 후 프로필 조회 |
-| Naver | `accessToken` 또는 `code` | 프로필 조회. ⚠ 발급 앱 검증 없음([로드맵 P0](../audit/2026-11-08-project-audit.kr.md#p0-main-배포-전-결정-또는-확인)) |
+| Naver | `code`(기본). `accessToken`은 `AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=true`일 때만 | code 교환 후 프로필 조회. accessToken은 발급 앱을 검증할 수 없어 기본 차단(400) |
 | Facebook | `accessToken` 또는 `code` | `debug_token`으로 `app_id` 확인 후 프로필 조회 |
 
 공통 규칙:
@@ -52,7 +57,7 @@
 - **자동 병합 없음:** 로컬 계정과 같은 email이어도 자동으로 병합하지 않습니다(계정 탈취 방지).
 - **name:** 사용자가 설정한 `users.name`을 SNS 로그인 때마다 덮어쓰지 않습니다.
 - **Apple email:** ID Token claim을 우선합니다. 최초 인증 시 클라이언트가 보낸 email은 token에 email이 없을 때만 미검증으로 사용합니다.
-- **기능 플래그:** `AUTH_<PROVIDER>_ENABLED=false`이면 해당 provider의 모든 라우트가 외부 호출 없이 503 `AUTH_<PROVIDER>_DISABLED`를 반환합니다.
+- **기능 플래그(명시적 opt-in):** `AUTH_<PROVIDER>_ENABLED=true`가 아니면(미지정 포함) 해당 provider의 모든 라우트가 외부 호출 없이 503 `AUTH_<PROVIDER>_DISABLED`를 반환합니다. credential 키가 있어도 자동으로 켜지지 않습니다.
 - **오류 코드:** `AUTH_<PROVIDER>_<REASON>`
   - `BAD_REQUEST`: 400
   - `STATE_MISMATCH`, `EXCHANGE_FAILED`, `PROFILE_FETCH_FAILED`, `INVALID_*`, `TOKEN_EXPIRED`, `MISSING_SUB`, `NONCE_MISMATCH`: 401

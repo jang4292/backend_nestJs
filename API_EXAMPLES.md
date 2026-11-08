@@ -165,6 +165,12 @@ Existing tokens stay valid until they expire.
 
 ## 5. Social Login (public)
 
+> **All SNS providers are currently disabled.** Only local login is used, and
+> every `/auth/<provider>/*` route returns 503 `AUTH_<PROVIDER>_DISABLED`. A
+> provider is enabled only with `AUTH_<PROVIDER>_ENABLED=true`, after completing
+> [docs/auth/sns-reenable-checklist.kr.md](docs/auth/sns-reenable-checklist.kr.md).
+> The examples below apply once a provider is enabled.
+
 All SNS responses use the request-id envelope:
 
 ```json
@@ -198,7 +204,7 @@ How each provider token is verified:
 | Google, Apple | ID token `aud` |
 | Facebook | `debug_token` `app_id` |
 | Kakao | `access_token_info` `app_id` against `KAKAO_APP_ID`; a token from another app returns 401 `AUTH_KAKAO_INVALID_TOKEN` |
-| Naver | Not verified (prefer the code flow) |
+| Naver | Cannot be verified, so `accessToken` login is rejected (400) unless `AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=true`; use the code flow |
 
 Other endpoints:
 
@@ -377,6 +383,7 @@ In short:
 2. Set `NODE_ENV=production`, a 32+ character `JWT_SECRET`, `CORS_ORIGIN`,
    `TRUST_PROXY` (behind a proxy), and the enabled providers' settings
    (`KAKAO_APP_ID`, `APPLE_ALLOWED_AUDIENCES`, ...).
-3. Run `npm run migration:show`, then `npm run migration:run`.
+3. Run `npm run build`, then `npm run env:check:prod`, `npm run migration:show:prod`
+   and `npm run migration:run:prod`.
 4. Grant the admin role.
 5. Run `npm run pm2:reload`, then check `curl -fsS /health`.

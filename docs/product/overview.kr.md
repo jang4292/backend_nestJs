@@ -26,7 +26,7 @@
    - username 또는 email로 로그인
    - 프로필 조회·수정
 2. **SNS 로그인**
-   - 5개 provider를 지원하며, provider마다 기능 플래그(`AUTH_*_ENABLED`)로 켜고 끕니다.
+   - 5개 provider를 지원하며, provider마다 기능 플래그(`AUTH_*_ENABLED`)로 켜고 끕니다. **현재는 5종 모두 꺼져 있고 로컬 로그인만 운영합니다**([재활성화 체크리스트](../auth/sns-reenable-checklist.kr.md)).
    - 첫 로그인 시 계정이 자동 생성되고, 이후에는 같은 계정으로 연결됩니다.
    - 같은 email이라도 로컬 계정과 자동 병합하지 않습니다.
 3. **음악 카탈로그(Catalog)**

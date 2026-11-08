@@ -17,9 +17,9 @@
 | --- | --- | --- |
 | `product/` | 기획: 제품 범위, 기능 규칙, API 계약 | [overview](product/overview.kr.md), [features](product/features.kr.md), [api-spec](product/api-spec.kr.md) |
 | `audit/` | 프로젝트 감사 기록(날짜별) | [2026-11-08](audit/2026-11-08-project-audit.kr.md) (최신), [2026-09-02](audit/2026-09-02-project-audit.kr.md) (이력) |
-| `auth/` | 로컬·SNS 로그인 설계와 provider 설정 | [SNS 로그인 개요](auth/sns-login-overview.kr.md), [Google 로그인](auth/google-login.kr.md), [로그인 API 재평가](auth/login-api-reassessment.kr.md) |
+| `auth/` | 로컬·SNS 로그인 설계와 provider 설정 | [SNS 로그인 개요](auth/sns-login-overview.kr.md), [SNS 재활성화 체크리스트](auth/sns-reenable-checklist.kr.md), [Google 로그인](auth/google-login.kr.md), [로그인 API 재평가](auth/login-api-reassessment.kr.md) (이력) |
 | `music/` | 음악 카탈로그 설계, 결정, 운영 | [music/README](music/README.md) |
-| `deployment/` | EC2 배포 절차 | [EC2 MariaDB 배포](deployment/mariadb-systemd.kr.md) |
+| `deployment/` | 환경별 DB·env 설정, EC2 배포 절차 | [환경별 DB·설정 가이드](deployment/database-environments.kr.md), [EC2 MariaDB 배포](deployment/mariadb-systemd.kr.md) |
 | `learning/` | 학습 가이드, 운영 체크리스트, 장애 이력 | [아키텍처 학습 가이드](learning/nestjs-operational-stability-guide.kr.md), [보안 가이드](learning/security-guide.kr.md), [배포 시크릿 체크리스트](learning/deployment-secrets-checklist.kr.md), [SNS 운영 가이드](learning/sns-login-operational-guide.kr.md), [실행 오류 이력](learning/runtime-troubleshooting-history.kr.md) (이력) |
 
 저장소 루트 문서:

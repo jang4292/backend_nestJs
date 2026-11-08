@@ -19,12 +19,17 @@
    - `npm test -- --runInBand`
    - `npm run build`
 9. 개발/운영 MariaDB에서도 `DB_SYNCHRONIZE=false`를 유지하고 migration으로 스키마를 맞춥니다.
-10. 현재 E2E는 테스트 계정 권한 문제로 `app_db`를 임시 사용합니다.
-11. [ ] `app_db_test` 생성 및 테스트 계정 권한 부여 후 `.env.test.local`을 `app_db_test`로 복구합니다.
+10. E2E는 개발 서버의 `app_db_test`(전용 계정)를 사용합니다. `NODE_ENV=test`에서는 `*_test` DB만 허용됩니다.
+11. [ ] `app_db_test`와 테스트 계정을 만들었습니다(SQL: `docs/deployment/database-environments.kr.md`).
+12. 설정 검증: `npm run build` 후 `npm run env:check` / `npm run env:check:test`(DB 접속 없음).
 
 현재 MariaDB 연결이 없으면 `migration:show`와 `npm run test:e2e`는 DB 연결 단계에서 실패합니다. 이 경우 단위 테스트와 build로 코드 상태를 먼저 확인하고, DB 접근 경로를 준비한 뒤 e2e를 실행합니다.
 
-## 2) 운영 배포 체크리스트 (Secrets Manager 기반)
+## 2) 운영 배포 체크리스트
+
+기본 운영 경로는 **프로젝트 루트의 `.env.production` + PM2**입니다. 자세한 절차는 `docs/deployment/database-environments.kr.md`와 `docs/deployment/mariadb-systemd.kr.md`를 참고하세요. 아래 Secrets Manager 절차는 비밀값을 서버 파일에 두지 않을 때 쓰는 선택 경로이며, export한 값이 `.env.production`보다 우선합니다.
+
+### Secrets Manager를 쓰는 경우 (선택)
 
 1. EC2 IAM Role에 최소 권한을 부여합니다.
    - `secretsmanager:GetSecretValue`
@@ -123,10 +128,11 @@ password-only-secret
    ```bash
    eval "$(AWS_SECRET_ID=<secret-id> AWS_REGION=ap-northeast-2 npm run -s secrets:export)"
    ```
-5. migration을 먼저 실행합니다.
+5. 설정을 검증하고 migration을 먼저 실행합니다(dist 기반, ts-node 불필요).
    ```bash
-   npm run migration:show
-   npm run migration:run
+   npm run env:check:prod
+   npm run migration:show:prod
+   npm run migration:run:prod
    ```
 6. PM2에 최신 환경변수와 build 결과를 반영합니다.
    ```bash
