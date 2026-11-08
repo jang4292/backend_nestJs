@@ -14,7 +14,7 @@ cp .env.example .env
 ```env
 JWT_SECRET=your-strong-secret-key-here
 DB_TYPE=mariadb
-DB_HOST=yhjang.com
+DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_USERNAME=your-db-user
 DB_PASSWORD=your-password

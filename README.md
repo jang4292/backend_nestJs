@@ -40,7 +40,7 @@ PORT=3000
 NODE_ENV=development
 
 DB_TYPE=mariadb
-DB_HOST=yhjang.com
+DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_USERNAME=replace-with-local-db-user
 DB_PASSWORD=replace-with-local-db-password
