@@ -1,34 +1,9 @@
 'use strict';
 
-const ENV_KEYS = [
-  'PORT',
-  'NODE_ENV',
-  'DB_HOST',
-  'DB_PORT',
-  'DB_USERNAME',
-  'DB_PASSWORD',
-  'DB_DATABASE',
-  'DB_SSL',
-  'DB_SSL_REJECT_UNAUTHORIZED',
-  'DB_SSL_CA',
-  'DB_POOL_MIN',
-  'DB_POOL_MAX',
-  'DB_CONNECT_TIMEOUT_MS',
-  'DB_SYNCHRONIZE',
-  'JWT_SECRET',
-  'JWT_EXPIRES_IN',
-  'THROTTLE_TTL',
-  'THROTTLE_LIMIT',
-  'CORS_ORIGIN',
-  'GOOGLE_ALLOWED_AUDIENCES',
-  'GOOGLE_ALLOWED_ISSUERS',
-  'GOOGLE_OAUTH_CLIENT_ID',
-  'GOOGLE_OAUTH_CLIENT_SECRET',
-  'GOOGLE_OAUTH_REDIRECT_URIS',
-];
+const { RUNTIME_ENV_KEYS } = require('./scripts/runtime-env-keys.cjs');
 
 function pickRuntimeEnv() {
-  return ENV_KEYS.reduce(
+  return RUNTIME_ENV_KEYS.reduce(
     (env, key) => {
       if (process.env[key] !== undefined) {
         env[key] = process.env[key];
@@ -49,6 +24,8 @@ module.exports = {
       script: 'dist/main.js',
       exec_mode: 'fork',
       instances: 1,
+      // SIGINT 후 graceful shutdown(enableShutdownHooks)이 끝날 시간을 줍니다.
+      kill_timeout: 10000,
       env: pickRuntimeEnv(),
     },
   ],

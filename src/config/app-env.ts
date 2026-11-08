@@ -1,4 +1,12 @@
+import { parseDurationSeconds } from './duration';
+
 export type NodeEnvironment = 'development' | 'test' | 'production';
+
+/** express `trust proxy` 설정 값: false | true | hop 수 | express 문자열(loopback, IP/CIDR 목록 등) */
+export type TrustProxySetting = boolean | number | string;
+
+/** production에서 허용하는 JWT_SECRET 최소 길이(HS256 키 엔트로피 확보). */
+export const MIN_PRODUCTION_JWT_SECRET_LENGTH = 32;
 
 export interface AppEnv {
   PORT: number;
@@ -22,6 +30,9 @@ export interface AppEnv {
   THROTTLE_TTL: number;
   THROTTLE_LIMIT: number;
   CORS_ORIGIN?: string;
+  /** CORS_ORIGIN을 쉼표로 분리한 명시적 origin 목록. 비어 있으면 CORS 비활성화. */
+  CORS_ORIGINS: string[];
+  TRUST_PROXY: TrustProxySetting;
   AUTH_GOOGLE_ENABLED: boolean;
   AUTH_APPLE_ENABLED: boolean;
   AUTH_KAKAO_ENABLED: boolean;
@@ -38,6 +49,7 @@ export interface AppEnv {
   APPLE_KEY_ID?: string;
   APPLE_PRIVATE_KEY?: string;
   APPLE_REDIRECT_URIS?: string;
+  KAKAO_APP_ID?: string;
   KAKAO_REST_API_KEY?: string;
   KAKAO_CLIENT_SECRET?: string;
   KAKAO_REDIRECT_URIS?: string;
@@ -82,7 +94,15 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     { min: 1 },
   );
   const corsOrigin = optionalString(config.CORS_ORIGIN);
+  const corsOrigins = parseCorsOrigins(corsOrigin);
+  const trustProxy = parseTrustProxy(config.TRUST_PROXY);
   const jwtSecret = requiredString(config.JWT_SECRET, 'JWT_SECRET');
+  const jwtExpiresIn = optionalString(config.JWT_EXPIRES_IN) ?? '1h';
+  if (parseDurationSeconds(jwtExpiresIn) === undefined) {
+    throw new Error(
+      'JWT_EXPIRES_IN must be a positive duration such as 3600, 30m, 1h or 7d.',
+    );
+  }
   const dbUsername = requiredString(config.DB_USERNAME, 'DB_USERNAME');
   const dbPassword = requiredString(config.DB_PASSWORD, 'DB_PASSWORD');
   const dbDatabase = requiredString(config.DB_DATABASE, 'DB_DATABASE');
@@ -153,6 +173,25 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     throw new Error('JWT_SECRET must be a strong production secret.');
   }
 
+  if (
+    nodeEnv === 'production' &&
+    jwtSecret.length < MIN_PRODUCTION_JWT_SECRET_LENGTH
+  ) {
+    throw new Error(
+      `JWT_SECRET must be at least ${MIN_PRODUCTION_JWT_SECRET_LENGTH} characters in production.`,
+    );
+  }
+
+  // Apple ID Token은 aud 검증 없이 받으면 다른 앱용 토큰도 통과하므로 환경과 무관하게 필수입니다.
+  if (
+    authAppleEnabled &&
+    optionalString(config.APPLE_ALLOWED_AUDIENCES) === undefined
+  ) {
+    throw new Error(
+      'APPLE_ALLOWED_AUDIENCES is required when Apple login is enabled.',
+    );
+  }
+
   // 활성 provider의 기본 검증 설정은 production에서 반드시 존재해야 합니다.
   validateEnabledProviderConfig(nodeEnv, authGoogleEnabled, [
     ['GOOGLE_ALLOWED_AUDIENCES', googleAllowedAudiences],
@@ -169,9 +208,6 @@ export function validateAppEnv(config: RawEnv): AppEnv {
       optionalString(config.GOOGLE_OAUTH_REDIRECT_URIS),
     ],
   ]);
-  validateEnabledProviderConfig(nodeEnv, authAppleEnabled, [
-    ['APPLE_ALLOWED_AUDIENCES', optionalString(config.APPLE_ALLOWED_AUDIENCES)],
-  ]);
   validateOptionalProviderConfig(nodeEnv, authAppleEnabled, [
     ['APPLE_SERVICE_ID', optionalString(config.APPLE_SERVICE_ID)],
     ['APPLE_TEAM_ID', optionalString(config.APPLE_TEAM_ID)],
@@ -184,6 +220,10 @@ export function validateAppEnv(config: RawEnv): AppEnv {
   ]);
   validateEnabledProviderConfig(nodeEnv, authKakaoEnabled, [
     ['KAKAO_REDIRECT_URIS', optionalString(config.KAKAO_REDIRECT_URIS)],
+  ]);
+  // 클라이언트가 보낸 Kakao accessToken의 발급 앱(app_id) 검증에 사용합니다.
+  validateEnabledProviderConfig(nodeEnv, authKakaoEnabled, [
+    ['KAKAO_APP_ID', optionalString(config.KAKAO_APP_ID)],
   ]);
   validateEnabledProviderConfig(nodeEnv, authNaverEnabled, [
     ['NAVER_CLIENT_ID', optionalString(config.NAVER_CLIENT_ID)],
@@ -237,7 +277,7 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     DB_POOL_MAX: dbPoolMax,
     DB_CONNECT_TIMEOUT_MS: dbConnectTimeoutMs,
     JWT_SECRET: jwtSecret,
-    JWT_EXPIRES_IN: optionalString(config.JWT_EXPIRES_IN) ?? '1h',
+    JWT_EXPIRES_IN: jwtExpiresIn,
     THROTTLE_TTL: parseInteger(config.THROTTLE_TTL, 'THROTTLE_TTL', 60, {
       min: 1,
     }),
@@ -245,6 +285,8 @@ export function validateAppEnv(config: RawEnv): AppEnv {
       min: 1,
     }),
     CORS_ORIGIN: corsOrigin,
+    CORS_ORIGINS: corsOrigins,
+    TRUST_PROXY: trustProxy,
     AUTH_GOOGLE_ENABLED: authGoogleEnabled,
     AUTH_APPLE_ENABLED: authAppleEnabled,
     AUTH_KAKAO_ENABLED: authKakaoEnabled,
@@ -266,6 +308,7 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     APPLE_KEY_ID: optionalString(config.APPLE_KEY_ID),
     APPLE_PRIVATE_KEY: optionalString(config.APPLE_PRIVATE_KEY),
     APPLE_REDIRECT_URIS: optionalString(config.APPLE_REDIRECT_URIS),
+    KAKAO_APP_ID: optionalString(config.KAKAO_APP_ID),
     KAKAO_REST_API_KEY: optionalString(config.KAKAO_REST_API_KEY),
     KAKAO_CLIENT_SECRET: optionalString(config.KAKAO_CLIENT_SECRET),
     KAKAO_REDIRECT_URIS: optionalString(config.KAKAO_REDIRECT_URIS),
@@ -412,7 +455,42 @@ function parseInteger(
   return numberValue;
 }
 
+function parseCorsOrigins(value: string | undefined): string[] {
+  if (value === undefined) {
+    return [];
+  }
+  const origins = value
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  // credentials: true와 함께 '*'를 쓰면 모든 사이트가 인증된 요청을 보낼 수 있으므로 거부합니다.
+  if (origins.includes('*')) {
+    throw new Error(
+      'CORS_ORIGIN must list explicit origins; "*" is not allowed.',
+    );
+  }
+  return origins;
+}
+
+function parseTrustProxy(value: unknown): TrustProxySetting {
+  const parsed = optionalString(value);
+  if (parsed === undefined || parsed === 'false') {
+    return false;
+  }
+  if (parsed === 'true') {
+    return true;
+  }
+  if (/^\d+$/.test(parsed)) {
+    return Number(parsed);
+  }
+  return parsed;
+}
+
+const PLACEHOLDER_SECRET_MARKERS = ['change-this', 'your-', 'replace-with'];
+
 function isPlaceholderSecret(value: string): boolean {
   const normalized = value.toLowerCase();
-  return normalized.includes('change-this') || normalized.includes('your-');
+  return PLACEHOLDER_SECRET_MARKERS.some((marker) =>
+    normalized.includes(marker),
+  );
 }

@@ -1,7 +1,7 @@
 import { validateAppEnv } from './app-env';
 
 const baseEnv = {
-  JWT_SECRET: 'test-secret-with-enough-length',
+  JWT_SECRET: 'test-secret-with-enough-length-for-hs256',
   GOOGLE_ALLOWED_AUDIENCES: 'web-client.apps.googleusercontent.com',
   DB_USERNAME: 'test_user',
   DB_PASSWORD: 'test_password',
@@ -239,5 +239,104 @@ describe('validateAppEnv', () => {
         DB_SSL: 'enabled',
       }),
     ).toThrow('DB_SSL must be true or false.');
+  });
+
+  describe('production JWT_SECRET', () => {
+    const productionEnv = {
+      ...baseEnv,
+      NODE_ENV: 'production',
+      CORS_ORIGIN: 'https://example.com',
+    };
+
+    it('rejects placeholder secrets from the example files', () => {
+      expect(() =>
+        validateAppEnv({
+          ...productionEnv,
+          JWT_SECRET: 'replace-with-a-strong-production-secret',
+        }),
+      ).toThrow('JWT_SECRET must be a strong production secret.');
+    });
+
+    it('rejects secrets shorter than 32 characters', () => {
+      expect(() =>
+        validateAppEnv({ ...productionEnv, JWT_SECRET: 'a'.repeat(31) }),
+      ).toThrow('JWT_SECRET must be at least 32 characters in production.');
+    });
+
+    it('accepts a 32+ character secret', () => {
+      expect(
+        validateAppEnv({ ...productionEnv, JWT_SECRET: 'a'.repeat(32) })
+          .JWT_SECRET,
+      ).toHaveLength(32);
+    });
+
+    it('does not enforce the length rule outside production', () => {
+      expect(
+        validateAppEnv({ ...baseEnv, JWT_SECRET: 'short' }).JWT_SECRET,
+      ).toBe('short');
+    });
+  });
+
+  describe('CORS_ORIGIN', () => {
+    it('parses a comma-separated origin list', () => {
+      expect(
+        validateAppEnv({
+          ...baseEnv,
+          CORS_ORIGIN: 'https://a.example.com, https://b.example.com',
+        }).CORS_ORIGINS,
+      ).toEqual(['https://a.example.com', 'https://b.example.com']);
+    });
+
+    it('returns an empty list when unset', () => {
+      expect(validateAppEnv(baseEnv).CORS_ORIGINS).toEqual([]);
+    });
+
+    it('rejects a wildcard origin', () => {
+      expect(() => validateAppEnv({ ...baseEnv, CORS_ORIGIN: '*' })).toThrow(
+        'CORS_ORIGIN must list explicit origins; "*" is not allowed.',
+      );
+    });
+  });
+
+  describe('TRUST_PROXY', () => {
+    it.each([
+      [undefined, false],
+      ['false', false],
+      ['true', true],
+      ['1', 1],
+      ['loopback', 'loopback'],
+    ])('parses %p as %p', (value, expected) => {
+      expect(
+        validateAppEnv({ ...baseEnv, TRUST_PROXY: value }).TRUST_PROXY,
+      ).toBe(expected);
+    });
+  });
+
+  it('requires APPLE_ALLOWED_AUDIENCES whenever Apple login is enabled', () => {
+    expect(() =>
+      validateAppEnv({ ...baseEnv, AUTH_APPLE_ENABLED: 'true' }),
+    ).toThrow(
+      'APPLE_ALLOWED_AUDIENCES is required when Apple login is enabled.',
+    );
+  });
+
+  it('requires KAKAO_APP_ID when Kakao is enabled in production', () => {
+    expect(() =>
+      validateAppEnv({
+        ...baseEnv,
+        NODE_ENV: 'production',
+        CORS_ORIGIN: 'https://example.com',
+        KAKAO_REST_API_KEY: 'kakao-rest-key',
+        KAKAO_REDIRECT_URIS: 'https://example.com/auth/kakao/callback',
+      }),
+    ).toThrow('Enabled provider configuration is missing: KAKAO_APP_ID.');
+  });
+
+  it('rejects JWT_EXPIRES_IN values the session issuer cannot interpret', () => {
+    expect(() =>
+      validateAppEnv({ ...baseEnv, JWT_EXPIRES_IN: '7 days' }),
+    ).toThrow(
+      'JWT_EXPIRES_IN must be a positive duration such as 3600, 30m, 1h or 7d.',
+    );
   });
 });

@@ -3,32 +3,9 @@
 
 const { execFileSync } = require('node:child_process');
 
-const ALLOWED_ENV_KEYS = Object.freeze([
-  'PORT',
-  'NODE_ENV',
-  'DB_HOST',
-  'DB_PORT',
-  'DB_USERNAME',
-  'DB_PASSWORD',
-  'DB_DATABASE',
-  'DB_SSL',
-  'DB_SSL_REJECT_UNAUTHORIZED',
-  'DB_SSL_CA',
-  'DB_POOL_MIN',
-  'DB_POOL_MAX',
-  'DB_CONNECT_TIMEOUT_MS',
-  'DB_SYNCHRONIZE',
-  'JWT_SECRET',
-  'JWT_EXPIRES_IN',
-  'THROTTLE_TTL',
-  'THROTTLE_LIMIT',
-  'CORS_ORIGIN',
-  'GOOGLE_ALLOWED_AUDIENCES',
-  'GOOGLE_ALLOWED_ISSUERS',
-  'GOOGLE_OAUTH_CLIENT_ID',
-  'GOOGLE_OAUTH_CLIENT_SECRET',
-  'GOOGLE_OAUTH_REDIRECT_URIS',
-]);
+const { RUNTIME_ENV_KEYS } = require('./runtime-env-keys.cjs');
+
+const ALLOWED_ENV_KEYS = RUNTIME_ENV_KEYS;
 
 const RDS_MANAGED_SECRET_KEY_MAP = Object.freeze({
   host: 'DB_HOST',
