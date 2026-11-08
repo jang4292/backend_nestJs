@@ -1,6 +1,6 @@
 # EC2 + MariaDB 배포 가이드
 
-> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 NestJS 프로세스와 MariaDB가 같은 EC2 호스트에 있는 구성을 기준으로 합니다.
 
@@ -25,6 +25,7 @@ NestJS 프로세스와 MariaDB가 같은 EC2 호스트에 있는 구성을 기�
 - [ ] **`npm run env:check:prod`가 `OK`입니다.**
   - 이 명령은 서버·DB에 접속하지 않고 기동 시와 같은 검증만 실행합니다.
   - 다음 항목이 틀리면 `FAIL`로 알려 줍니다: `NODE_ENV=production`, `JWT_SECRET` 32자 이상·placeholder 금지, `CORS_ORIGIN`(origin 목록 또는 `none`), `DB_SYNCHRONIZE=false`, 활성 SNS provider의 필수 키
+- [ ] **`npm run db:check:prod`가 `OK`입니다.** 읽기 전용으로 DB 접속, 계정 권한, 적용될(pending) migration 목록을 보여 줍니다. pending이 있으면 아래 백업을 반드시 먼저 합니다.
 - [ ] SNS 로그인은 전부 `false`입니다(로컬 로그인만). 켜려면 [재활성화 체크리스트](../auth/sns-reenable-checklist.kr.md)를 먼저 완료합니다.
 - [ ] `TRUST_PROXY=loopback`(같은 호스트의 nginx 또는 proxy 없음). 외부 ALB면 hop 수로 바꿉니다.
 - [ ] DB는 `127.0.0.1:3306`이며 3306이 외부에 열려 있지 않습니다(`sudo ss -ltnp | grep 3306`).
@@ -38,13 +39,17 @@ npm ci
 npm run build
 
 npm run env:check:prod           # FAIL이면 중단
+npm run db:check:prod            # 읽기 전용: 접속·권한·pending migration
 npm run migration:show:prod      # dist 기반, .env.production 사용
 npm run migration:run:prod       # 실패하면 여기서 중단하고 재시작하지 않습니다
 
 npm run pm2:reload
 curl -fsS http://127.0.0.1:${PORT:-3000}/health   # DB 장애 시 503 → curl 실패
-pm2 logs backend-nestjs --lines 50
+pm2 logs backend-nestjs --lines 50 | grep -i migration   # pending 경고(Migrations 로그)가 없어야 합니다
 ```
+
+- migration은 앱 기동 시 자동으로 실행되지 않습니다. 배포 단계의 명령으로만 적용하며, 이유는 [DB·스키마 관리 학습 가이드 4장](../learning/database-schema-management.kr.md#4-적용-방식-비교-직접-sql--명령--기동-시-자동)에 있습니다.
+- 운영에서는 `db:ensure`(DB 자동 생성)가 거부됩니다. 운영 DB와 계정은 [환경별 DB 가이드 4.1](database-environments.kr.md#41-최초-1회-운영-db와-계정-관리자)의 관리자 SQL로 1회 만듭니다.
 
 - PM2 fork 모드의 reload는 새 프로세스가 기동에 실패해도 이전 프로세스를 유지하지 않습니다. 그래서 `env:check:prod`를 먼저 실행합니다.
 - `kill_timeout`은 10초입니다. 이 시간 안에 앱이 graceful shutdown(`enableShutdownHooks`)으로 진행 중인 요청과 DB 풀을 정리합니다.
@@ -55,7 +60,7 @@ pm2 logs backend-nestjs --lines 50
 ## 4. systemd 배포 절차 (대안)
 
 1. `deploy/backend-nestjs.service.example`을 `/etc/systemd/system/backend-nestjs.service`로 복사하고, 배포 경로(`WorkingDirectory`)와 서비스 계정을 맞춥니다.
-2. `WorkingDirectory`에 `.env.production`을 두고(chmod 600, 서비스 계정 소유), `npm run env:check:prod`와 `npm run migration:run:prod`를 실행합니다.
+2. `WorkingDirectory`에 `.env.production`을 두고(chmod 600, 서비스 계정 소유), `npm run env:check:prod` → `npm run db:check:prod` → `npm run migration:run:prod`를 실행합니다.
 3. 서비스를 기동합니다.
    ```bash
    sudo systemctl daemon-reload
@@ -85,6 +90,7 @@ SELECT id, username, role FROM users WHERE role = 'admin';
 - 애플리케이션: 이전 커밋으로 `npm ci && npm run build && npm run pm2:reload`
 - 최근 migration: `npm run migration:revert:prod`(`AddRoleToUsers`는 컬럼만 삭제)
 - `ArchiveLegacyMusicSchema`·`RepairLegacyMariaDbSchema`는 down이 없습니다. 문제가 생기면 배포 전 백업으로 복원합니다.
+- 최신 migration의 down/up은 CI `database` job이 매 PR마다 MariaDB 10.11에서 검증합니다(`migration:revert:test` → `migration:run:test`).
 
 ## 7. DB TLS (원격 DB 또는 RDS로 옮길 때)
 

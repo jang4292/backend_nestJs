@@ -1,36 +1,42 @@
 # API Usage Examples
 
-> Last updated: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`.
+> Last updated: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`.
 > The complete route and permission table is in
 > [docs/product/api-spec.kr.md](docs/product/api-spec.kr.md).
 
 ## Prerequisites
 
-1. MariaDB is reachable at `DB_HOST:DB_PORT` and migrations are applied
-   (`npm run migration:show`, `npm run migration:run`).
-2. Copy and edit the environment file:
+1. Create `.env` from the template and type in the DB connection values,
+   including `DB_PASSWORD` (the file is git-ignored):
    ```bash
-   cp .env.example .env
+   cp .env.example .env && chmod 600 .env
    ```
    ```env
    NODE_ENV=development
-   DB_TYPE=mariadb
-   DB_HOST=127.0.0.1
-   DB_PORT=3306
-   DB_USERNAME=your-db-user
-   DB_PASSWORD=your-password
-   DB_DATABASE=nestjs_db
-   DB_SYNCHRONIZE=false
-   DB_SSL=false
+   DB_HOST=<dev-db-host>
+   DB_PORT=<port>
+   DB_USERNAME=<dev-user>
+   DB_PASSWORD=<type it here>
+   DB_DATABASE=app_db
    JWT_SECRET=a-local-secret-of-at-least-32-characters
    CORS_ORIGIN=http://localhost:3001
-   GOOGLE_ALLOWED_AUDIENCES=your-google-client-id.apps.googleusercontent.com
+   # SNS providers stay disabled (AUTH_*_ENABLED=false); their routes return 503.
+   ```
+2. Check the connection, then create the database and tables:
+   ```bash
+   npm ci
+   npm run db:check   # read-only: connection, privileges, pending migrations
+   npm run db:setup   # creates app_db if missing, then applies migrations
    ```
 3. Start the server:
    ```bash
-   npm ci
    npm run start:dev
    ```
+4. For admin-only examples, promote a user after registering it:
+   `UPDATE users SET role = 'admin' WHERE username = '<username>';`
+
+See [docs/deployment/database-environments.kr.md](docs/deployment/database-environments.kr.md)
+for Test and Prod.
 
 Access levels used below:
 

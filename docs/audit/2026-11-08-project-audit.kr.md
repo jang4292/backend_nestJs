@@ -1,8 +1,9 @@
 # 프로젝트 전수 감사 리포트 (2026-11-08)
 
-> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 > 이전 감사: [2026-09-02 감사](2026-09-02-project-audit.kr.md) (이력 문서)
 > 후속 조치(같은 날): 환경별 DB·env 파일 정리와 SNS 로그인 전면 비활성화 — [9장](#9-후속-조치-환경별-db-설정과-sns-비활성화)
+> 후속 조치(2026-11-09): 새 개발 DB 연결, DB 생성·점검 도구, MariaDB CI 검증, migration 결함 수정 — [10장](#10-후속-조치-개발-db-연결과-스키마-관리-체계)
 
 ## 0. 요약
 
@@ -24,7 +25,7 @@
 | ESLint | 오류 17건(파일 10개) | **0건** |
 | Prettier | 확인 스크립트 없음 | `format:check` 통과 |
 | `npm audit --omit=dev` | 11건 (critical 1, high 4, moderate 6) | **5건 (high 2, moderate 3)** — 남은 건은 모두 메이저 업그레이드가 필요함 |
-| CI | 없음 | GitHub Actions(lint, format, typecheck, test, build, audit) |
+| CI | 없음 | GitHub Actions: `verify`(lint, format, typecheck, test, build, audit) + `database`(MariaDB 10.11에서 migration 전체 체인, revert/재적용, e2e) |
 
 ### 이번에 수정한 주요 결함
 
@@ -37,6 +38,7 @@
 | 다른 앱에서 발급된 Kakao 토큰 | 이 서비스 로그인에 그대로 사용 가능 | 발급 앱 검증 후 거부 |
 | reverse proxy 뒤의 요청 제한 | 모든 사용자가 proxy IP 하나의 제한을 공유 | `TRUST_PROXY` 설정으로 실제 클라이언트 IP 기준 집계 |
 | 로컬 계정과 같은 email의 SNS 첫 로그인 | `users.email` UNIQUE 위반으로 500 | 정상 로그인 |
+| 빈 MariaDB에 migration 적용(10장) | `AddUniqueEmailToUsers`에서 `MySql does not support unique constraints`로 실패. 새 DB를 만들 수 없음 | 전체 체인 통과(CI가 매 PR 검증) |
 
 ## 1. 범위와 방법
 
@@ -137,6 +139,8 @@
 | DB-9 | Low | 검색이 `LOWER(...) LIKE '%…%'`라 인덱스를 못 쓰고 `%`/`_`를 이스케이프하지 않음 | 📌 P2 |
 | DB-10 | Low | 공개 플레이리스트 목록이 개수를 세려고 모든 항목을 로드함 | 📌 P2 |
 | DB-11 | Low | `DB_POOL_MIN`을 검증만 하고 사용하지 않음(mysql2는 min 개념이 없음) | 📌 P2 정리 |
+| DB-12 | Medium | entity 메타데이터와 migration 결과가 다름(drift): FK·인덱스 이름, `datetime` vs `datetime(6)`, entity에 없는 인덱스, collation. `migration:generate` 초안에 의도하지 않은 변경이 섞임 | 📌 P1 entity에 이름·정밀도 선언(DB 변경 없음) 권장. 그때까지 CI drift 단계는 보고만 함 |
+| DB-13 | **High** | `1761-AddUniqueEmailToUsers`, `1762-CreateSocialAccounts`가 TypeORM MySQL 드라이버가 지원하지 않는 `create/dropUniqueConstraint`를 사용. 빈 MariaDB에서 체인이 실패(기존 DB는 이력만 기록되어 드러나지 않았음) | ✅ 같은 이름의 unique index로 수정. 이미 기록된 DB는 영향 없음 |
 
 ### 3.5 운영 (설정·배포·관측)
 
@@ -160,7 +164,7 @@
 | --- | --- | --- | --- |
 | T-1 | Medium | users use-case, social linker, 비밀번호 해셔 spec 0개 | ✅ 추가 |
 | T-2 | Medium | legacy use-case 15개 spec 없음, catalog publish/reorder 미검증 | 📌 P1 |
-| T-3 | Medium | e2e가 `/`와 `/health`만 검사하고, DB가 필요하며 CI에 없음 | 📌 P1 MariaDB 서비스 컨테이너 기반 e2e |
+| T-3 | Medium | e2e가 `/`와 `/health`만 검사하고, DB가 필요하며 CI에 없음 | 🟡 CI `database` job에서 MariaDB 10.11로 e2e 실행(10장). 시나리오 확장은 📌 P1 |
 | T-4 | Medium | SNS 인프라 어댑터 spec 없음(이번에 Kakao 토큰 검증 spec만 추가) | 📌 P1 |
 | T-5 | Low | spec 타입 오류 4건, lint 오류 17건 | ✅ |
 
@@ -236,12 +240,13 @@
    - `JWT_SECRET`이 32자 이상인지 확인하고, `NODE_ENV=production`과 `CORS_ORIGIN`을 설정합니다.
    - reverse proxy 뒤라면 `TRUST_PROXY=1`을 설정합니다.
    - Kakao를 사용하면 `KAKAO_APP_ID`, Apple을 사용하면 `APPLE_ALLOWED_AUDIENCES`를 설정합니다.
-3. 빌드하고 마이그레이션을 적용합니다.
+3. 빌드하고 마이그레이션을 적용합니다(`.env.production` 기준, [EC2 배포 가이드](../deployment/mariadb-systemd.kr.md)).
    ```bash
    git pull --ff-only && npm ci && npm run build
-   eval "$(AWS_SECRET_ID=<secret-id> AWS_REGION=ap-northeast-2 npm run -s secrets:export)"
-   npm run migration:show     # 1765000000000-AddRoleToUsers가 pending인지 확인
-   npm run migration:run
+   npm run env:check:prod          # 설정 검증(DB 접속 없음)
+   npm run db:check:prod           # 읽기 전용: 접속·권한·pending 목록
+   npm run migration:show:prod     # 1765000000000-AddRoleToUsers가 pending인지 확인
+   npm run migration:run:prod
    ```
 4. admin을 지정합니다: `UPDATE users SET role = 'admin' WHERE username = '<admin-username>';`
 5. `npm run pm2:reload`로 재기동한 뒤 `curl -fsS http://127.0.0.1:${PORT:-3000}/health`가 200인지 확인합니다.
@@ -253,7 +258,7 @@
 ### 5.4 롤백
 
 - 애플리케이션은 이전 빌드로 `pm2:reload`합니다.
-- `AddRoleToUsers`는 `npm run migration:revert`로 되돌릴 수 있습니다.
+- `AddRoleToUsers`는 `npm run migration:revert:prod`로 되돌릴 수 있습니다(CI가 down/up을 매 PR 검증).
 - 그 이전 migration 중 `ArchiveLegacyMusicSchema`와 `RepairLegacyMariaDbSchema`는 down이 없으므로, 문제가 생기면 **1번에서 만든 백업을 복원**합니다.
 
 ## 6. 로드맵
@@ -264,7 +269,7 @@
 
 - [x] **Naver 토큰 치환 방어(SEC-3):** accessToken 로그인을 기본 차단하고 code flow만 허용했습니다. SNS 전체도 현재 비활성입니다.
 - [ ] 운영 서버에 `.env.production`을 작성하고 `npm run env:check:prod`가 OK인지 확인합니다([환경별 DB 가이드](../deployment/database-environments.kr.md)).
-- [ ] 개발 서버에 `app_db_test`와 테스트 계정을 만들고, 개발 DB에는 `npm run migration:run`으로 `AddRoleToUsers`를 적용합니다.
+- [ ] 새 개발 서버 연결: `.env`·`.env.test.local`에 비밀번호를 입력하고 `npm run db:check` → `npm run db:setup` → `npm run db:setup:test` → `npm run test:e2e`를 실행합니다([10장](#10-후속-조치-개발-db-연결과-스키마-관리-체계)).
 - [ ] main 운영 DB의 PostgreSQL 데이터 이전 필요 여부를 확인합니다(브레이킹 변경 1).
 - [ ] 클라이언트에 로그인 body, 오류 envelope, `currentPassword` 변경을 공지하고 함께 배포합니다(브레이킹 변경 2–4).
 - [ ] 운영 `JWT_SECRET` 길이를 점검하고, proxy 구성에 맞게 `TRUST_PROXY`를 설정합니다.
@@ -290,7 +295,8 @@
 - 의존성: NestJS 12·TypeORM 1.x 업그레이드 검토로 남은 audit 5건 해소(OPS-7)
 - 마이그레이션: migration 실패 정책과 백업 자동화
 - 테스트
-  - MariaDB 서비스 컨테이너 기반 e2e를 CI에 추가: provider disabled, DB down, UNIQUE/FK, 트랜잭션 rollback, 오류 envelope(T-3)
+  - e2e 시나리오 확장(CI `database` job에서 실행): provider disabled, DB down, UNIQUE/FK, 트랜잭션 rollback, 오류 envelope(T-3)
+  - entity·migration drift 해소 후 CI drift 단계를 필수로 전환(DB-12)
   - legacy use-case와 catalog publish/reorder spec(T-2)
   - SNS 어댑터 spec(T-4)
 
@@ -340,8 +346,9 @@ npm audit --omit=dev  → 5 vulnerabilities (3 moderate, 2 high)
 
 ### 7.3 검증하지 못한 항목
 
-- **실제 MariaDB 대상 migration 왕복**(`AddRoleToUsers` run/revert): 로컬에 MariaDB가 없고, 공유 개발 DB에 쓰기를 하지 않기 위해 실행하지 않았습니다. 배포 체크리스트 3번의 `migration:show`로 확인해야 합니다.
-- **e2e**(`npm run test:e2e`): `.env.test.local`과 테스트 DB가 없어 실행하지 않았습니다.
+- ~~실제 MariaDB 대상 migration 왕복~~ → 2026-11-09 CI `database` job에서 검증(빈 DB 전체 체인, `AddRoleToUsers` revert/재적용). 이 과정에서 DB-13을 발견해 수정했습니다.
+- ~~e2e~~ → 같은 job에서 MariaDB 10.11로 실행해 통과했습니다.
+- **사용자 개발 서버 실접속:** 비밀번호를 입력하기 전이라 실행하지 못했습니다. 로그인 없이 handshake만 확인했습니다(MariaDB 10.11.11, TLS 미지원). [10장](#10-후속-조치-개발-db-연결과-스키마-관리-체계)의 명령으로 확인해야 합니다.
 - **SNS provider 실연동**(Kakao `access_token_info`의 `app_id` 응답 등): 외부 계정이 필요합니다. staging에서 확인해야 합니다.
 
 ## 8. 커밋·PR 컨벤션 권고
@@ -394,3 +401,64 @@ npm audit --omit=dev  → 5 vulnerabilities (3 moderate, 2 high)
 - placeholder `JWT_SECRET`은 기동 즉시 실패
 - `migration:show:prod`는 `dist`의 `.js` migration 9개를 인식
 - 개발 DB `migration:show`(읽기 전용): 8개 적용, `AddRoleToUsers`만 대기
+
+## 10. 후속 조치: 개발 DB 연결과 스키마 관리 체계
+
+2026-11-09, 사용자 요청으로 추가한 내용입니다(PR #10에 커밋 추가).
+
+**요청**
+
+- 새 외부 개발 DB 서버에 Dev와 Test를 연결하고, 비밀번호는 직접 입력합니다.
+- DB나 테이블이 없으면 생성합니다.
+- 실무에서는 생성, 적용, 검증을 어떻게 하는지 정리합니다.
+
+**결정**
+
+| 항목 | 결정 |
+| --- | --- |
+| 서버 용도 | Dev(`app_db`)와 Test(`app_db_test`) 모두 새 서버를 사용하고, 같은 개발 계정을 씁니다 |
+| 생성 시점 | 명령으로 실행합니다(`db:setup`). 앱 기동 시 자동 실행은 하지 않습니다 |
+| 비밀번호 | `.env`와 `.env.test.local`에 직접 입력합니다(Git 미추적, `chmod 600`) |
+
+이유는 [DB·스키마 관리 학습 가이드](../learning/database-schema-management.kr.md) 4장과 10장에 있습니다.
+
+**추가한 것**
+
+| 구분 | 내용 |
+| --- | --- |
+| 명령 | `db:check`(읽기 전용: 접속, 계정, TLS, DB, 테이블 수, pending, 권한)<br>`db:setup`(DB가 없으면 utf8mb4로 생성한 뒤 migration 적용)<br>`db:check:test`, `db:setup:test`, `db:reset:test`<br>`migration:revert:test`, `migration:check:test`(drift)<br>`db:check:prod`(dist) |
+| 안전장치 | 운영에서는 `db:ensure`를 거부합니다(관리자 SQL로 생성)<br>`db:reset`은 test의 `*_test` DB에서만 동작합니다<br>허용되지 않는 명령은 서버에 연결하기 전에 거부합니다<br>DB 이름 문자를 검증하고, 비밀번호와 `SHOW GRANTS` 해시는 출력하지 않습니다 |
+| 오류 안내 | 1045, 1130, 1129, 1044/1227, 1049, TLS 미지원, ECONNREFUSED/ETIMEDOUT/ENOTFOUND를 조치 문장으로 바꿔 줍니다 |
+| 기동 시 점검 | `MigrationStatusService`가 pending migration을 경고합니다(운영은 error 등급). 기동은 막지 않고 DB에 쓰지 않습니다 |
+| migration 경로 | 실행 중인 파일 기준으로 찾습니다(cwd와 무관하고 e2e에서도 인식) |
+| CI | `database` job(MariaDB 10.11)<br>빈 DB 전체 체인 → pending 없음(`--strict`) → 최신 revert/재적용 → drift(보고만) → e2e |
+
+**CI가 발견한 문제**
+
+- **DB-13(수정):** 빈 MariaDB에서 `1761`이 실패했고, `1762`도 같은 문제가 있었습니다. 새 개발 서버에 그대로 `db:setup`을 했다면 실패했을 결함입니다.
+- **DB-12(보고):** entity와 migration 결과가 다릅니다. 해결 방향을 결정해야 합니다(P1).
+
+**로컬 파일(사용자 PC, Git 미추적)**
+
+- `.env`
+  - `DB_HOST`, `DB_PORT`, `DB_USERNAME`을 새 서버 값으로 바꿨습니다.
+  - `DB_PASSWORD`는 비워 두었습니다.
+  - 원본은 `.env.bak.2026-11-08`에 있습니다.
+- `.env.test.local`(신규): `app_db_test`, 무작위 `JWT_SECRET`, `DB_PASSWORD`는 비워 두었습니다.
+- 위 파일과 백업은 모두 `chmod 600`입니다.
+
+**검증**
+
+- 로컬: lint, format, typecheck, unit tests(49 suites / 362 tests), build 통과
+- 비밀번호 없이 실행: `db:check`/`db:setup`/`db:check:test`가 `DB_PASSWORD is required.`로 중단(의도한 결과)
+- 닫힌 포트: `db:check:prod`가 `Connection refused` 안내 출력
+- 거부 동작: 운영 `db:ensure`, 개발 `db:reset`이 연결 전에 거부됨
+- CI(PR #10): `verify`와 `database` job 모두 통과
+
+**사용자가 할 일**
+
+1. `.env`와 `.env.test.local`의 `DB_PASSWORD=`에 비밀번호를 입력합니다.
+2. `npm run db:check`로 접속, 권한, TLS를 확인합니다.
+3. `npm run db:setup`으로 `app_db`를 만들고 테이블을 적용합니다.
+4. `npm run db:setup:test` → `npm run test:e2e`를 실행합니다.
+5. 개발 서버의 DB 포트를 개발자 IP로 제한하거나, SSH 터널을 사용합니다(TLS 미지원).

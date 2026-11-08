@@ -1,225 +1,225 @@
 # NestJS Backend API
 
-> Last updated: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11` ·
-> Documentation index: [docs/README.md](docs/README.md)
+> Last updated: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11` ·
+> Documentation index (Korean): [docs/README.md](docs/README.md)
 
-A NestJS backend for local and social authentication, user profiles, and music
-catalog and playlist APIs. The project uses MariaDB with TypeORM, strict
-environment validation, global request validation, and security-focused
-runtime defaults.
+A NestJS 11 backend that provides local JWT authentication, user profiles, and
+music catalog and playlist APIs. It runs on MariaDB through TypeORM. Settings
+are validated at startup, and the schema changes only through versioned
+migrations.
 
 ## Features
 
-- Local user registration and JWT login
-- Social login for Google, Apple, Facebook, Kakao, and Naver
-- Google and Apple ID-token verification plus authorization-code exchange flows
-- Authorization-code exchange and access-token login flows for Facebook, Kakao,
-  and Naver
-- Protected user profile read/update endpoints (password change requires `currentPassword`)
-- Music catalog (tracks, audio assets, playlists) and legacy music APIs
-- Minimal RBAC: music write APIs are admin-only (`users.role`)
-- MariaDB + TypeORM integration
-- Environment validation for unsafe production settings
-- Helmet, CORS allow-listing, throttling, and DTO validation
-- Unit and integration coverage for auth, config, users, and music; GitHub Actions CI
+- Local registration and JWT login (HS256). A password change requires
+  `currentPassword`.
+- Minimal RBAC: music write APIs are admin-only (`users.role`).
+- Music catalog (tracks, audio assets, playlists) and legacy music APIs.
+- Social login modules for Google, Apple, Kakao, Naver and Facebook.
+  **They are currently all disabled; only local login is used.** Each provider
+  is opt-in, see [SNS login](#sns-login).
+- Helmet, an explicit CORS allow-list, throttling, DTO validation and a single
+  error envelope.
+- Per-environment env files, read-only DB checks, and migrations verified on
+  MariaDB in CI.
 
-## Installation
+## Quick start (development)
 
-Use Node.js 24 (`.nvmrc`; `engines` requires >= 22.13).
+Requires Node.js 24 (`.nvmrc`; `engines` requires >= 22.13).
 
 ```bash
 npm ci
+cp .env.example .env && chmod 600 .env
+# edit .env: DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD
+npm run db:check     # read-only: connection, account, TLS, database, pending migrations
+npm run db:setup     # create the database if missing, then apply migrations (tables)
+npm run start:dev    # http://localhost:3000, Swagger at /api-docs
 ```
 
-## Configuration
+- Type the password into the `DB_PASSWORD=` line of `.env` yourself. The file
+  is ignored by git; do not put the password in chats, docs or commits.
+- `db:setup` is safe to run again: it never recreates an existing database and
+  never re-runs an applied migration.
+- The dev MariaDB server has no TLS (`db:check` prints `tls: off`). Restrict its
+  port to developer IPs, or connect through an SSH tunnel.
 
-Copy the template for your environment and fill in the values (see
-[Environment files](#environment-files) below):
+## Environments
 
-```bash
-cp .env.example .env                        # Dev (external dev DB)
-cp .env.test.example .env.test.local        # Test (app_db_test)
-cp .env.production.example .env.production  # Prod, on the EC2 server only
-```
+One env file per environment, chosen by `NODE_ENV`
+(see [`src/config/env-files.ts`](src/config/env-files.ts)). The app, the
+migration CLI, the `db:*` tools and e2e all use the same rule.
 
-Always required: `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`, `JWT_SECRET`.
+- Exported shell variables override file values.
+- `ENV_FILE=<path>` replaces the file choice.
 
-`NODE_ENV=production` also requires:
-
-- `CORS_ORIGIN`: origins, or `none` to disable CORS
-- a `JWT_SECRET` of at least 32 characters without placeholder text
-  (`replace-with`, `change-this`, `your-`)
-- `DB_SYNCHRONIZE=false`
-
-In every environment:
-
-- `JWT_EXPIRES_IN` must look like `3600`, `30m`, `1h` or `7d`.
-- `NODE_ENV=test` only accepts `*_test` databases.
-- SNS providers stay off unless `AUTH_<PROVIDER>_ENABLED=true`; an enabled
-  provider requires its own keys (for example `GOOGLE_ALLOWED_AUDIENCES`,
-  `APPLE_ALLOWED_AUDIENCES`, `KAKAO_APP_ID` in production).
-
-The dev MariaDB server has TLS disabled (`DB_SSL=false`). Restrict port 3306 to
-developer IPs, or use an SSH tunnel. The application supports `DB_TYPE=mariadb`
-only.
-
-## Running
-
-```bash
-npm run start
-npm run start:dev
-npm run start:prod
-```
-
-Apply the database schema before starting the application in a shared or
-production environment:
-
-```bash
-npm run migration:show
-npm run migration:run
-```
-
-### Environment files
-
-Each environment is configured by one env file, chosen by `NODE_ENV`
-(`src/config/env-files.ts`). The app, the migration CLI and e2e all use the same
-rule. Exported shell variables take precedence over file values, and
-`ENV_FILE=<path>` overrides the file choice.
-
-| Environment | `NODE_ENV` | File (ignored by git) | Template | Database |
+| Environment | `NODE_ENV` | File (git-ignored) | Template | Database |
 | --- | --- | --- | --- | --- |
 | Dev | `development` (default) | `.env` | `.env.example` | external dev server, `app_db` |
-| Test | `test` | `.env.test.local` (required) | `.env.test.example` | dev server, `*_test` only (e.g. `app_db_test`) |
+| Test | `test` | `.env.test.local` (required) | `.env.test.example` | dev server, `*_test` only (`app_db_test`) |
 | Prod | `production` | `.env.production` | `.env.production.example` | EC2 localhost MariaDB |
 
-| Task | Dev | Test | Prod (EC2, after `npm run build`) |
+Validation rules (startup, `env:check`, `db:*`):
+
+- **Always required:** `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`, `JWT_SECRET`.
+  `JWT_EXPIRES_IN` must look like `3600`, `30m`, `1h` or `7d`. `CORS_ORIGIN`
+  must not be `*`.
+- **`NODE_ENV=test`:** only accepts `*_test` databases.
+- **`NODE_ENV=production`** also requires:
+  - `CORS_ORIGIN`: an origin list, or `none` to disable CORS
+  - `JWT_SECRET`: at least 32 characters, with no placeholder text
+  - `DB_SYNCHRONIZE=false`
+- **New keys:** add them to `src/config/app-env.ts` and to
+  `scripts/runtime-env-keys.cjs`. A spec fails when the two lists drift.
+
+Full guide with account SQL and common errors:
+[docs/deployment/database-environments.kr.md](docs/deployment/database-environments.kr.md).
+
+## Scripts
+
+| Purpose | Dev | Test | Prod (on EC2, after `npm run build`) |
 | --- | --- | --- | --- |
-| Validate config (no DB connection) | `npm run env:check` | `npm run env:check:test` | `npm run env:check:prod` |
-| Migration status | `npm run migration:show` | `npm run migration:show:test` | `npm run migration:show:prod` |
-| Apply migrations | `npm run migration:run` | `npm run migration:run:test` | `npm run migration:run:prod` |
-| Run | `npm run start:dev` | `npm run test:e2e` | `npm run pm2:reload` |
+| Validate config, no DB connection (needs a build) | `env:check` | `env:check:test` | `env:check:prod` |
+| DB check, read-only | `db:check` | `db:check:test` | `db:check:prod` |
+| Create DB if missing + apply migrations | `db:setup` | `db:setup:test` | admin SQL once, then `migration:run:prod` |
+| Recreate the test DB and apply every migration | — | `db:reset:test` | — |
+| Migration status / apply / revert | `migration:show` / `migration:run` / `migration:revert` | `migration:show:test` / `migration:run:test` / `migration:revert:test` | `migration:show:prod` / `migration:run:prod` / `migration:revert:prod` |
+| Entity vs migration drift check | — | `migration:check:test` | — |
+| Run | `start:dev` | `test:e2e` | `pm2:reload` |
 
-- `env:check` requires `npm run build` first.
-- Prod migrations run from `dist` with plain `node`; ts-node is not needed on the server.
-- Full guide, including test/prod DB account SQL:
-  [docs/deployment/database-environments.kr.md](docs/deployment/database-environments.kr.md).
+- Other scripts:
+  - `build`, `start`, `start:prod`
+  - `lint` / `lint:check`, `format` / `format:check`, `typecheck`
+  - `test`, `test:cov`
+  - `migration:generate`, `secrets:export`
+- Each environment-specific script runs through
+  [`scripts/typeorm-env.cjs`](scripts/typeorm-env.cjs), which sets `NODE_ENV`
+  and works the same on macOS, Linux and Windows.
+- Prod commands run from `dist` with plain `node`, so the server does not need
+  ts-node.
+- `db:ensure` refuses to run in production, and `db:reset` only works on a
+  `*_test` database.
 
-SNS logins are opt-in and currently all disabled (`AUTH_<PROVIDER>_ENABLED=false`);
-only local login is used. Disabled providers need no settings and return 503.
-See [docs/auth/sns-reenable-checklist.kr.md](docs/auth/sns-reenable-checklist.kr.md)
-before enabling one.
+## Database and migrations
 
-## API Documentation
+- **Tables come only from migrations**
+  ([`src/database/migrations/`](src/database/migrations/)). Never use
+  `synchronize` or hand-written `CREATE TABLE`.
+- **The same migration files go through every environment in order:** CI
+  (empty DB) → Test → Dev → Prod.
+- **Migrations are an explicit deploy step.** The app does not run them on
+  startup. It logs a warning, or an error in production, when migrations are
+  pending.
+- **Database containers are created once per environment.** Dev and Test use
+  `db:setup`. Prod uses admin SQL, so the app account holds privileges on its
+  own database only.
+- **Back up before any production migration.** Some legacy migrations cannot
+  be reverted.
 
-Swagger is available at `http://localhost:3000/api-docs` in development and
-test environments. It is disabled in production. Complete curl examples are
-in [API_EXAMPLES.md](API_EXAMPLES.md).
+Why it works this way (manual SQL vs a command vs auto-run, verification
+layers, rollback):
+[docs/learning/database-schema-management.kr.md](docs/learning/database-schema-management.kr.md).
 
-`npm run test:e2e` boots `AppModule` and needs a reachable MariaDB database.
-Without local or remote MariaDB access, unit tests and build can still pass
-while e2e fails at DB connection time.
-
-## Production on EC2 (PM2)
+## Deploy (EC2 + PM2)
 
 ```bash
 git pull --ff-only
 npm ci
 npm run build
-npm run env:check:prod         # validates .env.production without touching the DB
+npm run env:check:prod       # validate .env.production without touching the DB
+npm run db:check:prod        # read-only: connection, privileges, pending migrations
+# back up the database when migrations are pending (mysqldump --single-transaction)
 npm run migration:run:prod
-npm run pm2:reload             # ecosystem.config.cjs pins cwd and NODE_ENV=production
-curl -fsS http://localhost:${PORT:-3000}/health   # 503 when the DB is down
+npm run pm2:reload           # ecosystem.config.cjs pins cwd and NODE_ENV=production
+curl -fsS http://127.0.0.1:${PORT:-3000}/health   # 503 when the DB is down
 ```
 
-After applying `1765000000000-AddRoleToUsers`, grant admin access manually:
-`UPDATE users SET role = 'admin' WHERE username = '<admin-username>';`
-See the [EC2 deployment guide](docs/deployment/mariadb-systemd.kr.md) for the
-full checklist and rollback notes.
+- **After `1765000000000-AddRoleToUsers`:** grant admin manually with
+  `UPDATE users SET role = 'admin' WHERE username = '<admin-username>';`.
+- **Optional AWS Secrets Manager:** run
+  `eval "$(AWS_SECRET_ID=<id> AWS_REGION=ap-northeast-2 npm run -s secrets:export)"`
+  first. Exported values override `.env.production`.
+- **Full checklist, rollback and TLS:**
+  [docs/deployment/mariadb-systemd.kr.md](docs/deployment/mariadb-systemd.kr.md).
 
-Optional: AWS Secrets Manager values can be exported into the shell before
-`migration:run:prod` and `pm2:reload`
-(`eval "$(AWS_SECRET_ID=<secret-id> AWS_REGION=ap-northeast-2 npm run -s secrets:export)"`).
-Exported values override `.env.production`. `scripts/export-secrets-env.cjs`
-and `ecosystem.config.cjs` share one key list, `scripts/runtime-env-keys.cjs`;
-add new variables there as well as in `src/config/app-env.ts` (a spec fails
-when they drift).
+## SNS login
 
-## E2E Database
+All providers are off: `AUTH_<PROVIDER>_ENABLED=false`, where `<PROVIDER>` is
+`GOOGLE`, `APPLE`, `KAKAO`, `NAVER` or `FACEBOOK`.
 
-E2E tests use a dedicated `*_test` database on the dev server (for example
-`app_db_test`); `NODE_ENV=test` refuses any other database name. The SQL for the
-test database and account is in
-[docs/deployment/database-environments.kr.md](docs/deployment/database-environments.kr.md).
+- A disabled provider needs no settings, and its routes return 503
+  `AUTH_<PROVIDER>_DISABLED`.
+- Naver access-token login stays blocked even when Naver is enabled
+  (`AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=false`).
 
-```bash
-cp .env.test.example .env.test.local
-npm run migration:run:test
-npm run test:e2e
-```
+Before enabling a provider, complete
+[docs/auth/sns-reenable-checklist.kr.md](docs/auth/sns-reenable-checklist.kr.md).
 
-## Troubleshooting Guide
+## API
 
-로컬 환경 파일, MariaDB 연결, TypeORM 메타데이터, Jest ESM 오류의 발생 및 수정 이력은
-[로컬 실행 오류 및 수정 이력](docs/learning/runtime-troubleshooting-history.kr.md)을 참고하세요.
-
-## Endpoints
-
-The full route table with authorization levels is in
-[docs/product/api-spec.kr.md](docs/product/api-spec.kr.md) (55 routes).
+- Swagger: `http://localhost:3000/api-docs` in development and test. It is
+  disabled in production.
+- Route table with access levels (55 routes):
+  [docs/product/api-spec.kr.md](docs/product/api-spec.kr.md).
+- curl examples: [API_EXAMPLES.md](API_EXAMPLES.md).
 
 | Area | Routes | Access |
 | --- | --- | --- |
 | System | `GET /`, `GET /health` | public |
 | Accounts | `POST /users/register`, `POST /auth/login` | public |
 | Profile | `GET/PATCH /users/profile` | JWT |
-| SNS login | `POST /auth/{google,apple,kakao,naver,facebook}/{login,exchange-code}`, `POST /auth/{google,apple}/verify-id-token` | public (503 when the provider is disabled) |
+| SNS login | `POST /auth/{google,apple,kakao,naver,facebook}/{login,exchange-code}`, `POST /auth/{google,apple}/verify-id-token` | public (503 while disabled) |
 | Catalog reads | `GET /music/tracks`, `GET /music/tracks/:id`, `GET /music/public/playlists(/:id)` | public |
 | Catalog writes | tracks, audio assets, playlists (create/update/delete/publish/reorder), `GET /music/tracks/:trackId/audio-assets` | **admin** |
 | Legacy reads | `GET /music/legacy/tracks(/:id)` public; artists, playlists, `tracks/full` | JWT |
 | Legacy writes | `POST/PATCH/DELETE /music/legacy/**` | **admin** |
 
-Public responses never include audio URLs or internal storage identifiers. See
-the [Music learning guide](docs/music/learning-guide.kr.md) for the request flow.
+Public responses never include audio URLs or internal storage identifiers.
 
-## Project Structure
+## Project structure
 
 ```text
 src/
   main.ts        bootstrap: helmet, CORS, trust proxy, validation, shutdown hooks
   app.module.ts  module wiring, global interceptor/filter/guards
-  config/        environment validation (AppEnv) and duration parsing
-  database/      TypeORM options, CLI data source, MariaDB error helpers, migrations
+  config/        env file selection (env-files.ts) and validation (app-env.ts)
+  database/      TypeORM options, CLI data source, db-tool, pending-migration check, migrations
   common/        DomainError, global exception filter, request id, response envelope
   auth/          session (JWT, RBAC), local login, shared SNS kernel, 5 providers
   users/         domain, use-cases, ports/adapters, controller, presenters
   music/         legacy (/music/legacy) and catalog (/music) modules
+scripts/         typeorm-env.cjs, check-env.cjs, runtime-env-keys.cjs, export-secrets-env.cjs
+test/            e2e (runs against MariaDB)
 ```
 
-Architecture walkthrough: [docs/learning/nestjs-operational-stability-guide.kr.md](docs/learning/nestjs-operational-stability-guide.kr.md).
-Latest audit and roadmap: [docs/audit/2026-11-08-project-audit.kr.md](docs/audit/2026-11-08-project-audit.kr.md).
-
-## Verification
+## Verification and CI
 
 ```bash
-npm run lint:check
-npm run format:check
-npm run typecheck
-npx jest
-npm run build
+npm run lint:check && npm run format:check && npm run typecheck && npx jest && npm run build
+npm run db:setup:test && npm run test:e2e      # needs .env.test.local
 ```
 
-CI (`.github/workflows/ci.yml`) runs the same steps plus a critical production
-`npm audit` on every pull request and push to `develop` and `main`.
+GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs
+on every pull request and on every push to `develop` and `main`:
 
-## Production Notes
+- **`verify`:** lint, format, typecheck, unit tests, build and a critical
+  production `npm audit`.
+- **`database`** (MariaDB 10.11 service container):
+  1. apply every migration to an empty database
+  2. assert that nothing is pending
+  3. revert and re-apply the latest migration
+  4. run the schema drift check (report-only for now, audit item DB-12)
+  5. run e2e
 
-- Keep `DB_SYNCHRONIZE=false`; use TypeORM migrations for shared databases.
-- Run migrations as a release/deployment step before deploying the application.
-- Do not run the initial migration against an existing MariaDB database until its
-  current schema has been compared and backed up.
-- Use a strong `JWT_SECRET` (32+ characters) and rotate it according to your security policy.
-- Set `CORS_ORIGIN` to the real frontend origin(s), never `*`.
-- Set `TRUST_PROXY` when running behind a reverse proxy so rate limits apply per client.
-- Keep at least one admin account; music write APIs return 403 for regular users.
-- Configure `GOOGLE_ALLOWED_AUDIENCES` with the exact OAuth client IDs.
-- Avoid logging raw Google tokens, JWTs, or passwords.
+## Documentation
+
+| Topic | Document |
+| --- | --- |
+| Index and reading order | [docs/README.md](docs/README.md) |
+| Product scope, features, API contract | [docs/product/](docs/product/) |
+| Music catalog design and decisions | [docs/music/README.md](docs/music/README.md) |
+| Architecture walkthrough | [docs/learning/nestjs-operational-stability-guide.kr.md](docs/learning/nestjs-operational-stability-guide.kr.md) |
+| DB and schema management (concepts) | [docs/learning/database-schema-management.kr.md](docs/learning/database-schema-management.kr.md) |
+| Environments, DB setup, errors (procedures) | [docs/deployment/database-environments.kr.md](docs/deployment/database-environments.kr.md) |
+| EC2 deployment and rollback | [docs/deployment/mariadb-systemd.kr.md](docs/deployment/mariadb-systemd.kr.md) |
+| Security and secrets | [docs/learning/security-guide.kr.md](docs/learning/security-guide.kr.md), [docs/learning/deployment-secrets-checklist.kr.md](docs/learning/deployment-secrets-checklist.kr.md) |
+| Latest audit, roadmap, release checklist | [docs/audit/2026-11-08-project-audit.kr.md](docs/audit/2026-11-08-project-audit.kr.md) |
+| Past runtime issues | [docs/learning/runtime-troubleshooting-history.kr.md](docs/learning/runtime-troubleshooting-history.kr.md) |

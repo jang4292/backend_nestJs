@@ -1,6 +1,6 @@
 # NestJS 아키텍처·운영 안정성 학습 가이드
 
-> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 이 저장소의 구조를 NestJS와 Clean Architecture 관점에서 따라 읽기 위한 가이드입니다. "무엇을 바꿨는가"보다 "왜 이렇게 나눴는가"에 초점을 둡니다. 남은 구조 과제는 [감사 리포트 3.1장](../audit/2026-11-08-project-audit.kr.md#31-clean-architecture--ddd)을 참고하세요.
 
@@ -72,9 +72,18 @@ src/
 
 ## 5. 환경변수 검증: `src/config/app-env.ts`
 
+**어떤 파일을 읽는가** (`src/config/env-files.ts`)
+
+- `NODE_ENV`에 따라 env 파일 하나를 고릅니다: `development` → `.env`, `test` → `.env.test.local`(필수), `production` → `.env.production`
+- `ENV_FILE`로 다른 파일을 지정할 수 있습니다.
+- 셸 환경변수가 파일 값보다 우선합니다.
+- 앱, migration CLI, DB 도구(`db:*`), e2e가 모두 이 규칙 하나를 씁니다. 환경별 절차는 [환경별 DB·설정 가이드](../deployment/database-environments.kr.md)에 있습니다.
+
 대표 규칙:
 
-- **필수:** `JWT_SECRET`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`. Google이 활성이면 `GOOGLE_ALLOWED_AUDIENCES`
+- **필수:** `JWT_SECRET`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`
+- **SNS:** 5종 모두 `AUTH_<P>_ENABLED=true`일 때만 켜지고(현재 전부 off), 켜진 provider만 자기 키를 요구합니다(Google이면 `GOOGLE_ALLOWED_AUDIENCES`)
+- **test 전용:** `DB_DATABASE`는 `*_test`만 허용
 - **DB 타입:** `DB_TYPE`은 `mariadb`만 허용
 - **production 전용**
   - `CORS_ORIGIN` 필수
@@ -163,7 +172,26 @@ UsersController (interface)            ── DTO 검증, PublicUser로 변환
 - **Command:** use-case 입력. 예: `CreateUserCommand`, `UpdateProfileCommand`. use-case가 DTO에 의존하지 않게 합니다.
 - **Presenter:** entity를 공개 가능한 응답으로 변환합니다. 예: `toPublicUser`, `toPublicPlaylistResponse`
 
-## 12. 품질 게이트
+## 12. DB와 migration: `src/database/`
+
+스키마는 **versioned migration으로만** 바꾸고(`synchronize` 금지), 배포 단계의 명령으로 적용합니다. 앱 기동 시 자동 실행은 하지 않습니다. 개념, 방식 비교, 검증 계층은 [DB·스키마 관리 학습 가이드](database-schema-management.kr.md)에서 자세히 다룹니다.
+
+| 파일 | 책임 |
+| --- | --- |
+| `database-options.ts` | TypeORM 옵션. migration 경로는 실행 중인 파일 기준(src면 `.ts`, dist면 `.js`)이라 cwd와 무관 |
+| `data-source.ts` | TypeORM CLI용 DataSource(앱과 같은 env 규칙) |
+| `database-admin.ts` | DB 확인·생성·test DB 초기화 로직. 연결을 주입받아 unit test 가능 |
+| `cli/db-tool.ts` | `db:check`(읽기 전용) / `db:ensure`(dev·test만) / `db:reset`(test만) |
+| `migration-status.service.ts` | 기동 시 pending migration을 경고(읽기 전용, 기동을 막지 않음) |
+| `mariadb-errors.ts` | 드라이버 오류 코드(`ER_DUP_ENTRY` 등) 판별 |
+
+볼 만한 설계 포인트:
+
+- **연결 시점:** 허용되지 않는 명령(운영에서 DB 생성 등)은 서버에 연결하기 전에 거부합니다.
+- **SQL 식별자:** DB 이름처럼 파라미터로 바인딩할 수 없는 값은 허용 문자로 먼저 검증합니다.
+- **출력:** 비밀번호는 어떤 출력에도 넣지 않습니다(`SHOW GRANTS`의 해시도 가림).
+
+## 13. 품질 게이트
 
 ```bash
 npm run lint:check     # ESLint (수정 없이 검사; 로컬 자동 수정은 npm run lint)
@@ -173,11 +201,16 @@ npx jest               # 유닛 테스트
 npm run build          # nest build
 ```
 
-- GitHub Actions(`.github/workflows/ci.yml`)가 PR과 push마다 위 순서로 실행하고, production critical 취약점 검사도 함께 합니다.
-- e2e(`npm run test:e2e`)는 MariaDB 테스트 DB가 필요해 CI에 아직 포함되지 않았습니다.
+- GitHub Actions(`.github/workflows/ci.yml`)의 `verify` job이 PR과 push마다 위 순서로 실행하고, production critical 취약점 검사도 함께 합니다.
+- **`database` job**은 MariaDB 10.11 서비스 컨테이너에서 다음을 실행합니다.
+  1. 빈 DB에 전체 migration 적용
+  2. pending이 없는지 확인
+  3. 최신 migration revert 후 재적용
+  4. drift 검사(현재는 보고만, 감사 DB-12)
+  5. e2e
 - Node 버전은 `.nvmrc`(24)로 고정합니다.
 
-## 13. 추천 읽기 순서
+## 14. 추천 읽기 순서
 
 1. `src/main.ts` → `src/app.module.ts` → `src/config/app-env.ts`
 2. `src/common/errors/domain-error.ts` → `src/common/filters/global-exception.filter.ts`
@@ -186,6 +219,7 @@ npm run build          # nest build
 5. `src/auth/session/interface/jwt.strategy.ts` → `roles.guard.ts` → `auth-route.decorators.ts`
 6. `src/auth/kakao/application/use-cases/kakao-login.use-case.ts` → `src/auth/shared/`
 7. `src/music/catalog/interface/catalog-music.controller.ts` → `src/music/music-authorization.spec.ts`
+8. `src/config/env-files.ts` → `src/database/database-options.ts` → `src/database/cli/db-tool.ts` → `src/database/migration-status.service.ts`
 
 각 파일을 읽을 때 다음을 확인해 보세요.
 
@@ -193,17 +227,20 @@ npm run build          # nest build
 - 이 파일이 알면 안 되는 것(프레임워크, DB, HTTP)을 알고 있지 않은가?
 - 그 책임은 어떤 테스트가 검증하는가?
 
-## 14. 실습 과제
+## 15. 실습 과제
 
 1. **CA-2 이어서 하기:** legacy music use-case의 `NotFoundException`을 `NotFoundError`로 바꾸고 spec을 고칩니다.
 2. **Playlist 상태 전이 규칙:** `publishPlaylist`에 `archived → published` 금지 규칙을 도메인 함수로 추출하고 테스트합니다(결정 문서 확정 후).
 3. **SNS use-case 통합:** kakao/naver/facebook 로그인 use-case를 하나의 공통 함수로 묶되, provider 오류 코드 계약은 유지합니다.
-4. **e2e:** MariaDB 서비스 컨테이너로 `/users/register` → `/auth/login` → `/users/profile` e2e를 작성합니다.
+4. **e2e 확장:** `/users/register` → `/auth/login` → `/users/profile` 흐름을 `test/`에 추가합니다. CI `database` job이 MariaDB에서 실행합니다.
+5. **drift 해소(DB-12):** entity에 FK·인덱스 이름과 `datetime` 정밀도를 선언해 `npm run migration:check:test`가 `No changes`를 출력하게 만들고, CI의 `continue-on-error`를 제거합니다.
+6. **스키마 변경 한 바퀴:** [DB·스키마 관리 학습 가이드 12장](database-schema-management.kr.md#12-실습-과제)의 과제를 따라 migration 생성 → 검증 → 되돌리기를 연습합니다.
 
-## 15. 기억할 원칙
+## 16. 기억할 원칙
 
 - 컨트롤러는 얇게, use-case는 프레임워크와 무관하게 유지합니다.
 - 설정은 기동 시점에 검증하고, 실패는 빠를수록 좋습니다.
 - HTTP 변환은 필터 한 곳에서 합니다. 비밀번호, 토큰, DB 오류 원문은 응답과 로그에 그대로 내보내지 않습니다.
 - 인증(누구인가)과 인가(무엇을 할 수 있는가)는 별도 가드로 분리합니다.
-- 완료 조건은 lint, format, typecheck, test, build 통과입니다.
+- 스키마는 migration으로만 바꾸고, 같은 파일을 CI(빈 DB) → Test → Dev → Prod 순으로 명령으로 적용합니다.
+- 완료 조건은 lint, format, typecheck, test, build, CI `database` job 통과입니다.
