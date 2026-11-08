@@ -25,8 +25,12 @@ export class CatalogTrackTypeOrmRepository implements CatalogTrackRepositoryPort
     return this.repo.save(track);
   }
 
-  findAll(): Promise<CatalogTrack[]> {
-    return this.repo.find({ order: { id: 'DESC' } });
+  findAll(options: { skip: number; take: number }): Promise<CatalogTrack[]> {
+    return this.repo.find({
+      order: { id: 'DESC' },
+      skip: options.skip,
+      take: options.take,
+    });
   }
 
   findById(id: number): Promise<CatalogTrack | null> {

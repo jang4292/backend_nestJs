@@ -46,8 +46,13 @@ export class CatalogMusicService {
     );
   }
 
-  listTracks(): Promise<CatalogTrack[]> {
-    return this.trackRepo.findAll();
+  listTracks(
+    pagination: { page: number; limit: number } = { page: 1, limit: 100 },
+  ): Promise<CatalogTrack[]> {
+    return this.trackRepo.findAll({
+      skip: (pagination.page - 1) * pagination.limit,
+      take: pagination.limit,
+    });
   }
 
   async getTrack(id: number): Promise<CatalogTrack> {
