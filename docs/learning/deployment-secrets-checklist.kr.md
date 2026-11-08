@@ -1,29 +1,32 @@
 # 배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)
 
-> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 이 문서는 현재 프로젝트를 기준으로, 로컬 개발과 운영 배포에서 시크릿을 어떻게 다루는지 체크리스트 형태로 정리한 문서입니다.
 
-## 1) 로컬 개발 체크리스트
+## 1) Local(개발 PC) 체크리스트
 
-1. 현재 코드 기준 기본 환경 파일은 `.env`입니다.
+환경 용어: **Local**(개발 PC + 개발 서버의 `app_db_dev`), **Test**(e2e, `app_db_test`), **Prod**(EC2). 자세히는 [환경별 가이드 1장](../deployment/database-environments.kr.md#1-환경-구분).
+
+
+1. Local은 `.env`, Test는 `.env.test.local`을 읽습니다. 두 파일 모두 `chmod 600`으로 둡니다.
 2. 이 프로젝트의 공식 DB 경로는 MariaDB이며, EC2에서는 기본적으로 `localhost:3306`을 사용합니다.
 3. `.env`에는 로컬 개발에 필요한 최소값만 둡니다.
 4. MariaDB endpoint, DB 계정명, DB 이름은 `.env`처럼 Git에서 제외된 파일이나 EC2 환경변수에만 둡니다.
 5. 실제 운영 시크릿 값은 로컬 파일에 복사하지 않습니다.
 6. `.env`는 Git 추적 대상이 아니어야 합니다.
 7. 원격 MariaDB에 연결할 때는 방화벽과 네트워크 경계가 애플리케이션 실행 위치의 접근을 허용해야 합니다.
-8. 로컬 점검 순서:
-   - `npm run migration:show`
-   - `npm run migration:run`
-   - `npm test -- --runInBand`
+8. Local 점검 순서:
+   - `npm run db:check`(읽기 전용: 접속, 권한, 소유, pending)
+   - `npm run db:setup`(앱 전용 DB가 없으면 생성 + migration)
+   - `npx jest`
    - `npm run build`
-9. 개발/운영 MariaDB에서도 `DB_SYNCHRONIZE=false`를 유지하고 migration으로 스키마를 맞춥니다.
-10. E2E는 개발 서버의 `app_db_test`(전용 계정)를 사용합니다. `NODE_ENV=test`에서는 `*_test` DB만 허용됩니다.
-11. [ ] `app_db_test`와 테스트 계정을 만들었습니다(SQL: `docs/deployment/database-environments.kr.md`).
+9. `DB_SYNCHRONIZE=true`는 모든 환경에서 기동이 거부됩니다. 스키마는 migration으로 맞춥니다.
+10. E2E는 개발 서버의 `app_db_test`를 사용합니다. `NODE_ENV=test`에서는 `*_test` DB만 허용됩니다.
+11. [ ] 개발 계정에 `app_db_dev`·`app_db_test` 권한을 부여했습니다(SQL: [환경별 가이드 3.1](../deployment/database-environments.kr.md#31-최초-1회-앱-전용-db-권한-서버-관리자)). 다른 DB에는 권한을 주지 않습니다.
 12. 설정 검증: `npm run build` 후 `npm run env:check` / `npm run env:check:test`(DB 접속 없음).
 
-현재 MariaDB 연결이 없으면 `migration:show`와 `npm run test:e2e`는 DB 연결 단계에서 실패합니다. 이 경우 단위 테스트와 build로 코드 상태를 먼저 확인하고, DB 접근 경로를 준비한 뒤 e2e를 실행합니다.
+MariaDB에 연결할 수 없으면 `db:check`가 원인(주소, 포트, 인증, 권한)을 알려 줍니다. 단위 테스트와 build는 DB 없이도 실행됩니다.
 
 ## 2) 운영 배포 체크리스트
 

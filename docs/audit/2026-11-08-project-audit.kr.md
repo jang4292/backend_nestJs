@@ -3,7 +3,8 @@
 > 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 > 이전 감사: [2026-09-02 감사](2026-09-02-project-audit.kr.md) (이력 문서)
 > 후속 조치(같은 날): 환경별 DB·env 파일 정리와 SNS 로그인 전면 비활성화 — [9장](#9-후속-조치-환경별-db-설정과-sns-비활성화)
-> 후속 조치(2026-11-09): 새 개발 DB 연결, DB 생성·점검 도구, MariaDB CI 검증, migration 결함 수정 — [10장](#10-후속-조치-개발-db-연결과-스키마-관리-체계)
+> 후속 조치(2026-11-09): 새 개발 DB 연결, DB 생성·점검 도구, MariaDB CI 검증, migration 결함 수정, Local/Test/Prod 정리와 다른 DB 삭제 방지 — [10장](#10-후속-조치-개발-db-연결과-스키마-관리-체계)
+> 전체 작업 내역과 배운 점: [작업 내역과 배운 점](../learning/work-history-2026-11.kr.md)
 
 ## 0. 요약
 
@@ -503,4 +504,52 @@ Dev는 서버의 기존 빈 DB를 사용합니다. Test는 `app_db_test`를 유�
 
 1. `db:check`가 출력한 GRANT를 실행합니다(Dev DB에 `DROP`, `app_db_test`에 8개 권한).
 2. `npm run db:setup` → `npm run db:setup:test` → `npm run test:e2e`를 실행합니다.
+
+### 10.2 Local / Test / Prod 정리와 다른 DB 삭제 방지
+
+**요청**
+
+- local, dev, prod 구분을 다시 정리합니다.
+- **DB 서버에 이미 있는 다른 DB는 삭제하거나 변경하지 않습니다.**
+- 코드와 문서를 전체 점검해 최신화하고, 작업 내역을 학습 가이드에 포함합니다.
+
+**결정**
+
+| 항목 | 결정 |
+| --- | --- |
+| 용어 | **Local**(개발 PC + 개발 서버 DB), **Test**(Local 안의 e2e), **Prod**(EC2)로 통일. 파일과 명령은 유지 |
+| Local DB | 앱 전용 새 DB `app_db_dev`. 10.1에서 정한 "기존 DB 사용"은 대체하고, 기존 DB는 사용하지 않음 |
+| 테스트 DB 초기화 | 앱 소유가 확인될 때만 허용 |
+
+**발견과 조치**
+
+| ID | 등급 | 발견 사항 | 조치 |
+| --- | --- | --- | --- |
+| DB-16 | **High** | `db:setup`은 다른 앱 객체가 있는 DB에서도 진행했고, `db:reset:test`는 이름(`*_test`)만 보고 DB 전체를 삭제함 | ✅ `APP_TABLES`와 `inspectOwnership`(TABLES, 뷰, 시퀀스, ROUTINES, EVENTS)으로 소유를 판정합니다. 다른 객체가 있으면 아무것도 바꾸지 않고 거부하며, `db:check`는 `ownership: shared`로 경고합니다. spec으로 쓰기 SQL의 대상 범위와 `APP_TABLES`·entity·migration 일치를 고정했습니다 |
+| DB-17 | Medium | `DB_SYNCHRONIZE=true`를 Prod에서만 막아, Local/Test에서 켜면 컬럼·데이터가 자동 삭제될 수 있음 | ✅ 모든 환경에서 기동을 거부합니다 |
+| CA-13 | Low | 쓰이지 않는 `AdminConnectionFactory` 타입 | ✅ 삭제 |
+
+**문서**
+
+- 환경별 가이드를 Local / Test / Prod 기준으로 재구성하고, "DB 삭제 안전 원칙"을 추가했습니다.
+- 새 문서: [학습 로드맵](../learning/README.md), [작업 내역과 배운 점](../learning/work-history-2026-11.kr.md)
+- 갱신: DB 가이드 8.3, 아키텍처·보안·시크릿·SNS 운영 가이드
+- 11-08 기준이던 문서를 모두 검토하고 오래된 서술을 고친 뒤 11-09로 다시 표기했습니다.
+
+**검증**
+
+- 로컬: lint, format, typecheck, 50 suites / 388 tests, build 통과. `npm audit --omit=dev`는 critical 0건(5건은 기존과 같음)
+- 실서버(사용자가 권한을 부여한 테스트 DB에만 씀)
+  - `db:setup:test`: `app_db_test` 생성과 9개 migration 적용(실제 개발 서버에서 처음 실행)
+  - `db:check:test --strict`: privilege ok, ownership dedicated(11 app tables), 0 pending
+  - `test:e2e`: 2/2 통과
+  - `db:reset:test`: 소유 확인 후 초기화하고 다시 적용
+- 같은 서버의 다른 DB: 작업 전후 모두 0 tables(변경 없음, 읽기 전용으로 확인)
+- Local `app_db_dev`: 권한이 없어 대기 중. `db:check`가 GRANT를 안내합니다
+
+**사용자가 할 일**
+
+1. 서버 관리자로 실행합니다: ``GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX ON `app_db_dev`.* TO '<dev-user>'@'%';``
+2. `npm run db:setup`을 실행합니다(`app_db_dev` 생성과 migration).
+3. 예전에 기존 DB에 받은 권한은 이 앱에 필요 없으므로 회수해도 됩니다(선택).
 

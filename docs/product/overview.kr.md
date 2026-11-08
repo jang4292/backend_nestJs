@@ -1,6 +1,6 @@
 # 서비스 개요 (기획)
 
-> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 > 이 문서는 **현재 코드에서 역으로 정리한 기획 문서**입니다. 확정된 제품 요구사항이 아니며,
 > 결정이 필요한 항목은 [결정 문서](../music/decisions.md)와 [감사 로드맵](../audit/2026-11-08-project-audit.kr.md#6-로드맵)에 있습니다.
 

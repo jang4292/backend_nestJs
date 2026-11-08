@@ -140,7 +140,7 @@ async function runCheck(
     } else {
       write(
         env.NODE_ENV === 'production'
-          ? 'Next: create it with the admin SQL in docs/deployment/database-environments.kr.md (4.1), then npm run migration:run:prod'
+          ? 'Next: create it with the admin SQL in docs/deployment/database-environments.kr.md (5.1), then npm run migration:run:prod'
           : `Next: npm run db:setup${suffix}   # creates the database, then runs migrations`,
       );
     }

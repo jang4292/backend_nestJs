@@ -1,7 +1,7 @@
 # SNS 로그인 빌드·동작·운영·학습 가이드
 
 작성일: 2026-09-12  
-> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 이 문서는 현재 NestJS 프로젝트의 Google, Apple, Kakao, Naver, Facebook 로그인 흐름을 빌드하고 검증하며 운영하는 절차를 정리합니다. 실제 provider credential을 문서나 저장소에 기록하지 않고, 환경변수와 운영 secret 저장소를 통해 주입합니다.
 
@@ -44,11 +44,11 @@ npx eslint \
   src/config/app-env.spec.ts
 ```
 
-MariaDB와 전용 테스트 계정이 준비된 환경에서는 다음을 추가 실행합니다.
+개발 서버의 `app_db_test` 권한이 준비되어 있으면 다음을 추가 실행합니다(Test 환경, `.env.test.local`).
 
 ```bash
-npm run migration:show
-npm run migration:run
+npm run db:check:test
+npm run db:setup:test
 npm run test:e2e
 ```
 
@@ -163,8 +163,10 @@ HTTP status는 `503`입니다. `x-request-id`는 응답 헤더와 envelope에 �
 ```bash
 npm ci
 npm run build
-npm run migration:show
-npm run migration:run
+npm run env:check:prod
+npm run db:check:prod
+npm run migration:show:prod
+npm run migration:run:prod
 npm run pm2:reload
 curl -i http://127.0.0.1:3000/health
 ```

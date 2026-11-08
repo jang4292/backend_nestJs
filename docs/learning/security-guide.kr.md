@@ -1,6 +1,6 @@
 # 시크릿 관리와 GitHub Push 보안 학습 가이드
 
-> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 이 문서는 이 프로젝트에서 시크릿(비밀번호, JWT 시크릿, OAuth 클라이언트 시크릿 등)이 어디서 시작해 어디로 흘러가는지, 그리고 이미 코드에 들어 있는 방어 장치가 왜 그렇게 짜여 있는지 이해하기 위한 가이드입니다. 이어서 GitHub에 push하기 전 재사용 가능한 점검 절차와, 만약 시크릿이 실수로 커밋됐을 때의 대응 원칙을 다룹니다.
 
@@ -139,11 +139,24 @@ id_rsa.pub
 
 - 모든 요청은 `x-request-id`를 헤더로 반환해야 합니다. 문제가 생겼을 때 애플리케이션 로그, ALB/Nginx 로그, 클라이언트 오류 리포트를 같은 request id로 합칠 수 있어야 합니다.
 - 전역 예외 필터가 내부 에러를 `Internal server error` 형태로 반환하는지 확인합니다. stack trace, SQL 구문, 비밀값이 응답 본문에 포함되면 안 됩니다.
-- `POST/PATCH/DELETE /music/**` 엔드포인트는 JWT 인증이 필요해야 합니다. 익명 요청 시 401/403이 나오는지 배포 전 점검합니다.
+- `POST/PATCH/DELETE /music/**` 엔드포인트는 admin만 쓸 수 있습니다(최소 RBAC). 토큰 없음은 401, 일반 사용자 토큰은 403이 나오는지 배포 전 점검합니다.
 - `/auth/login`은 route-level throttling이 적용되어야 합니다. 같은 IP에서 짧은 시간에 반복 시도 시 429 응답이 발생하는지 확인합니다.
 - 운영 점검 시 `JWT_SECRET`, `DB_PASSWORD`, `DATABASE_URL`, Google OAuth secret이 로그에 출력되지 않는지 샘플 트래픽으로 검증합니다.
 
-## 7. 운영 체크리스트 문서
+## 7. DB 권한과 파괴적 명령 가드
+
+| 원칙 | 이 프로젝트에서 |
+| --- | --- |
+| **최소 권한** | 앱 계정에는 앱 전용 DB 단위로만 8개 권한(`SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX`)을 줍니다. `ON *.*`(전역)나 다른 DB 권한은 주지 않습니다. 운영 계정은 `'<app>'@'localhost'`만 허용합니다 |
+| **운영에서 DB 생성·삭제 금지** | `db:ensure`·`db:reset`은 production에서 거부됩니다. 운영 DB는 관리자가 만듭니다 |
+| **이름이 아니라 내용으로 확인** | `db:setup`·`db:reset:test`는 대상 DB에 앱이 관리하지 않는 객체가 있으면 아무것도 바꾸지 않습니다(`APP_TABLES`, `inspectOwnership`) |
+| **자동 스키마 변경 금지** | `DB_SYNCHRONIZE=true`는 모든 환경에서 기동이 거부됩니다(컬럼·데이터 자동 삭제 위험) |
+| **평문 구간 줄이기** | 개발 서버 MariaDB는 TLS를 지원하지 않습니다. DB 포트를 개발자 IP로 제한하거나 SSH 터널을 씁니다 |
+| **비밀 미출력** | `db:check`와 오류 Hint는 비밀번호를 출력하지 않습니다. `SHOW GRANTS`의 해시도 가립니다 |
+
+자세한 내용: [환경별 가이드 2장 DB 삭제 안전 원칙](../deployment/database-environments.kr.md#2-db-삭제-안전-원칙)
+
+## 8. 운영 체크리스트 문서
 
 배포 전 점검, Secrets Manager 주입, 비밀번호 회전 절차는 아래 체크리스트 문서를 함께 사용하세요.
 

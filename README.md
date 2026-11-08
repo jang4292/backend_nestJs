@@ -22,15 +22,17 @@ migrations.
 - Per-environment env files, read-only DB checks, and migrations verified on
   MariaDB in CI.
 
-## Quick start (development)
+## Quick start (Local)
 
-Requires Node.js 24 (`.nvmrc`; `engines` requires >= 22.13).
+Requires Node.js 24 (`.nvmrc`; `engines` requires >= 22.13). Local means the
+app runs on your PC and connects to the shared dev MariaDB server, using a
+database dedicated to this app (`app_db_dev`).
 
 ```bash
 npm ci
 cp .env.example .env && chmod 600 .env
-# edit .env: DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD
-npm run db:check     # read-only: connection, account, TLS, database, pending migrations
+# edit .env: DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE=app_db_dev
+npm run db:check     # read-only: connection, TLS, privileges, ownership, pending migrations
 npm run db:setup     # create the database if missing, then apply migrations (tables)
 npm run start:dev    # http://localhost:3000, Swagger at /api-docs
 ```
@@ -46,7 +48,11 @@ npm run start:dev    # http://localhost:3000, Swagger at /api-docs
   need (`SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX`) and prints
   the exact `GRANT` for anything missing. `db:setup` stops before changing
   anything when privileges are missing.
-- `DB_DATABASE` may be an existing database (letters, digits, `_`, `-`).
+- **Other databases on the server are never touched.** `db:setup` and
+  `db:reset:test` only work on a database that contains nothing but this app's
+  tables (`APP_TABLES`); otherwise they refuse and change nothing. Grant the app
+  account privileges on its own databases only, never `ON *.*`.
+- Database names may use letters, digits, `_` and `-`.
 - `db:setup` is safe to run again: it never recreates an existing database and
   never re-runs an applied migration.
 - The dev MariaDB server has no TLS (`db:check` prints `tls: off`). Restrict its
@@ -63,8 +69,8 @@ migration CLI, the `db:*` tools and e2e all use the same rule.
 
 | Environment | `NODE_ENV` | File (git-ignored) | Template | Database |
 | --- | --- | --- | --- | --- |
-| Dev | `development` (default) | `.env` | `.env.example` | external dev server, `app_db` |
-| Test | `test` | `.env.test.local` (required) | `.env.test.example` | dev server, `*_test` only (`app_db_test`) |
+| Local | `development` (default) | `.env` | `.env.example` | dev server, dedicated `app_db_dev` |
+| Test (e2e, inside Local) | `test` | `.env.test.local` (required) | `.env.test.example` | dev server, dedicated `app_db_test` (`*_test` only) |
 | Prod | `production` | `.env.production` | `.env.production.example` | EC2 localhost MariaDB |
 
 Validation rules (startup, `env:check`, `db:*`):
@@ -72,11 +78,12 @@ Validation rules (startup, `env:check`, `db:*`):
 - **Always required:** `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`, `JWT_SECRET`.
   `JWT_EXPIRES_IN` must look like `3600`, `30m`, `1h` or `7d`. `CORS_ORIGIN`
   must not be `*`.
+- **Always rejected:** `DB_SYNCHRONIZE=true`. Synchronize can drop columns and
+  their data, so the schema changes only through migrations.
 - **`NODE_ENV=test`:** only accepts `*_test` databases.
 - **`NODE_ENV=production`** also requires:
   - `CORS_ORIGIN`: an origin list, or `none` to disable CORS
   - `JWT_SECRET`: at least 32 characters, with no placeholder text
-  - `DB_SYNCHRONIZE=false`
 - **New keys:** add them to `src/config/app-env.ts` and to
   `scripts/runtime-env-keys.cjs`. A spec fails when the two lists drift.
 
@@ -85,10 +92,10 @@ Full guide with account SQL and common errors:
 
 ## Scripts
 
-| Purpose | Dev | Test | Prod (on EC2, after `npm run build`) |
+| Purpose | Local | Test | Prod (on EC2, after `npm run build`) |
 | --- | --- | --- | --- |
 | Validate config, no DB connection (needs a build) | `env:check` | `env:check:test` | `env:check:prod` |
-| DB check, read-only | `db:check` | `db:check:test` | `db:check:prod` |
+| DB check, read-only (privileges, ownership, pending) | `db:check` | `db:check:test` | `db:check:prod` |
 | Create DB if missing + apply migrations | `db:setup` | `db:setup:test` | admin SQL once, then `migration:run:prod` |
 | Recreate the test DB and apply every migration | — | `db:reset:test` | — |
 | Migration status / apply / revert | `migration:show` / `migration:run` / `migration:revert` | `migration:show:test` / `migration:run:test` / `migration:revert:test` | `migration:show:prod` / `migration:run:prod` / `migration:revert:prod` |
@@ -105,22 +112,24 @@ Full guide with account SQL and common errors:
   and works the same on macOS, Linux and Windows.
 - Prod commands run from `dist` with plain `node`, so the server does not need
   ts-node.
-- `db:ensure` refuses to run in production, and `db:reset` only works on a
-  `*_test` database.
+- `db:ensure` refuses to run in production. `db:reset` only works on a `*_test`
+  database that contains nothing but this app's tables.
 
 ## Database and migrations
 
 - **Tables come only from migrations**
   ([`src/database/migrations/`](src/database/migrations/)). Never use
-  `synchronize` or hand-written `CREATE TABLE`.
+  `synchronize` (rejected at startup) or hand-written `CREATE TABLE`.
 - **The same migration files go through every environment in order:** CI
-  (empty DB) → Test → Dev → Prod.
+  (empty DB) → Test → Local → Prod.
 - **Migrations are an explicit deploy step.** The app does not run them on
   startup. It logs a warning, or an error in production, when migrations are
   pending.
-- **Database containers are created once per environment.** Dev and Test use
+- **Database containers are created once per environment.** Local and Test use
   `db:setup`. Prod uses admin SQL, so the app account holds privileges on its
   own database only.
+- **The app only ever changes its own database.** Every write checks
+  privileges and ownership first and changes nothing if either fails.
 - **Back up before any production migration.** Some legacy migrations cannot
   be reverted.
 
@@ -224,6 +233,8 @@ on every pull request and on every push to `develop` and `main`:
 | Topic | Document |
 | --- | --- |
 | Index and reading order | [docs/README.md](docs/README.md) |
+| Learning roadmap (all guides, exercises) | [docs/learning/README.md](docs/learning/README.md) |
+| Work history and lessons (2026-11) | [docs/learning/work-history-2026-11.kr.md](docs/learning/work-history-2026-11.kr.md) |
 | Product scope, features, API contract | [docs/product/](docs/product/) |
 | Music catalog design and decisions | [docs/music/README.md](docs/music/README.md) |
 | Architecture walkthrough | [docs/learning/nestjs-operational-stability-guide.kr.md](docs/learning/nestjs-operational-stability-guide.kr.md) |

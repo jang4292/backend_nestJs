@@ -49,7 +49,7 @@ pm2 logs backend-nestjs --lines 50 | grep -i migration   # pending 경고(Migrat
 ```
 
 - migration은 앱 기동 시 자동으로 실행되지 않습니다. 배포 단계의 명령으로만 적용하며, 이유는 [DB·스키마 관리 학습 가이드 4장](../learning/database-schema-management.kr.md#4-적용-방식-비교-직접-sql--명령--기동-시-자동)에 있습니다.
-- 운영에서는 `db:ensure`(DB 자동 생성)가 거부됩니다. 운영 DB와 계정은 [환경별 DB 가이드 4.1](database-environments.kr.md#41-최초-1회-운영-db와-계정-관리자)의 관리자 SQL로 1회 만듭니다.
+- 운영에서는 `db:ensure`(DB 자동 생성)가 거부됩니다. 운영 DB와 계정은 [환경별 DB 가이드 5.1](database-environments.kr.md#51-최초-1회-운영-db와-계정-관리자)의 관리자 SQL로 1회 만듭니다.
 
 - PM2 fork 모드의 reload는 새 프로세스가 기동에 실패해도 이전 프로세스를 유지하지 않습니다. 그래서 `env:check:prod`를 먼저 실행합니다.
 - `kill_timeout`은 10초입니다. 이 시간 안에 앱이 graceful shutdown(`enableShutdownHooks`)으로 진행 중인 요청과 DB 풀을 정리합니다.

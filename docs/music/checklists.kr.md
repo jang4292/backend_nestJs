@@ -1,6 +1,6 @@
 # Music 체크리스트
 
-> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 ## 학습 체크리스트
 
@@ -12,7 +12,7 @@
 - [ ] Controller, service/facade, use case, repository의 책임을 구분했다.
 - [ ] Entity와 public presenter의 차이를 이해했다.
 - [ ] 공개 API와 JWT 보호 API를 구분했다.
-- [ ] Migration 상태를 `npm run migration:show`로 확인했다.
+- [ ] DB 상태를 `npm run db:check`(또는 `npm run migration:show`)로 확인했다.
 
 ## 기능 개발 체크리스트
 

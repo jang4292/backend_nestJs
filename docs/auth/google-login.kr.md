@@ -1,6 +1,6 @@
 # Google SNS 로그인 – 구현 가이드
 
-> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 ## 개요
 

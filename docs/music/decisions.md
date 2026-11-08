@@ -1,13 +1,13 @@
 # Music API 결정 및 보류 항목
 
-> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 ## 확정
 
 - 운영 DB 기준은 MariaDB입니다.
 - 애플리케이션은 MariaDB만 지원합니다(`DB_TYPE=mariadb`). DB 오류는 MariaDB 코드(`ER_DUP_ENTRY`, `ER_ROW_IS_REFERENCED_2`)로 판별합니다(`src/database/mariadb-errors.ts`).
 - 카탈로그와 legacy 음악 데이터는 운영자가 관리하는 전역 카탈로그입니다. 쓰기는 `users.role = 'admin'`만 할 수 있습니다(2026-11-08, 최소 RBAC).
-- 운영 환경에서는 `DB_SYNCHRONIZE=false`를 유지합니다.
+- `DB_SYNCHRONIZE=false`를 모든 환경에서 유지합니다(2026-11-09부터 `true`면 기동 거부).
 - DB 생성과 migration은 애플리케이션 startup과 분리합니다.
 - AudioAsset은 이번 단계에서 메타데이터와 저장소 port 경계까지만 구현합니다.
 - 실제 S3 upload/delete와 orphan 파일 보상 처리는 후속 작업입니다.
@@ -63,4 +63,4 @@ Track/Artist soft delete는 기존 Playlist 참조와 운영 데이터 보존 �
 - Response DTO로 entity 직접 반환 제거, `MusicService` facade와 `CatalogMusicService` 분해
 - AudioAsset 업로드 안전성(MIME/크기 검증), S3/CloudFront와 presigned URL
 - 문자셋(utf8mb4)과 timezone(UTC) 점검, 백업 자동화, migration 실패 정책, 기존 데이터 이전, 기존 클라이언트 호환성
-- MariaDB integration test와 e2e
+- MariaDB integration test와 e2e 시나리오 확장(기본 e2e는 CI `database` job에서 MariaDB 10.11로 실행 중)

@@ -1,6 +1,6 @@
 # Music 원인 분석 및 트러블슈팅
 
-> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 문제를 해결할 때는 먼저 **route -> Entity -> table -> migration 상태**를 같은 기능 단위로 확인합니다.
 
@@ -102,11 +102,12 @@ curl -s http://localhost:3000/music/public/playlists/1 | rg "url|objectKey|s3"
 - 확인:
 
 ```bash
-NODE_ENV=test npm run migration:show
+npm run db:check:test      # 읽기 전용: 접속, 권한, 소유, pending migration
+npm run db:setup:test      # app_db_test가 없으면 생성 + migration
 npm run test:e2e
 ```
 
-- 해결: `DB_HOST`, port, account, database, 권한, Migration 상태를 확인합니다. 운영 DB를 E2E DB로 사용하지 않습니다.
+- 해결: `db:check:test`가 알려 주는 원인(주소, 포트, 인증, 권한, 소유)을 고칩니다. 운영 DB를 E2E DB로 사용하지 않습니다. 명령과 env 파일의 대응은 [환경별 가이드 1장](../deployment/database-environments.kr.md#명령과-env-파일)을 봅니다.
 
 ## 9. Migration이 실행되지 않음
 

@@ -385,7 +385,7 @@ export function assertEnsureAllowed(
 ): void {
   if (nodeEnv === 'production') {
     throw new DatabaseAdminError(
-      'db:ensure is disabled for NODE_ENV=production. Create the production database once with the admin SQL in docs/deployment/database-environments.kr.md (section 4.1).',
+      'db:ensure is disabled for NODE_ENV=production. Create the production database once with the admin SQL in docs/deployment/database-environments.kr.md (section 5.1).',
     );
   }
   assertSafeDatabaseName(database);

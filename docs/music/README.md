@@ -1,6 +1,6 @@
 # Music API 운영 개선 문서
 
-> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 NestJS Music API와 EC2 내부 MariaDB 운영 개선 문서 모음입니다.
 
@@ -17,7 +17,7 @@ NestJS Music API와 EC2 내부 MariaDB 운영 개선 문서 모음입니다.
 
 ## 현재 구현 원칙
 
-- 운영 환경에서 `synchronize=true`를 사용하지 않습니다.
+- `synchronize=true`는 어떤 환경에서도 사용하지 않습니다(기동 거부). 스키마는 Migration으로만 바꿉니다.
 - 애플리케이션 시작 시 DB 생성이나 migration을 자동 실행하지 않습니다.
 - 기존 migration 파일은 수정하지 않고, 새로운 schema 변경은 새 migration으로 추가합니다.
 - Playlist 날짜 중복과 Playlist 내 Track 중복 정책은 확정 전까지 DB 제약으로 강제하지 않습니다.

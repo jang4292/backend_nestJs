@@ -1,6 +1,6 @@
 # Music 설계 및 아키텍처
 
-> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 ## 1. 현재 아키텍처
 

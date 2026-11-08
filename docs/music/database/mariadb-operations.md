@@ -1,6 +1,6 @@
 # MariaDB 운영 가이드
 
-> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 ## 운영 토폴로지
 

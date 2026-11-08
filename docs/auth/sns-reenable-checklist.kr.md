@@ -1,6 +1,6 @@
 # SNS 로그인 재활성화 체크리스트
 
-> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 ## 현재 상태
 
@@ -29,7 +29,7 @@ provider를 다시 켜기 전에 아래 체크리스트를 **해당 환경에서
 - [ ] **응답 형식**: SNS는 `{ok, requestId, data:{accessToken,…}}`, 로컬은 `{access_token, user}`입니다(AUTH-5). 클라이언트가 두 형식을 모두 처리하는지 확인합니다.
 - [ ] **기동 검증**
   - 운영에서 플래그를 켜면 필수 설정이 빠진 경우 기동이 실패합니다(의도된 안전장치).
-  - 반드시 staging/dev에서 먼저 `npm run start:dev`로 확인합니다.
+  - 반드시 Local(`npm run start:dev`)이나 staging에서 먼저 확인합니다.
 - [ ] **동작 검증**
   - 테스트 계정으로 최초 로그인과 재로그인을 해 봅니다.
   - `GET /users/profile`의 `providers`에 연결된 provider가 표시되는지 확인합니다.

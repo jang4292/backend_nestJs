@@ -8,24 +8,35 @@
 이 문서를 읽고 나면 다음 질문에 답할 수 있어야 합니다.
 
 - 데이터베이스와 테이블은 각각 누가, 언제 만드는가?
-- Test에서 동작하던 스키마가 Dev나 Prod에 없으면 어떻게 반영하는가?
+- Test에서 동작하던 스키마가 Local이나 Prod에 없으면 어떻게 반영하는가?
 - 직접 SQL로 만들기, 명령으로 실행하기, 앱 기동 시 자동 실행하기는 무엇이 다른가?
 - 스키마 변경이 안전한지 어떤 단계에서 무엇으로 검증하는가?
 - 배포 후 문제가 생기면 어떻게 되돌리는가?
+- 같은 DB 서버에 있는 다른 DB를 어떻게 보호하는가?
 
 ## 2. 용어
 
+**환경:** 이 프로젝트는 세 환경으로 나눕니다(자세히는 [환경별 가이드 1장](../deployment/database-environments.kr.md#1-환경-구분)).
+
+| 환경 | 의미 | DB |
+| --- | --- | --- |
+| **Local** | 개발 PC에서 실행(`NODE_ENV=development`, `.env`) | 개발 서버의 앱 전용 DB `app_db_dev` |
+| **Test** | Local 안의 e2e(`NODE_ENV=test`, `.env.test.local`) | 개발 서버의 앱 전용 DB `app_db_test` |
+| **Prod** | EC2 + PM2(`NODE_ENV=production`, `.env.production`) | EC2 localhost MariaDB |
+
+
 | 용어 | 뜻 | 이 프로젝트에서 |
 | --- | --- | --- |
-| DB 서버 | MariaDB 프로세스 하나(host:port) | Dev/Test는 외부 개발 서버, Prod는 EC2 localhost |
-| 데이터베이스(스키마) | 테이블을 담는 이름 공간. MariaDB에서는 `DATABASE`와 `SCHEMA`가 같은 말 | `app_db`, `app_db_test`, 운영 DB |
+| DB 서버 | MariaDB 프로세스 하나(host:port). 여러 DB가 함께 있을 수 있음 | Local/Test는 외부 개발 서버(다른 앱의 DB도 있음), Prod는 EC2 localhost |
+| 데이터베이스(스키마) | 테이블을 담는 이름 공간. MariaDB에서는 `DATABASE`와 `SCHEMA`가 같은 말 | `app_db_dev`, `app_db_test`, 운영 DB. 앱은 자기 DB만 다룸 |
 | 계정·권한 | `'user'@'host'`와 `GRANT` | 앱 계정은 자기 DB에만 권한 |
 | 테이블·컬럼·인덱스 | 실제 데이터 구조 | migration 파일로만 변경 |
 | migration | 스키마를 한 단계 바꾸는 코드(`up`/`down`) | `src/database/migrations/*.ts` |
 | `migrations` 테이블 | 어떤 migration이 적용됐는지 TypeORM이 기록하는 테이블 | 각 DB 안에 자동 생성 |
 | pending | 코드에는 있지만 그 DB에 아직 적용되지 않은 migration | `db:check`, `migration:show`로 확인 |
 | drift | entity(코드)와 실제 DB 스키마가 어긋난 상태 | `migration:check:test`로 검사 |
-| `synchronize` | entity를 보고 TypeORM이 스키마를 자동으로 맞추는 기능 | **항상 false**(운영에서는 검증에서 거부) |
+| `synchronize` | entity를 보고 TypeORM이 스키마를 자동으로 맞추는 기능 | **모든 환경에서 금지**(`true`면 기동 거부). 컬럼을 자동 삭제할 수 있음 |
+| 앱 소유 DB | 이 앱의 테이블(`APP_TABLES`)만 있는 DB | `db:setup`·`db:reset`은 앱 소유 DB에서만 동작 |
 
 핵심은 **"그릇(데이터베이스·계정)"과 "내용(테이블 구조)"을 다르게 다룬다**는 점입니다.
 
@@ -34,7 +45,7 @@
 
 ## 3. 무엇을 누가 만드나
 
-| 대상 | Dev | Test | Prod |
+| 대상 | Local | Test | Prod |
 | --- | --- | --- | --- |
 | DB 서버 | 개발 서버 관리자 | 개발 서버 관리자 | EC2 MariaDB 설치(1회) |
 | 데이터베이스 | `npm run db:setup`(없으면 생성) | `db:setup:test` / `db:reset:test` | **관리자 SQL**(1회) |
@@ -57,7 +68,7 @@ Prod에서는 앱이 데이터베이스를 만들지 않습니다. `db:ensure`�
 | 실패 시 | 중간 상태로 남기 쉬움 | **배포를 멈추고** 앱은 이전 버전 그대로 | 앱이 기동하지 못함. PM2가 재시작을 반복 |
 | 여러 인스턴스 | 해당 없음 | 한 번만 실행 | 동시에 실행될 수 있음. TypeORM에는 실행 잠금이 없음 |
 | 오래 걸리는 변경 | 해당 없음 | 별도 단계로 시간 확보 | 기동과 health check 지연 |
-| 쓰는 곳 | 긴급 조치(이후 반드시 migration으로 기록) | 공유 Dev, Prod 배포 | 로컬 전용 DB, 잠금을 지원하는 도구 |
+| 쓰는 곳 | 긴급 조치(이후 반드시 migration으로 기록) | 공유 개발 DB, Prod 배포 | 혼자 쓰는 로컬 DB, 잠금을 지원하는 도구 |
 
 정리하면 다음과 같습니다.
 
@@ -65,7 +76,7 @@ Prod에서는 앱이 데이터베이스를 만들지 않습니다. `db:ensure`�
 - **자동 실행 자체가 틀린 것은 아닙니다.** Spring Boot는 기동 시 Flyway를 실행하는 것이 기본입니다. 다만 다음과 같은 이유로 이 프로젝트는 명령 방식을 택했습니다.
   - PM2 단일 프로세스에서 migration이 실패하면 서비스 전체가 재시작을 반복합니다.
   - TypeORM에는 여러 인스턴스 사이의 실행 잠금이 없습니다.
-  - 공유 Dev DB가 누군가의 `start:dev`만으로 바뀌면 안 됩니다.
+  - 공유 개발 서버의 DB가 누군가의 `start:dev`만으로 바뀌면 안 됩니다.
 - **업계에서 흔한 구성**은 "개발 편의 명령"과 "배포용 명령"을 나누는 것입니다.
 
   | 도구 | 개발 편의 | 배포용 |
@@ -76,16 +87,16 @@ Prod에서는 앱이 데이터베이스를 만들지 않습니다. `db:ensure`�
 
 - 대신 **앱은 기동할 때 적용되지 않은 migration이 있으면 경고만 합니다**(`MigrationStatusService`). 자동으로 고치지는 않지만, 배포 단계를 빠뜨렸다는 것은 바로 알 수 있습니다.
 
-## 5. "Test에서 되던 것이 Dev/Prod에 없으면?"
+## 5. "Test에서 되던 것이 Local/Prod에 없으면?"
 
 예: `users.role` 컬럼을 추가한 `AddRoleToUsers1765000000000`
 
 ```text
-개발자 PC                CI(빈 MariaDB)              Test DB           Dev DB             Prod DB
+개발자 PC                CI(빈 MariaDB)              Test DB           Local DB           Prod DB
 ─────────                ──────────────              ───────           ──────             ───────
 entity 수정
 migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:test     db:check           백업
-커밋 / PR                pending 없음 확인            test:e2e          migration:run      migration:show:prod
+커밋 / PR                pending 없음 확인            test:e2e          db:setup           migration:show:prod
                          최신 revert → 재적용                           start:dev          migration:run:prod
                          drift 검사, e2e                                                   pm2:reload → 스모크
 ```
@@ -93,13 +104,13 @@ migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:te
 1. **코드를 바꾸면 migration도 같이 만듭니다.** entity를 바꾸고 `npm run migration:generate -- src/database/migrations/<Name>`으로 초안을 만든 뒤, 생성된 SQL을 직접 읽고 다듬습니다. 자동 생성 결과를 그대로 믿지 않습니다.
 2. **CI가 빈 DB에서 처음부터 끝까지 적용해 봅니다.** "기존 DB에서는 우연히 되는" 변경을 걸러냅니다.
 3. **Test DB**에서 e2e로 실제 서버 버전과 설정에서 동작을 확인합니다.
-4. **Dev DB**는 이미 데이터가 있는 DB입니다. 여기서 기존 데이터 위에 적용되는지 확인합니다(예: NOT NULL 컬럼 추가에 default가 필요한지).
+4. **Local DB**(`app_db_dev`)는 개발하면서 데이터가 쌓인 DB입니다. 여기서 기존 데이터 위에 적용되는지 확인합니다(예: NOT NULL 컬럼 추가에 default가 필요한지).
 5. **Prod**는 배포 단계에서 명령으로 적용합니다. 순서는 **백업 → 적용 대기 목록 확인 → 적용 → 앱 재시작 → 스모크**입니다.
 
 어느 환경에 migration이 없는지는 그 환경에서 `db:check`(또는 `migration:show`)를 실행하면 `[ ]`로 표시됩니다. "직접 만들어야 하나?"에 대한 답은 **아니요, 그 환경에서 같은 migration 명령을 실행합니다**입니다.
 
 데이터베이스 자체가 없을 때는 환경마다 다르게 처리합니다.
-- Dev/Test: `db:setup`이 만듭니다.
+- Local/Test: `db:setup`이 만듭니다(앱 전용 이름에 한해, 권한이 DB 단위로 있을 때).
 - Prod: 관리자 SQL로 만듭니다.
 
 ## 6. 하위 호환 변경: expand → contract
@@ -121,11 +132,13 @@ migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:te
 | 단위 테스트 | `npx jest` | 로직(예: `database-admin.spec.ts`의 생성·거부 규칙) |
 | CI `database` job | `db:reset:test` → `db:check:test -- --strict` → `migration:revert:test` + `migration:run:test` → `migration:check:test` → `test:e2e` | 빈 DB에서 전체 체인이 적용되는지, 최신 migration의 down/up, entity와 migration 일치(drift), 앱 기동 |
 | Test DB | `db:setup:test`, `test:e2e` | 실제 개발 서버 버전과 설정에서 동작 |
-| Dev DB | `db:check` → `migration:run` | 기존 데이터 위에서 적용 |
+| Local DB | `db:check` → `db:setup` | 기존 데이터 위에서 적용 |
 | Prod 배포 | `env:check:prod` → `db:check:prod` → 백업 → `migration:show:prod` → `migration:run:prod` → `/health` | 운영 적용과 서비스 정상 |
 | 앱 기동 | `MigrationStatusService` 로그 | 적용 누락 감지(경고만) |
 
-`db:check`는 읽기 전용입니다. 계정 권한(`SHOW GRANTS`)과 TLS 사용 여부도 보여 주므로, 접속 문제와 권한 문제를 가장 먼저 확인하는 도구로 씁니다.
+`db:check`는 읽기 전용입니다. 계정 권한, 앱 소유 여부, TLS 사용 여부도 보여 주므로 접속·권한·공유 DB 문제를 가장 먼저 확인하는 도구로 씁니다.
+
+2026-11-09에는 실제 개발 서버에서 이 계층을 한 번 끝까지 실행했습니다. `app_db_test`에 9개 migration 적용, `--strict` 통과, e2e 통과, `db:reset:test` 후 재적용까지 확인했고, 같은 서버의 다른 DB는 변경이 없었습니다.
 
 ## 8. 실패와 롤백
 
@@ -173,7 +186,7 @@ migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:te
 
 **1) 비밀번호를 넣었는데 `DB_PASSWORD is required.`**
 
-- **원인:** 비밀번호는 `.env.test.local`에 넣었는데, 실행한 명령은 Dev용 `npm run db:check`였습니다. 이 명령은 `.env`를 읽습니다.
+- **원인:** 비밀번호는 `.env.test.local`에 넣었는데, 실행한 명령은 Local용 `npm run db:check`였습니다. 이 명령은 `.env`를 읽습니다.
 - **교훈:** 환경마다 파일이 나뉘어 있으면 "명령 ↔ 파일" 대응을 놓치기 쉽습니다. 그런데 메시지에 어느 파일을 읽었는지가 없어 원인을 바로 알 수 없었습니다.
 - **보완(`src/config/env-diagnostics.ts`):** 검증 실패 메시지에 읽은 파일과 `NODE_ENV`를 붙입니다. 같은 키가 다른 환경 파일에 있으면 `Hint:`로 알려 줍니다.
   - 앱 기동, `env:check`, `db:*`에 모두 적용했습니다.
@@ -189,16 +202,46 @@ migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:te
   - role 부여처럼 판정할 수 없는 경우에는 막지 않고 경고만 합니다. 오탐으로 작업을 막지 않기 위해서입니다.
 - **실무 원칙:** 쓰기 작업 전에 **사전 조건(권한, 디스크, 잠금, 백업)을 읽기 전용으로 확인하고, 실패할 것이 확실하면 시작하지 않습니다(fail fast).** 중간 실패를 복구하는 것보다 시작 전에 막는 편이 훨씬 쌉니다.
 
+## 8.3 사례: 같은 서버의 다른 DB를 지키기 (2026-11-09)
+
+**상황**
+
+- 개발 서버에는 이 앱과 상관없는 DB가 함께 있습니다.
+- 처음에는 계정이 이미 권한을 가진 기존 DB를 Local DB로 쓰려 했습니다. 그런데 그 DB에 `DROP` 권한을 주는 것은 "기존 DB는 삭제하면 안 된다"는 원칙과 충돌했습니다.
+
+**점검: 이 앱이 무언가를 지울 수 있는 경로**
+
+| 경로 | 위험 | 조치 |
+| --- | --- | --- |
+| `DB_SYNCHRONIZE=true` | entity와 다른 컬럼·인덱스를 TypeORM이 자동 삭제할 수 있음. 전에는 Prod에서만 막았음 | **모든 환경에서 거부** |
+| `db:setup` | 대상 DB에 다른 앱 테이블이 있어도 migration 진행. 이름이 겹치면 충돌 | 앱이 관리하지 않는 객체가 있으면 **아무것도 하지 않고 거부** |
+| `db:reset:test` | 이름이 `*_test`이면 안의 객체까지 `DROP DATABASE` | **앱 소유(`APP_TABLES`만 있음)일 때만** 초기화 |
+| migration | `RENAME`/`ALTER`/`DROP TABLE`(down) | 대상 DB 안의 앱 테이블에만 실행(소스 확인, spec으로 고정) |
+| GRANT | `DROP` 권한이 기존 DB 전체에 미침 | 앱 전용 DB(`app_db_dev`, `app_db_test`) 단위로만 권한 부여 |
+
+**결정:** 기존 DB는 그대로 두고, 앱 전용 DB `app_db_dev`를 새로 쓰기로 했습니다.
+
+**구현 포인트**
+
+- **소유 판정**(`inspectOwnership`): `information_schema`의 TABLES(뷰·시퀀스 포함), ROUTINES, EVENTS를 읽어 `APP_TABLES`에 없는 객체를 찾습니다.
+- **목록 누락 방지:** spec이 entity 메타데이터와 migration 소스(`new Table({ name })`, `RENAME … TO …`)를 `APP_TABLES`와 대조합니다. 새 테이블을 만들고 목록에 추가하지 않으면 테스트가 실패합니다.
+- **쓰기 범위 고정:** 쓰기 SQL이 대상 DB 이름 외의 식별자를 참조하지 않는지 spec이 검사합니다.
+
+**실무 원칙**
+
+- **파괴적 명령은 "무엇을 지워도 되는가"를 이름이 아니라 내용으로 확인합니다.** `*_test`라는 이름만으로는 안전을 보장할 수 없습니다.
+- **공유 서버에서는 앱마다 DB와 권한을 분리합니다.** 한 계정의 권한이 다른 앱의 DB에 미치지 않게 합니다.
+
 ## 9. 이 프로젝트의 구현
 
 | 역할 | 코드 |
 | --- | --- |
 | 환경별 env 파일 선택 | [src/config/env-files.ts](../../src/config/env-files.ts) |
 | 설정 오류에 읽은 파일·Hint 추가 | [src/config/env-diagnostics.ts](../../src/config/env-diagnostics.ts) |
-| 환경변수 검증(test는 `*_test`만) | [src/config/app-env.ts](../../src/config/app-env.ts) |
+| 환경변수 검증(test는 `*_test`만, `synchronize` 금지) | [src/config/app-env.ts](../../src/config/app-env.ts) |
 | TypeORM 옵션, migration 경로, TLS | [src/database/database-options.ts](../../src/database/database-options.ts) |
 | migration CLI용 data-source | [src/database/data-source.ts](../../src/database/data-source.ts) |
-| DB 확인·생성·초기화, 권한 판정(`evaluatePrivileges`) | [src/database/database-admin.ts](../../src/database/database-admin.ts) |
+| DB 확인·생성·초기화, 권한 판정(`evaluatePrivileges`), 소유 판정(`inspectOwnership`, `APP_TABLES`) | [src/database/database-admin.ts](../../src/database/database-admin.ts) |
 | `db:check` / `db:ensure` / `db:reset` CLI | [src/database/cli/db-tool.ts](../../src/database/cli/db-tool.ts) |
 | 환경별 실행 래퍼(`--dist` 포함) | [scripts/typeorm-env.cjs](../../scripts/typeorm-env.cjs) |
 | 기동 시 pending 경고 | [src/database/migration-status.service.ts](../../src/database/migration-status.service.ts) |
@@ -209,7 +252,9 @@ migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:te
 
 - **DB를 지정하지 않고 접속합니다.** `db-tool`은 서버에만 연결합니다. 대상 DB가 아직 없어도 확인하고 만들 수 있게 하기 위해서입니다.
 - **허용되지 않는 명령은 연결 전에 거부합니다.** prod의 `ensure`, test가 아닌 환경의 `reset`이 해당합니다.
-- **DB 이름은 영문, 숫자, `_`만 허용합니다.** 식별자는 SQL 파라미터로 바인딩할 수 없어 백틱으로 직접 넣기 때문입니다.
+- **DB 이름은 영문, 숫자, `_`, `-`만 허용합니다.** 식별자는 SQL 파라미터로 바인딩할 수 없어 백틱으로 직접 넣기 때문입니다. 백틱과 따옴표는 허용하지 않습니다.
+- **쓰기 전에 읽기 전용으로 확인합니다.** 권한, 소유, 존재 여부를 모두 확인한 다음에만 `CREATE`/`DROP`을 실행합니다.
+- **대상 DB 하나만 다룹니다.** 다른 DB는 목록 조회(`SHOW DATABASES`) 외에는 접근하지 않습니다.
 - **비밀번호는 어디에도 출력하지 않습니다.** `SHOW GRANTS`의 해시도 가립니다.
 - **같은 규칙을 한 곳에서 씁니다.** 앱, migration CLI, `db-tool`, e2e가 같은 env 파일 규칙과 같은 검증(`validateAppEnv`)을 씁니다.
 
@@ -217,13 +262,16 @@ migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:te
 
 | 결정 | 이유 |
 | --- | --- |
-| Dev(`app_db`)와 Test(`app_db_test`)를 같은 외부 개발 서버에 두고, 같은 개발 계정을 사용 | 서버가 하나입니다. 데이터베이스 이름 규칙(`*_test`)으로 e2e가 개발 데이터를 바꾸지 못하게 합니다 |
+| Local과 Test를 같은 외부 개발 서버에 두고, 같은 개발 계정을 사용 | 서버가 하나입니다. 데이터베이스 이름 규칙(`*_test`)으로 e2e가 개발 데이터를 바꾸지 못하게 합니다 |
 | 데이터베이스와 테이블은 명령으로 생성(`db:setup`), 기동 시 자동 실행은 하지 않음 | 4장의 실패, 재시작 반복, 공유 DB 문제 |
 | 비밀번호는 각 env 파일(`.env`, `.env.test.local`)에 직접 입력 | Git 미추적 파일, 권한 `600`. 채팅·문서·커밋에 남기지 않음 |
 | 개발 서버는 TLS 미지원. `DB_SSL=false`를 유지하고 접근을 IP로 제한하거나 SSH 터널 사용 | 인터넷 구간에서 계정 정보가 평문으로 오가므로 노출 범위를 줄입니다 |
 | CI에 MariaDB 10.11 job 추가 | 실제 MariaDB에서 migration 전체 체인을 검증한 적이 없었습니다(감사 미검증 항목) |
-| (2026-11-09) Dev는 서버에 이미 있던 빈 DB를 사용(`DB_DATABASE=<existing-db>`). 이름의 `-`를 허용 | 계정에 이미 권한이 있는 DB를 쓰면 관리자 작업이 `DROP` 하나로 줄어듭니다. 백틱으로 감싸므로 `-`는 안전합니다 |
+| (2026-11-09 오전) Local은 서버에 이미 있던 빈 DB를 사용하기로 함. 이름의 `-`를 허용 | 관리자 작업이 `DROP` 하나로 줄어든다고 판단했습니다. **같은 날 아래 결정으로 대체** |
 | (2026-11-09) 권한 사전 점검을 `db:setup`의 필수 단계로 둠 | 권한 부족으로 migration이 중간에서 멈추면 DDL을 되돌릴 수 없습니다(8.2) |
+| (2026-11-09) 환경 용어를 Local / Test / Prod로 통일. 파일과 명령은 유지 | 실제 운용(PC에서 개발, EC2에서 운영)과 이름을 맞춥니다 |
+| (2026-11-09) Local은 앱 전용 새 DB `app_db_dev`를 사용. 기존 DB는 사용하지 않음 | 기존 DB에 `DROP` 권한을 주지 않기 위해서입니다(8.3) |
+| (2026-11-09) `db:setup`·`db:reset`은 앱 소유 DB에서만 동작. `synchronize`는 모든 환경에서 금지 | 다른 앱의 객체와 데이터를 어떤 경우에도 지우지 않기 위해서입니다(8.3) |
 
 ## 11. 자가 점검 질문
 
@@ -235,11 +283,14 @@ migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:te
 6. 앱 기동 시 pending migration을 발견했을 때 자동 적용 대신 경고만 하는 이유는?
 7. `RENAME TABLE`에는 왜 `DROP` 권한이 필요한가? 권한 없이 migration을 시작하면 DB는 어떤 상태로 남는가?
 8. `npm run db:check`와 `npm run db:check:test`는 각각 어느 파일을 읽는가? 셸에 export한 `DB_PASSWORD`가 있으면 어느 값이 쓰이는가?
+9. `db:reset:test`가 이름(`*_test`)만 보고 DB를 지우면 어떤 사고가 날 수 있는가? 이 프로젝트는 무엇을 추가로 확인하는가?
+10. 새 테이블을 만드는 migration을 추가할 때 `APP_TABLES`도 고쳐야 하는 이유는? 고치지 않으면 무엇이 알려 주는가?
 
 ## 12. 실습 과제
 
-1. `npm run db:check`의 출력에서 서버 버전, TLS, 권한, pending 목록을 읽어 보세요.
+1. `npm run db:check`의 출력에서 서버 버전, TLS, 권한(`privilege`), 소유(`ownership`), pending 목록을 읽어 보세요.
 2. `npm run db:reset:test` 후 `npm run db:check:test`로 빈 DB에서 전체 체인이 적용되는 것을 확인하세요.
 3. `users`에 NULL 허용 컬럼을 추가하는 entity 변경을 하고, `migration:generate`로 초안을 만들어 SQL을 리뷰하세요. 실습 후에는 되돌립니다.
 4. 3번을 커밋하지 않은 상태에서 `npm run migration:check:test`를 실행해 drift가 어떻게 보고되는지 확인하세요.
 5. `migration:revert:test`로 마지막 migration을 되돌리고, 앱 기동 로그에 pending 경고가 나오는지 확인한 뒤 다시 적용하세요.
+6. `database-admin.spec.ts`의 `inspectOwnership`·`resetTestDatabase` 테스트를 읽고, 다른 앱의 테이블이 섞인 DB를 `db:reset`이 어떻게 거부하는지 설명해 보세요.

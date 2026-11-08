@@ -1,6 +1,6 @@
 # SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)
 
-> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 ## 아키텍처 요약
 

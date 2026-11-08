@@ -10,8 +10,11 @@
 2. [기능 명세](product/features.kr.md) → [API 명세](product/api-spec.kr.md): 규칙, 정책, 라우트, 권한
 3. [아키텍처 학습 가이드](learning/nestjs-operational-stability-guide.kr.md): 코드 구조와 계층
 4. [DB·스키마 관리 학습 가이드](learning/database-schema-management.kr.md): DB·테이블을 누가 언제 만들고, migration을 어떻게 적용하고 검증하는지
-5. [환경별 DB·설정 가이드](deployment/database-environments.kr.md): Dev/Test/Prod 연결과 명령(처음 연결: `db:check` → `db:setup`)
-6. [최신 감사 리포트](audit/2026-11-08-project-audit.kr.md): 현재 위험, 로드맵, 릴리스 체크리스트
+5. [환경별 DB·설정 가이드](deployment/database-environments.kr.md): Local / Test / Prod 연결과 명령(처음 연결: `db:check` → `db:setup`), DB 삭제 안전 원칙
+6. [작업 내역과 배운 점](learning/work-history-2026-11.kr.md): 2026-11 감사와 후속 작업 전체
+7. [최신 감사 리포트](audit/2026-11-08-project-audit.kr.md): 현재 위험, 로드맵, 릴리스 체크리스트
+
+학습 자료 전체의 순서와 자가 점검·실습 모음은 [학습 로드맵](learning/README.md)에 있습니다.
 
 ## 디렉터리 구성
 
@@ -22,7 +25,7 @@
 | `auth/` | 로컬·SNS 로그인 설계와 provider 설정 | [SNS 로그인 개요](auth/sns-login-overview.kr.md), [SNS 재활성화 체크리스트](auth/sns-reenable-checklist.kr.md), [Google 로그인](auth/google-login.kr.md), [로그인 API 재평가](auth/login-api-reassessment.kr.md) (이력) |
 | `music/` | 음악 카탈로그 설계, 결정, 운영 | [music/README](music/README.md) |
 | `deployment/` | 환경별 DB·env 설정과 명령, EC2 배포 절차 | [환경별 DB·설정 가이드](deployment/database-environments.kr.md), [EC2 MariaDB 배포](deployment/mariadb-systemd.kr.md) |
-| `learning/` | 학습 가이드, 운영 체크리스트, 장애 이력 | [아키텍처 학습 가이드](learning/nestjs-operational-stability-guide.kr.md), [DB·스키마 관리](learning/database-schema-management.kr.md), [보안 가이드](learning/security-guide.kr.md), [배포 시크릿 체크리스트](learning/deployment-secrets-checklist.kr.md), [SNS 운영 가이드](learning/sns-login-operational-guide.kr.md), [실행 오류 이력](learning/runtime-troubleshooting-history.kr.md) (이력) |
+| `learning/` | 학습 가이드, 운영 체크리스트, 장애 이력 | [학습 로드맵](learning/README.md), [작업 내역과 배운 점](learning/work-history-2026-11.kr.md), [아키텍처 학습 가이드](learning/nestjs-operational-stability-guide.kr.md), [DB·스키마 관리](learning/database-schema-management.kr.md), [보안 가이드](learning/security-guide.kr.md), [배포 시크릿 체크리스트](learning/deployment-secrets-checklist.kr.md), [SNS 운영 가이드](learning/sns-login-operational-guide.kr.md), [실행 오류 이력](learning/runtime-troubleshooting-history.kr.md) (이력) |
 
 저장소 루트 문서:
 

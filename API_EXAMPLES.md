@@ -17,7 +17,7 @@
    DB_PORT=<port>
    DB_USERNAME=<dev-user>
    DB_PASSWORD=<type it here>
-   DB_DATABASE=app_db
+   DB_DATABASE=app_db_dev   # a database dedicated to this app
    JWT_SECRET=a-local-secret-of-at-least-32-characters
    CORS_ORIGIN=http://localhost:3001
    # SNS providers stay disabled (AUTH_*_ENABLED=false); their routes return 503.
@@ -26,7 +26,7 @@
    ```bash
    npm ci
    npm run db:check   # read-only: connection, privileges, pending migrations
-   npm run db:setup   # creates app_db if missing, then applies migrations
+   npm run db:setup   # creates app_db_dev if missing, then applies migrations
    ```
 3. Start the server:
    ```bash

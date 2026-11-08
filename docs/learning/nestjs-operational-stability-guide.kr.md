@@ -74,20 +74,21 @@ src/
 
 **어떤 파일을 읽는가** (`src/config/env-files.ts`)
 
-- `NODE_ENV`에 따라 env 파일 하나를 고릅니다: `development` → `.env`, `test` → `.env.test.local`(필수), `production` → `.env.production`
+- `NODE_ENV`에 따라 env 파일 하나를 고릅니다: Local(`development`) → `.env`, Test(`test`) → `.env.test.local`(필수), Prod(`production`) → `.env.production`
 - `ENV_FILE`로 다른 파일을 지정할 수 있습니다.
 - 셸 환경변수가 파일 값보다 우선합니다.
 - 앱, migration CLI, DB 도구(`db:*`), e2e가 모두 이 규칙 하나를 씁니다. 환경별 절차는 [환경별 DB·설정 가이드](../deployment/database-environments.kr.md)에 있습니다.
+- 검증에 실패하면 `src/config/env-diagnostics.ts`가 메시지에 **읽은 파일과 `NODE_ENV`**를 붙입니다. 같은 키가 다른 환경 파일에 있으면 `Hint:`도 붙입니다(값은 출력하지 않음).
 
 대표 규칙:
 
 - **필수:** `JWT_SECRET`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`
 - **SNS:** 5종 모두 `AUTH_<P>_ENABLED=true`일 때만 켜지고(현재 전부 off), 켜진 provider만 자기 키를 요구합니다(Google이면 `GOOGLE_ALLOWED_AUDIENCES`)
 - **test 전용:** `DB_DATABASE`는 `*_test`만 허용
+- **모든 환경:** `DB_SYNCHRONIZE=true` 거부(스키마는 migration으로만 변경)
 - **DB 타입:** `DB_TYPE`은 `mariadb`만 허용
 - **production 전용**
   - `CORS_ORIGIN` 필수
-  - `DB_SYNCHRONIZE=true` 차단
   - `JWT_SECRET` 32자 이상, placeholder 금지
   - 활성 provider의 최소 설정(Kakao는 `KAKAO_APP_ID` 포함)
 - **환경 무관:**
@@ -180,7 +181,7 @@ UsersController (interface)            ── DTO 검증, PublicUser로 변환
 | --- | --- |
 | `database-options.ts` | TypeORM 옵션. migration 경로는 실행 중인 파일 기준(src면 `.ts`, dist면 `.js`)이라 cwd와 무관 |
 | `data-source.ts` | TypeORM CLI용 DataSource(앱과 같은 env 규칙) |
-| `database-admin.ts` | DB 확인·생성·test DB 초기화 로직. 연결을 주입받아 unit test 가능 |
+| `database-admin.ts` | DB 확인·생성·test DB 초기화, 권한 판정(`evaluatePrivileges`), 앱 소유 판정(`APP_TABLES`, `inspectOwnership`). 연결을 주입받아 unit test 가능 |
 | `cli/db-tool.ts` | `db:check`(읽기 전용) / `db:ensure`(dev·test만) / `db:reset`(test만) |
 | `migration-status.service.ts` | 기동 시 pending migration을 경고(읽기 전용, 기동을 막지 않음) |
 | `mariadb-errors.ts` | 드라이버 오류 코드(`ER_DUP_ENTRY` 등) 판별 |
@@ -190,6 +191,8 @@ UsersController (interface)            ── DTO 검증, PublicUser로 변환
 - **연결 시점:** 허용되지 않는 명령(운영에서 DB 생성 등)은 서버에 연결하기 전에 거부합니다.
 - **SQL 식별자:** DB 이름처럼 파라미터로 바인딩할 수 없는 값은 허용 문자로 먼저 검증합니다.
 - **출력:** 비밀번호는 어떤 출력에도 넣지 않습니다(`SHOW GRANTS`의 해시도 가림).
+- **사전 점검:** 쓰기 전에 권한과 소유를 읽기 전용으로 확인하고, 부족하거나 다른 앱의 객체가 있으면 아무것도 바꾸지 않습니다.
+- **범위:** 대상 DB 하나만 다룹니다. 다른 DB는 절대 바꾸지 않으며, spec이 쓰기 SQL의 대상을 검사합니다.
 
 ## 13. 품질 게이트
 
@@ -242,5 +245,7 @@ npm run build          # nest build
 - 설정은 기동 시점에 검증하고, 실패는 빠를수록 좋습니다.
 - HTTP 변환은 필터 한 곳에서 합니다. 비밀번호, 토큰, DB 오류 원문은 응답과 로그에 그대로 내보내지 않습니다.
 - 인증(누구인가)과 인가(무엇을 할 수 있는가)는 별도 가드로 분리합니다.
-- 스키마는 migration으로만 바꾸고, 같은 파일을 CI(빈 DB) → Test → Dev → Prod 순으로 명령으로 적용합니다.
+- 스키마는 migration으로만 바꾸고, 같은 파일을 CI(빈 DB) → Test → Local → Prod 순으로 명령으로 적용합니다.
+- 앱은 자기 전용 DB만 다룹니다. 같은 서버의 다른 DB와 객체는 지우거나 바꾸지 않습니다.
+- 모든 작업 내역과 교훈은 [작업 내역과 배운 점](work-history-2026-11.kr.md)에 있습니다.
 - 완료 조건은 lint, format, typecheck, test, build, CI `database` job 통과입니다.
