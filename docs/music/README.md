@@ -1,13 +1,15 @@
 # Music API 운영 개선 문서
 
+> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+
 NestJS Music API와 EC2 내부 MariaDB 운영 개선 문서 모음입니다.
 
 ## 문서 구조
 
-- [개선 작업 프롬프트](roadmap/github-copilot-nestjs-mariadb-improvement-prompt.md): 전체 요구사항과 단계별 체크리스트
 - [MariaDB 운영 가이드](database/mariadb-operations.md): DB 생성, migration, backup, 배포, 보안
 - [결정 및 보류 항목](decisions.md): 현재 코드와 제품 정책에서 확정되지 않은 사항
-- [Music API 구조 검토](../music-api-reorganization-review.kr.md): 현재 구조의 문제와 단계적 개선 방향
+- [Music API 구조 검토](api-reorganization-review.kr.md): 구조 문제와 단계적 개선 방향(2026-09 검토, 이후 상태 표기)
+- 남은 요구사항과 우선순위: [최신 감사 리포트 로드맵](../audit/2026-11-08-project-audit.kr.md#6-로드맵)
 - [학습 가이드](learning-guide.kr.md): 도메인, 요청 흐름, TypeORM, 공개/보호 API를 따라가는 입문 문서
 - [설계 및 아키텍처](architecture.kr.md): Legacy/Catalog 구조, 데이터 관계, API 경계와 향후 방향
 - [원인 분석 및 트러블슈팅](troubleshooting.kr.md): route, migration, relation, 공개 URL 문제 분석
@@ -25,4 +27,6 @@ NestJS Music API와 EC2 내부 MariaDB 운영 개선 문서 모음입니다.
 - Catalog Playlist는 `draft`/`published`/`archived` 상태를 사용하며 공개 API는 `published`만 반환합니다.
 - Catalog Playlist item은 `position`으로 정렬하고 `(playlistId, position)` unique 제약을 사용합니다.
 - 공개 응답에는 음원 URL과 내부 storage 정보가 포함되지 않습니다. playback/presigned URL은 후속 작업입니다.
-- 현재 개발 DB에는 Legacy archive, Catalog music, Catalog playlist Migration이 모두 적용되어 있습니다. 다른 환경은 `migration:show`로 확인합니다.
+- Catalog와 Legacy의 모든 **쓰기 API는 admin 전용**(`@AdminOnly()`)입니다. 공개 조회(`/music/tracks`, `/music/public/*`, `/music/legacy/tracks`)는 인증이 필요 없고, 나머지 조회는 로그인이 필요합니다.
+- 삭제하려는 리소스를 다른 데이터가 참조하면(FK) 409 `FOREIGN_KEY_CONSTRAINT`를 반환합니다.
+- 2026-09-13 기준 개발 DB에는 Legacy archive, Catalog music, Catalog playlist Migration이 적용되어 있었습니다. `1765000000000-AddRoleToUsers`를 포함한 환경별 상태는 `migration:show`로 확인합니다.

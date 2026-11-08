@@ -1,5 +1,7 @@
 # 시크릿 관리와 GitHub Push 보안 학습 가이드
 
+> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+
 이 문서는 이 프로젝트에서 시크릿(비밀번호, JWT 시크릿, OAuth 클라이언트 시크릿 등)이 어디서 시작해 어디로 흘러가는지, 그리고 이미 코드에 들어 있는 방어 장치가 왜 그렇게 짜여 있는지 이해하기 위한 가이드입니다. 이어서 GitHub에 push하기 전 재사용 가능한 점검 절차와, 만약 시크릿이 실수로 커밋됐을 때의 대응 원칙을 다룹니다.
 
 ## 1. 큰 흐름 먼저 보기
@@ -32,11 +34,14 @@ if (nodeEnv === 'production' && isPlaceholderSecret(jwtSecret)) {
   throw new Error('JWT_SECRET must be a strong production secret.');
 }
 
-function isPlaceholderSecret(value: string): boolean {
-  const normalized = value.toLowerCase();
-  return normalized.includes('change-this') || normalized.includes('your-');
+if (nodeEnv === 'production' && jwtSecret.length < MIN_PRODUCTION_JWT_SECRET_LENGTH) {
+  throw new Error('JWT_SECRET must be at least 32 characters in production.');
 }
+
+const PLACEHOLDER_SECRET_MARKERS = ['change-this', 'your-', 'replace-with'];
 ```
+
+예제 env 파일에 쓰인 placeholder(`replace-with-…`, `your-…`, `…change-this…`)가 운영에 그대로 들어가면 기동이 실패합니다. 2026-11-08 이전에는 `replace-with`가 탐지 목록에 없어 `deploy/backend-nestjs.env.example`의 placeholder가 운영 검증을 통과했습니다.
 
 `.env.example`이나 README에 적힌 예시 값(`your-secret-key-change-this-in-production` 같은 문자열)을 프로덕션에 그대로 배포하면, 앱이 아예 시작하지 않고 즉시 에러를 던집니다. "예시 값을 실수로 그대로 쓰는" 흔한 사고를 코드 레벨에서 원천 차단하는 장치입니다.
 

@@ -1,5 +1,7 @@
 # MariaDB 운영 가이드
 
+> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+
 ## 운영 토폴로지
 
 ```text
@@ -19,12 +21,15 @@ DB_PORT=3306
 DB_USERNAME=music_app
 DB_PASSWORD=<secret>
 DB_DATABASE=music_db
-DB_POOL_SIZE=10
+DB_POOL_MAX=10
 DB_CONNECT_TIMEOUT_MS=10000
-DB_LOGGING=false
 DB_SYNCHRONIZE=false
 DB_SSL=false
 ```
+
+- 실제 키 목록은 `src/config/app-env.ts`와 `scripts/runtime-env-keys.cjs`를 기준으로 합니다.
+- 쿼리 로그는 `NODE_ENV=development`일 때만 켜집니다.
+- `DB_POOL_MIN`은 검증만 하고 mysql2 풀에는 적용하지 않습니다.
 
 비밀번호, connection URL, signed URL을 소스 코드나 로그에 기록하지 않습니다.
 
@@ -42,6 +47,8 @@ CREATE DATABASE IF NOT EXISTS music_db
 
 ## Migration 및 배포 순서
 
+배포 명령과 체크리스트는 [EC2 + MariaDB 배포 가이드](../../deployment/mariadb-systemd.kr.md)를 기준으로 합니다.
+
 1. 현재 운영 DB를 백업합니다.
 2. 애플리케이션을 build합니다.
 3. migration 상태를 확인합니다.
@@ -58,9 +65,12 @@ CREATE DATABASE IF NOT EXISTS music_db
 비밀번호가 shell history에 남지 않는 방법을 사용합니다. 아래 명령은 예시이며 실제 운영 계정과 경로로 대체합니다.
 
 ```bash
-mariadb-dump -u <user> -p music_db > music_db_$(date +%Y%m%d_%H%M%S).sql
+mariadb-dump --single-transaction --routines --triggers -u <user> -p music_db > music_db_$(date +%Y%m%d_%H%M%S).sql
 mariadb -u <user> -p music_db < music_db_backup.sql
 ```
+
+- MariaDB DDL은 암묵적으로 커밋되므로, migration 도중 실패하면 트랜잭션 rollback으로 되돌릴 수 없습니다.
+- `ArchiveLegacyMusicSchema`·`RepairLegacyMariaDbSchema`처럼 down이 없는 migration이 있으므로 **배포 전 백업은 필수**입니다.
 
 backup 위치, 보존 기간, restore 리허설 결과를 운영 기록으로 남깁니다.
 
@@ -77,11 +87,13 @@ backup 위치, 보존 기간, restore 리허설 결과를 운영 기록으로 �
 새 constraint를 적용하기 전에 다음 데이터를 확인합니다.
 
 ```sql
+-- Legacy (1764000000000 migration 이후 legacy_* 테이블)
 SELECT playlistId, seq, COUNT(*)
-FROM playlist_track
+FROM legacy_playlist_track
 GROUP BY playlistId, seq
 HAVING COUNT(*) > 1;
 
+-- Catalog: (playlistId, position)은 UNIQUE로 강제됨. Track 중복은 정책 미확정이라 점검만 합니다.
 SELECT playlistId, trackId, COUNT(*)
 FROM playlist_track
 GROUP BY playlistId, trackId
@@ -89,3 +101,15 @@ HAVING COUNT(*) > 1;
 ```
 
 위반 데이터는 자동 삭제하지 않습니다. 제품 정책과 정리 절차를 확정한 뒤 별도 migration 또는 운영 작업으로 처리합니다.
+
+## 권한(role) 관리
+
+`users.role`(user|admin)은 `1765000000000-AddRoleToUsers` migration으로 추가되었습니다.
+
+- 음악 카탈로그와 legacy 데이터의 쓰기 API는 admin만 호출할 수 있습니다.
+- admin 지정과 해제는 운영 DB에서 수동으로 하고, 작업 기록을 남깁니다.
+
+```sql
+UPDATE users SET role = 'admin' WHERE username = '<admin-username>';
+UPDATE users SET role = 'user'  WHERE username = '<former-admin>';
+```

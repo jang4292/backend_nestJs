@@ -1,5 +1,7 @@
 # Music 학습 가이드
 
+> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+
 이 문서는 현재 Music 기능을 처음 읽는 개발자가 도메인 개념부터 API 호출과 DB Migration까지 따라갈 수 있도록 구성한 학습용 문서입니다.
 
 ## 1. 먼저 알아둘 구조
@@ -100,7 +102,7 @@ PATCH /music/tracks/:id
 DELETE /music/tracks/:id
 ```
 
-관리 작업은 JWT가 필요합니다. 공개 Playlist 상세 응답에는 제목, Track 요약, 순서만 포함하고 `audio_asset.url` 같은 내부 또는 민감한 저장소 정보는 포함하지 않습니다.
+관리 작업은 admin 역할의 JWT가 필요합니다(`@AdminOnly()`). 일반 사용자 토큰이면 403입니다. 공개 Track 목록은 `page`/`limit`(최대 100)를 받습니다. 공개 Playlist 상세 응답에는 제목, Track 요약, 순서만 포함하고 `audio_asset.url` 같은 내부 또는 민감한 저장소 정보는 포함하지 않습니다.
 
 ## 5. Presenter가 필요한 이유
 

@@ -1,5 +1,7 @@
 # Music 원인 분석 및 트러블슈팅
 
+> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+
 문제를 해결할 때는 먼저 **route -> Entity -> table -> migration 상태**를 같은 기능 단위로 확인합니다.
 
 ## 1. `/music/tracks`가 예상과 다른 응답을 반환함
@@ -124,3 +126,22 @@ npm run build
 - 증상: error log, request log, exception message에 URL/token이 기록됨
 - 원인: DTO 또는 예외 객체를 그대로 로깅
 - 해결: URL, object key, Authorization, secret은 redaction합니다. S3 public URL을 쓸 때도 URL을 로그에 남기지 않습니다.
+
+## 권한·삭제 관련 (2026-11-08 추가)
+
+### 로그인했는데 `POST /music/tracks`가 403
+
+- 원인: 음악 쓰기 API는 admin 전용입니다.
+- 확인: `GET /users/profile` 응답의 `role`을 봅니다.
+- 해결: 운영 절차에 따라 `UPDATE users SET role = 'admin' …`을 실행합니다([배포 가이드](../deployment/mariadb-systemd.kr.md#5-배포-후-작업)). 재로그인은 필요 없습니다.
+
+### Artist·Track 삭제가 409 `FOREIGN_KEY_CONSTRAINT`
+
+- 원인: 다른 데이터가 참조하고 있습니다.
+  - Artist: legacy track이 참조
+  - Catalog Track: playlist 항목이 참조(`RESTRICT`)
+- 해결: 참조를 먼저 제거합니다. 이전에는 PostgreSQL 오류 코드로 판별하던 버그 때문에 500이 났습니다.
+
+### `GET /music/legacy/playlists/by-date`가 400
+
+- 원인: `date` 쿼리가 없거나 `YYYY-MM-DD` 형식이 아닙니다. 예전에는 조건 없는 조회로 임의의 playlist가 반환됐습니다.

@@ -1,5 +1,8 @@
 # NestJS Backend API
 
+> Last updated: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11` ·
+> Documentation index: [docs/README.md](docs/README.md)
+
 A NestJS backend for local and social authentication, user profiles, and music
 catalog and playlist APIs. The project uses MariaDB with TypeORM, strict
 environment validation, global request validation, and security-focused
@@ -12,17 +15,20 @@ runtime defaults.
 - Google and Apple ID-token verification plus authorization-code exchange flows
 - Authorization-code exchange and access-token login flows for Facebook, Kakao,
   and Naver
-- Protected user profile read/update endpoints
-- Music artist, track, playlist, and playlist-track APIs
+- Protected user profile read/update endpoints (password change requires `currentPassword`)
+- Music catalog (tracks, audio assets, playlists) and legacy music APIs
+- Minimal RBAC: music write APIs are admin-only (`users.role`)
 - MariaDB + TypeORM integration
 - Environment validation for unsafe production settings
 - Helmet, CORS allow-listing, throttling, and DTO validation
-- Unit and integration coverage for auth, config, users, and music
+- Unit and integration coverage for auth, config, users, and music; GitHub Actions CI
 
 ## Installation
 
+Use Node.js 24 (`.nvmrc`; `engines` requires >= 22.13).
+
 ```bash
-npm install
+npm ci
 ```
 
 ## Configuration
@@ -56,7 +62,10 @@ JWT_EXPIRES_IN=1h
 
 THROTTLE_TTL=60
 THROTTLE_LIMIT=10
+# Comma-separated list; "*" is rejected.
 CORS_ORIGIN=http://localhost:3001
+# Set to the proxy hop count (e.g. 1) when running behind nginx/ALB.
+# TRUST_PROXY=1
 
 GOOGLE_ALLOWED_AUDIENCES=your-google-client-id.apps.googleusercontent.com
 GOOGLE_ALLOWED_ISSUERS=accounts.google.com,https://accounts.google.com
@@ -70,8 +79,12 @@ GOOGLE_OAUTH_REDIRECT_URIS=https://your-app.example.com/auth/google/callback
 has TLS disabled, so use `DB_SSL=false`. Re-check `have_ssl` and
 `require_secure_transport` before exposing the database outside its current
 network.
-`NODE_ENV=production` also requires `CORS_ORIGIN`, rejects placeholder JWT
-secrets, and blocks `DB_SYNCHRONIZE=true`. For a remote MariaDB instance, use
+`NODE_ENV=production` also requires `CORS_ORIGIN`, requires a `JWT_SECRET` of
+at least 32 characters without placeholder text (`replace-with`, `change-this`,
+`your-`), requires `KAKAO_APP_ID` when Kakao is enabled, and blocks
+`DB_SYNCHRONIZE=true`. In every environment `JWT_EXPIRES_IN` must look like
+`3600`, `30m`, `1h` or `7d`, and enabling Apple requires
+`APPLE_ALLOWED_AUDIENCES`. For a remote MariaDB instance, use
 its hostname as `DB_HOST`. Enable `DB_SSL=true` only after the server TLS
 configuration and CA certificate are ready. Keep real endpoints, usernames,
 database names, and secret values in ignored environment files or the EC2
@@ -141,11 +154,18 @@ npm run build
 eval "$(AWS_SECRET_ID=<secret-id> AWS_REGION=ap-northeast-2 npm run -s secrets:export)"
 npm run migration:run
 npm run pm2:reload
-curl -fsS http://localhost:${PORT:-3000}/health
+curl -fsS http://localhost:${PORT:-3000}/health   # 503 when the DB is down
 ```
 
-`scripts/export-secrets-env.cjs` accepts these Secrets Manager `SecretString`
-shapes:
+After applying `1765000000000-AddRoleToUsers`, grant admin access manually:
+`UPDATE users SET role = 'admin' WHERE username = '<admin-username>';`
+See the [EC2 deployment guide](docs/deployment/mariadb-systemd.kr.md) for the
+full checklist and rollback notes.
+
+`scripts/export-secrets-env.cjs` and `ecosystem.config.cjs` share one key list,
+`scripts/runtime-env-keys.cjs`; add new variables there as well as in
+`src/config/app-env.ts` (a spec fails when they drift). The export script
+accepts these Secrets Manager `SecretString` shapes:
 
 - Env-key JSON: `{"DB_PASSWORD":"...","JWT_SECRET":"..."}`
 - MariaDB managed JSON: `{"username":"...","password":"...","host":"...","port":3306,"dbname":"..."}`
@@ -178,103 +198,54 @@ $env:NODE_ENV='test'; npm run migration:run
 로컬 환경 파일, MariaDB 연결, TypeORM 메타데이터, Jest ESM 오류의 발생 및 수정 이력은
 [로컬 실행 오류 및 수정 이력](docs/learning/runtime-troubleshooting-history.kr.md)을 참고하세요.
 
-Public endpoints:
+## Endpoints
 
-```http
-GET  /health
-POST /users/register
-POST /auth/login
-POST /auth/google/verify-id-token
-POST /auth/google/exchange-code
-POST /auth/google/login
-POST /auth/apple/verify-id-token
-POST /auth/apple/exchange-code
-POST /auth/apple/login
-POST /auth/facebook/exchange-code
-POST /auth/facebook/login
-POST /auth/kakao/exchange-code
-POST /auth/kakao/login
-POST /auth/naver/exchange-code
-POST /auth/naver/login
-```
+The full route table with authorization levels is in
+[docs/product/api-spec.kr.md](docs/product/api-spec.kr.md) (55 routes).
 
-Protected user endpoints:
+| Area | Routes | Access |
+| --- | --- | --- |
+| System | `GET /`, `GET /health` | public |
+| Accounts | `POST /users/register`, `POST /auth/login` | public |
+| Profile | `GET/PATCH /users/profile` | JWT |
+| SNS login | `POST /auth/{google,apple,kakao,naver,facebook}/{login,exchange-code}`, `POST /auth/{google,apple}/verify-id-token` | public (503 when the provider is disabled) |
+| Catalog reads | `GET /music/tracks`, `GET /music/tracks/:id`, `GET /music/public/playlists(/:id)` | public |
+| Catalog writes | tracks, audio assets, playlists (create/update/delete/publish/reorder), `GET /music/tracks/:trackId/audio-assets` | **admin** |
+| Legacy reads | `GET /music/legacy/tracks(/:id)` public; artists, playlists, `tracks/full` | JWT |
+| Legacy writes | `POST/PATCH/DELETE /music/legacy/**` | **admin** |
 
-```http
-GET   /users/profile
-PATCH /users/profile
-```
-
-Music endpoints:
-
-```http
-GET    /music/public/playlists
-GET    /music/public/playlists/:id
-
-POST   /music/tracks
-GET    /music/tracks
-GET    /music/tracks/:id
-PATCH  /music/tracks/:id
-DELETE /music/tracks/:id
-POST   /music/tracks/:trackId/audio-assets
-GET    /music/tracks/:trackId/audio-assets
-PATCH  /music/audio-assets/:id
-DELETE /music/audio-assets/:id
-
-POST   /music/playlists
-PATCH  /music/playlists/:id/publish
-POST   /music/playlists/:playlistId/tracks
-PATCH  /music/playlists/:playlistId/tracks/reorder
-
-GET    /music/legacy/artists
-GET    /music/legacy/artists/:id
-POST   /music/legacy/artists
-PATCH  /music/legacy/artists/:id
-DELETE /music/legacy/artists/:id
-
-POST   /music/legacy/playlists
-GET    /music/legacy/playlists
-GET    /music/legacy/playlists/by-date?date=YYYY-MM-DD
-GET    /music/legacy/playlists/:id
-PATCH  /music/legacy/playlists/:id
-DELETE /music/legacy/playlists/:id
-
-GET    /music/legacy/playlists/:playlistId/tracks
-POST   /music/legacy/playlists/:playlistId/tracks
-PATCH  /music/legacy/playlists/:playlistId/tracks/:playlistTrackId
-DELETE /music/legacy/playlists/:playlistId/tracks/:playlistTrackId
-```
-
-`/music/public/*`와 Catalog Track 조회는 로그인 없이 사용할 수 있습니다. 공개 응답은 화면용 메타데이터와 Track 순서만 반환하며 AudioAsset의 S3 URL이나 내부 저장소 식별자를 포함하지 않습니다. Catalog 생성·수정·Playlist 관리와 AudioAsset 목록 조회는 JWT가 필요합니다. 자세한 학습 흐름은 [Music 학습 가이드](docs/music/learning-guide.kr.md)를 참고하세요.
+Public responses never include audio URLs or internal storage identifiers. See
+the [Music learning guide](docs/music/learning-guide.kr.md) for the request flow.
 
 ## Project Structure
 
 ```text
 src/
-  common/        shared request-id, response, and request contracts
-  config/        environment validation and AppEnv contract
-  auth/          local/JWT auth plus five social providers
-  users/         user entity, DTOs, controller, service, public-user mapper
-  music/         music controller, facade service, domain services, entities
-  app.module.ts  application module and infrastructure wiring
-  main.ts        bootstrap, validation pipe, helmet, CORS
+  main.ts        bootstrap: helmet, CORS, trust proxy, validation, shutdown hooks
+  app.module.ts  module wiring, global interceptor/filter/guards
+  config/        environment validation (AppEnv) and duration parsing
+  database/      TypeORM options, CLI data source, MariaDB error helpers, migrations
+  common/        DomainError, global exception filter, request id, response envelope
+  auth/          session (JWT, RBAC), local login, shared SNS kernel, 5 providers
+  users/         domain, use-cases, ports/adapters, controller, presenters
+  music/         legacy (/music/legacy) and catalog (/music) modules
 ```
 
-## Learning Guide
-
-- [API usage examples](API_EXAMPLES.md)
-- [SNS login overview](docs/auth/sns-login-overview.kr.md)
-- [Google login guide](docs/auth/google-login.en.md)
-- [NestJS operational stability refactor guide](docs/learning/nestjs-operational-stability-guide.kr.md)
-- [MariaDB EC2 deployment guide](docs/deployment/mariadb-systemd.kr.md)
+Architecture walkthrough: [docs/learning/nestjs-operational-stability-guide.kr.md](docs/learning/nestjs-operational-stability-guide.kr.md).
+Latest audit and roadmap: [docs/audit/2026-11-08-project-audit.kr.md](docs/audit/2026-11-08-project-audit.kr.md).
 
 ## Verification
 
 ```bash
-npm test -- --runInBand
+npm run lint:check
+npm run format:check
+npm run typecheck
+npx jest
 npm run build
-npx eslint "src/**/*.ts" "test/**/*.ts"
 ```
+
+CI (`.github/workflows/ci.yml`) runs the same steps plus a critical production
+`npm audit` on every pull request and push to `develop` and `main`.
 
 ## Production Notes
 
@@ -282,7 +253,9 @@ npx eslint "src/**/*.ts" "test/**/*.ts"
 - Run migrations as a release/deployment step before deploying the application.
 - Do not run the initial migration against an existing MariaDB database until its
   current schema has been compared and backed up.
-- Use a strong `JWT_SECRET` and rotate it according to your security policy.
-- Set `CORS_ORIGIN` to the real frontend origin, never `*`.
+- Use a strong `JWT_SECRET` (32+ characters) and rotate it according to your security policy.
+- Set `CORS_ORIGIN` to the real frontend origin(s), never `*`.
+- Set `TRUST_PROXY` when running behind a reverse proxy so rate limits apply per client.
+- Keep at least one admin account; music write APIs return 403 for regular users.
 - Configure `GOOGLE_ALLOWED_AUDIENCES` with the exact OAuth client IDs.
 - Avoid logging raw Google tokens, JWTs, or passwords.

@@ -1,6 +1,7 @@
 # Music API 서버 로직 재점검 및 구조 재정리 보고서
 
-작성일: 2026-09-12
+> 작성일: 2026-09-12 · 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 본문은 2026-09-12 검토 내용입니다. 이후 상태는 [12장](#12-2026-11-08-이후-상태)에 정리했고, 남은 과제의 우선순위는 [감사 로드맵](../audit/2026-11-08-project-audit.kr.md#6-로드맵)을 따릅니다.
 
 ## 1. 목적과 검토 범위
 
@@ -18,7 +19,7 @@ npm test -- --runInBand src/music --passWithNoTests
 
 결과는 8개 테스트 스위트, 44개 테스트 통과다. 현재 단위 테스트 범위에서는 Artist/Track CRUD, 트랙 목록 필터와 페이지네이션, Playlist CRUD의 주요 성공 및 일부 Not Found 경로가 정상 동작한다.
 
-다만 이 결과는 HTTP 계약, 인증된 사용자의 권한, 실제 PostgreSQL 제약, 동시 요청, 트랜잭션을 검증하지 않는다. 따라서 "테스트 통과"는 기본 로직의 회귀가 없다는 근거이지, 운영 준비 완료 판정은 아니다.
+다만 이 결과는 HTTP 계약, 인증된 사용자의 권한, 실제 MariaDB 제약, 동시 요청, 트랜잭션을 검증하지 않는다. 따라서 "테스트 통과"는 기본 로직의 회귀가 없다는 근거이지, 운영 준비 완료 판정은 아니다.
 
 ## 3. 현재 구조와 요청 흐름
 
@@ -30,7 +31,7 @@ HTTP Controller
     -> Use case
       -> Repository port
         -> TypeORM repository adapter
-          -> PostgreSQL entities/tables
+          -> MariaDB entities/tables
 ```
 
 | 계층              | 현재 위치                         | 역할                                              |
@@ -43,7 +44,7 @@ HTTP Controller
 | Persistence model | `src/music/entities`              | Artist, Track, Playlist, PlaylistTrack 엔티티     |
 | Composition root  | `src/music/music.module.ts`       | TypeORM entity, adapter, port, use case DI 등록   |
 
-현재 공개 API는 모두 `JwtAuthGuard` 보호 아래에 있다. 제공 기능은 아래와 같다.
+(2026-09-12 당시) 공개 API는 모두 `JwtAuthGuard` 보호 아래에 있었다. 제공 기능은 아래와 같다.
 
 | 리소스        | 제공 기능                                                      |
 | ------------- | -------------------------------------------------------------- |
@@ -197,7 +198,7 @@ Repository port는 entity CRUD의 단순 복사보다 유스케이스가 필요�
 
 1. 각 PlaylistTrack 유스케이스의 성공, 부모/트랙 없음, 소속 불일치, 중복, 순서 충돌 테스트를 추가한다.
 2. 권한 거부와 owner isolation 테스트를 추가한다.
-3. PostgreSQL 기반 integration test로 FK/unique constraint와 transaction rollback을 검증한다.
+3. MariaDB 기반 integration test로 FK/unique constraint와 transaction rollback을 검증한다.
 4. Supertest E2E로 guard, validation, status code, response schema를 검증한다.
 5. 변경/삭제, 재정렬, 권한 거부에 구조화된 audit log를 추가한다.
 
@@ -227,7 +228,7 @@ Repository port는 entity CRUD의 단순 복사보다 유스케이스가 필요�
 5. `seq`는 단순 표시 값인가, 유일하고 연속적인 재생 순서인가?
 6. 하나의 `playDate`에 Playlist를 몇 개까지 허용하는가?
 7. 기존 클라이언트가 entity 그대로의 응답 JSON에 의존하는가? 응답 DTO 전환의 호환성 기간이 필요한가?
-8. PostgreSQL만 운영 대상으로 고정할 수 있는가? 고정할 수 있다면 unique violation 변환과 transaction 테스트를 PostgreSQL 기준으로 작성한다.
+8. ~~운영 DB를 하나로 고정할 수 있는가?~~ → MariaDB 전용으로 확정. unique/FK 변환은 `src/database/mariadb-errors.ts` 기준으로 작성한다.
 
 ## 10. 현재 결론
 
@@ -245,3 +246,13 @@ Repository port는 entity CRUD의 단순 복사보다 유스케이스가 필요�
 - MariaDB용 `CreateCatalogPlaylistSchema` Migration
 
 이 구현은 기존 Legacy API를 제거하지 않는다. Legacy API는 `/music/legacy`와 `legacy_*` 테이블에 남아 있으며, Catalog는 `/music` 및 `/music/public` 경로를 사용한다. 따라서 이 문서의 기존 위험 분석 중 owner/role, presigned playback, Legacy-to-Catalog 이관은 여전히 후속 과제다.
+
+## 12. 2026-11-08 이후 상태
+
+| 이 문서의 과제 | 상태 |
+| --- | --- |
+| P0 변경 권한·소유권 모델 부재 | **부분 해결**: `users.role` + `@AdminOnly()`로 모든 음악 쓰기를 admin으로 제한. 사용자별 ownerId는 제품 결정 대기 |
+| DB unique/FK 위반의 일관된 409 | **해결**: `mariadb-errors.ts`, `DomainError`, `GlobalExceptionFilter` 중앙 매핑. Artist 삭제 500 버그(PostgreSQL 코드 판별) 수정 |
+| PostgreSQL 기준 가정 | **정리**: MariaDB 전용. 본문의 PostgreSQL 서술은 MariaDB로 교체 |
+| Playlist 날짜·Track 중복 정책 | 미결([결정 문서](decisions.md)) |
+| transaction boundary·use-case 분리, presigned playback, Legacy→Catalog 이관 | 미결(로드맵 P1/P2) |

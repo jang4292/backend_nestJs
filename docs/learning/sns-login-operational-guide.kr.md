@@ -1,6 +1,7 @@
 # SNS 로그인 빌드·동작·운영·학습 가이드
 
-작성일: 2026-09-12
+작성일: 2026-09-12  
+> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 이 문서는 현재 NestJS 프로젝트의 Google, Apple, Kakao, Naver, Facebook 로그인 흐름을 빌드하고 검증하며 운영하는 절차를 정리합니다. 실제 provider credential을 문서나 저장소에 기록하지 않고, 환경변수와 운영 secret 저장소를 통해 주입합니다.
 
@@ -88,9 +89,10 @@ Google은 기존 환경과의 호환성을 위해 flag를 생략하면 활성화
 
 - Google ID token: `GOOGLE_ALLOWED_AUDIENCES`
 - Google code: `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URIS`
-- Apple ID token: `APPLE_ALLOWED_AUDIENCES`
+- Apple ID token: `APPLE_ALLOWED_AUDIENCES`(Apple이 활성화되면 모든 환경에서 필수)
 - Apple code: `APPLE_SERVICE_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`, `APPLE_REDIRECT_URIS`
-- Kakao: `KAKAO_REST_API_KEY`; code flow는 `KAKAO_REDIRECT_URIS`를 함께 관리
+- Kakao: `KAKAO_REST_API_KEY`, `KAKAO_APP_ID`(클라이언트 accessToken의 발급 앱 검증, production 필수); code flow는 `KAKAO_REDIRECT_URIS`를 함께 관리
+- Naver: ⚠ accessToken의 발급 앱을 검증할 방법이 없으므로, 운영에서는 code flow를 권장합니다
 - Naver: `NAVER_CLIENT_ID`; code flow는 `NAVER_CLIENT_SECRET`, `NAVER_REDIRECT_URIS`를 함께 관리
 - Facebook: `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`; code flow는 `FACEBOOK_REDIRECT_URIS`를 함께 관리
 

@@ -1,5 +1,7 @@
 # 배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)
 
+> 최신화 기준: 2026-11-08 · develop `9b731ef` + `chore/project-audit-2026-11`
+
 이 문서는 현재 프로젝트를 기준으로, 로컬 개발과 운영 배포에서 시크릿을 어떻게 다루는지 체크리스트 형태로 정리한 문서입니다.
 
 ## 1) 로컬 개발 체크리스트
@@ -58,7 +60,10 @@ password-only-secret
 
 ## 3) 운영 시크릿 예시 키
 
-아래 키 이름은 코드에서 사용하는 변수명과 동일하게 유지합니다.
+아래 키 이름은 코드에서 사용하는 변수명과 동일하게 유지합니다. 전체 목록의 단일 출처는 `scripts/runtime-env-keys.cjs`입니다. PM2와 Secrets Manager export가 이 목록만 전달하며, `src/config/app-env.ts`와 어긋나면 spec이 실패합니다.
+
+- `TRUST_PROXY`(reverse proxy 뒤라면 hop 수, 예: `1`)
+- `DB_TYPE`, `DATABASE_URL`
 
 - `DB_HOST`
 - `DB_PORT`
@@ -71,8 +76,8 @@ password-only-secret
 - `DB_POOL_MIN`
 - `DB_POOL_MAX`
 - `DB_CONNECT_TIMEOUT_MS`
-- `JWT_SECRET`
-- `JWT_EXPIRES_IN`
+- `JWT_SECRET`(production: 32자 이상, `replace-with`/`change-this`/`your-` 문구 금지)
+- `JWT_EXPIRES_IN`(`3600`, `30m`, `1h`, `7d` 형식)
 - `GOOGLE_ALLOWED_AUDIENCES`
 - `GOOGLE_ALLOWED_ISSUERS`
 - `GOOGLE_OAUTH_CLIENT_ID`
@@ -93,6 +98,7 @@ password-only-secret
 - `FACEBOOK_APP_SECRET`
 - `FACEBOOK_REDIRECT_URIS`
 - `FACEBOOK_GRAPH_API_VERSION`
+- `KAKAO_APP_ID`(production에서 Kakao 활성 시 필수)
 - `KAKAO_REST_API_KEY`
 - `KAKAO_CLIENT_SECRET`
 - `KAKAO_REDIRECT_URIS`
@@ -160,6 +166,6 @@ password-only-secret
 
 ## 8) 참고
 
-- 과거 PostgreSQL 참고: `docs/learning/postgresql-rds-nestjs-guide.kr.md`
+- 배포 절차: `docs/deployment/mariadb-systemd.kr.md`
 - 보안 가이드: `docs/learning/security-guide.kr.md`
 - SNS 로그인 운영·학습 가이드: `docs/learning/sns-login-operational-guide.kr.md`
