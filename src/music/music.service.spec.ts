@@ -97,7 +97,10 @@ describe('MusicService', () => {
         MusicService,
 
         ArtistTypeOrmRepository,
-        { provide: ARTIST_REPOSITORY_PORT, useExisting: ArtistTypeOrmRepository },
+        {
+          provide: ARTIST_REPOSITORY_PORT,
+          useExisting: ArtistTypeOrmRepository,
+        },
         TrackTypeOrmRepository,
         { provide: TRACK_REPOSITORY_PORT, useExisting: TrackTypeOrmRepository },
         PlaylistTypeOrmRepository,

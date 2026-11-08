@@ -15,7 +15,7 @@ describe('CatalogMusicService', () => {
     artist: 'Artist A',
     bpm: 120,
     audioAssets: [],
-  } as CatalogTrack;
+  } as unknown as CatalogTrack;
   const audioAsset = {
     id: 2,
     track,
@@ -65,8 +65,8 @@ describe('CatalogMusicService', () => {
     service = new CatalogMusicService(
       trackRepo,
       audioAssetRepo,
-      playlistRepo as Repository<CatalogPlaylist>,
-      playlistTrackRepo as Repository<CatalogPlaylistTrack>,
+      playlistRepo as unknown as Repository<CatalogPlaylist>,
+      playlistTrackRepo as unknown as Repository<CatalogPlaylistTrack>,
     );
   });
 

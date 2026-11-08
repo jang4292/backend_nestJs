@@ -15,9 +15,7 @@ export class CreateUserUseCase {
   ) {}
 
   async execute(createUserDto: CreateUserDto): Promise<User> {
-    const existingUser = await this.findUser.byUsername(
-      createUserDto.username,
-    );
+    const existingUser = await this.findUser.byUsername(createUserDto.username);
     if (existingUser) {
       throw new ConflictException('Username already exists');
     }

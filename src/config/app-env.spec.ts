@@ -41,7 +41,7 @@ describe('validateAppEnv', () => {
   });
 
   it('requires Google allowed audiences', () => {
-    const env = { ...baseEnv };
+    const env: Record<string, unknown> = { ...baseEnv };
     delete env.GOOGLE_ALLOWED_AUDIENCES;
 
     expect(() => validateAppEnv(env)).toThrow(
@@ -132,7 +132,9 @@ describe('validateAppEnv', () => {
         CORS_ORIGIN: 'https://example.com',
         KAKAO_REST_API_KEY: 'kakao-rest-key',
       }),
-    ).toThrow('Enabled provider configuration is missing: KAKAO_REDIRECT_URIS.');
+    ).toThrow(
+      'Enabled provider configuration is missing: KAKAO_REDIRECT_URIS.',
+    );
   });
 
   it('requires Facebook redirect allowlist when Facebook is enabled in production', () => {

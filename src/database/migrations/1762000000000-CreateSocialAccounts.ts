@@ -72,8 +72,12 @@ export class CreateSocialAccounts1762000000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE users ADD COLUMN provider varchar(255)`);
-    await queryRunner.query(`ALTER TABLE users ADD COLUMN googleId varchar(255)`);
+    await queryRunner.query(
+      `ALTER TABLE users ADD COLUMN provider varchar(255)`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE users ADD COLUMN googleId varchar(255)`,
+    );
 
     await queryRunner.query(`
       UPDATE users u

@@ -7,9 +7,7 @@ import { Track } from '../entities/track.entity';
 import { PlaylistTrackRepositoryPort } from '../application/ports/playlist-track-repository.port';
 
 @Injectable()
-export class PlaylistTrackTypeOrmRepository
-  implements PlaylistTrackRepositoryPort
-{
+export class PlaylistTrackTypeOrmRepository implements PlaylistTrackRepositoryPort {
   constructor(
     @InjectRepository(PlaylistTrack)
     private readonly repo: Repository<PlaylistTrack>,
