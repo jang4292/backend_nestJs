@@ -21,6 +21,7 @@ import { UsersModule } from './users/users.module';
 import { MusicModule } from './music/music.module';
 import { CatalogMusicModule } from './music/catalog/catalog-music.module';
 import { createDatabaseOptions } from './database/database-options';
+import { MigrationStatusService } from './database/migration-status.service';
 
 // NODE_ENV별 env 파일(.env / .env.test.local / .env.production, ENV_FILE로 재지정 가능)
 const envFilePath = resolveEnvFilePath();
@@ -85,6 +86,7 @@ assertEnvFileAvailable(envFilePath);
   controllers: [AppController],
   providers: [
     AppService,
+    MigrationStatusService,
     {
       provide: APP_INTERCEPTOR,
       useClass: RequestIdInterceptor,

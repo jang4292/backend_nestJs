@@ -45,3 +45,64 @@ jobs:
 
       - name: Audit production dependencies (critical)
         run: npm audit --omit=dev --audit-level=critical
+
+  # 실제 MariaDB에서 스키마를 검증합니다(docs/learning/database-schema-management.kr.md).
+  # 빈 DB → 전체 migration → pending 없음 확인 → 최신 migration revert/재적용 → drift 검사 → e2e
+  database:
+    name: database (MariaDB 10.11)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: ci-root-password
+          MARIADB_DATABASE: app_db_test
+          MARIADB_USER: app_test
+          MARIADB_PASSWORD: ci-test-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=24
+    env:
+      # .env.test.local(템플릿 복사본)보다 셸 환경변수가 우선합니다. CI 전용 값입니다.
+      DB_HOST: 127.0.0.1
+      DB_PORT: '3306'
+      DB_USERNAME: app_test
+      DB_PASSWORD: ci-test-password
+      DB_DATABASE: app_db_test
+      JWT_SECRET: ci-only-test-secret-0123456789abcdefghijklmn
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare test env file
+        run: cp .env.test.example .env.test.local
+
+      - name: Connection check
+        run: npm run db:check:test
+
+      - name: Run all migrations on an empty database
+        run: npm run db:reset:test
+
+      - name: No pending migrations
+        run: npm run db:check:test -- --strict
+
+      - name: Revert and re-apply the latest migration
+        run: npm run migration:revert:test && npm run migration:run:test
+
+      - name: Schema drift (entities vs migrations)
+        run: npm run migration:check:test
+
+      - name: E2E tests
+        run: npm run test:e2e
