@@ -16,7 +16,7 @@
 | --- | --- | --- | --- |
 | 실행 위치 | 개발 PC | 개발 PC / CI | EC2 (build + PM2) |
 | DB 서버 | 외부 개발 서버(`<dev-db-host>:<port>` 직접 접속) | 개발 서버(같은 서버) | 같은 EC2의 MariaDB(`127.0.0.1:3306`) |
-| DB 이름 | `app_db` | `app_db_test` (**`*_test`만 허용**) | 운영 DB(예: `app_db`) |
+| DB 이름 | `app_db` 또는 서버의 기존 DB | `app_db_test` (**`*_test`만 허용**) | 운영 DB(예: `app_db`) |
 | DB 계정 | 개발 계정 | 개발 계정 또는 테스트 전용 계정 | `'<app>'@'localhost'` 전용 계정 |
 | `NODE_ENV` | `development`(기본) | `test` | `production` |
 | env 파일 | `.env` | `.env.test.local` (**필수**) | `.env.production` |
@@ -48,6 +48,20 @@
 
 ## 2. Dev: 외부 개발 DB 처음 연결하기
 
+> **명령마다 읽는 파일이 다릅니다.** 비밀번호를 넣은 파일과 실행한 명령이 맞는지 먼저 확인하세요.
+>
+> | 명령 | 읽는 파일 |
+> | --- | --- |
+> | `db:check`, `db:setup`, `migration:show/run/revert`, `start:dev`, `env:check` | `.env` |
+> | `db:check:test`, `db:setup:test`, `db:reset:test`, `migration:*:test`, `test:e2e`, `env:check:test` | `.env.test.local` |
+> | `*:prod`, `pm2:reload` | `.env.production` |
+>
+> 값이 빠지면 오류 메시지가 읽은 파일을 함께 알려 줍니다. 다른 파일에 그 키가 있으면 `Hint:` 줄도 출력합니다(값은 출력하지 않음).
+> ```text
+> FAIL DB_PASSWORD is required. (env file: .env, NODE_ENV=development)
+> Hint: .env.test.local has DB_PASSWORD, but that file is read only with NODE_ENV=test (npm run db:check:test, db:setup:test, test:e2e). This command read .env.
+> ```
+
 ```bash
 cp .env.example .env      # 이미 있으면 생략
 chmod 600 .env
@@ -62,18 +76,28 @@ npm run start:dev
   - 비어 있으면 모든 명령이 `DB_PASSWORD is required.`로 멈춥니다.
   - 값에 `#`이나 공백이 있으면 큰따옴표로 감쌉니다(`DB_PASSWORD="a#b c"`).
 - **포트**: 공유기나 NAS에서 포트포워딩했다면 3306이 아닐 수 있습니다. `DB_PORT`에 외부 포트를 적습니다.
+- **DB 이름**: 서버에 이미 있는 DB를 써도 됩니다(`DB_DATABASE=<existing-db>`). 이름에는 영문, 숫자, `_`, `-`를 쓸 수 있습니다. 비어 있는 DB라면 `db:setup`이 테이블만 만듭니다. 이미 다른 테이블이 있다면 `db:check`의 테이블 수를 먼저 확인합니다.
 - **`db:check` 출력 예**
   ```text
-  db:check  NODE_ENV=development  env=.env  <dev-user>@<dev-db-host>:<port>/app_db
+  db:check  NODE_ENV=development  env=.env  <dev-user>@<dev-db-host>:<port>/<existing-db>
   OK  connected as <dev-user>@%
       server   : MariaDB 10.11.x
       tls      : off (credentials and data are sent in plaintext)
-      database : app_db — missing (or not visible to this account)
-  Next: npm run db:setup   # creates the database, then runs migrations
+      privilege: missing DROP on `<existing-db>` — migrations would fail midway
+        fix (DB admin): GRANT DROP ON `<existing-db>`.* TO '<dev-user>'@'%';
+      database : <existing-db> (utf8mb4/utf8mb4_unicode_ci, 0 tables)
+      migration: 0 applied, 9 pending (9 in this build)
+        [ ] CreateInitialSchema1760000000000
+        …
       grants   :
-        GRANT … ON `app_db`.* TO `<dev-user>`@`%`
+        GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, INDEX, ALTER ON `<existing-db>`.* TO `<dev-user>`@`%`
+
+  Next: ask a DB admin to run the GRANT above, then npm run db:setup
   ```
+  - `privilege`: 이 계정이 migration을 끝까지 실행할 수 있는지 판정하고, 부족하면 **빠진 권한만** 담은 GRANT SQL을 보여 줍니다.
+  - `visible`: 대상 DB가 없을 때 이 계정에서 보이는 DB 목록입니다.
 - **`db:setup`은 여러 번 실행해도 안전합니다.** DB가 있으면 만들지 않고, 적용된 migration은 다시 실행하지 않습니다.
+- **권한이 부족하면 `db:setup`은 아무것도 바꾸지 않고 멈춥니다.** 이 검사가 없으면 migration이 몇 개 적용된 뒤 중간에서 실패해, DB가 반쯤 바뀐 상태로 남습니다.
 - **개발 서버 MariaDB는 TLS를 지원하지 않습니다**(`tls: off`). 인터넷 구간에서 계정 정보가 평문으로 오갑니다. 다음 중 하나를 적용하세요.
   - 서버 방화벽이나 공유기에서 DB 포트를 개발자 IP로 제한합니다.
   - SSH 터널로만 접속합니다.
@@ -83,17 +107,30 @@ npm run start:dev
 
 ### 2.1 개발 계정 권한 (서버 관리자, 1회)
 
-`db:setup`이 DB를 만들려면 계정에 해당 DB의 `CREATE` 권한이 있어야 합니다. DB 단위로 권한을 주면, 그 이름의 DB만 만들 수 있고 다른 DB는 건드리지 못합니다. 권한이 없으면 `db:setup`이 아래 SQL을 안내합니다.
+migration 전체(적용과 최신 revert)에는 대상 DB 단위로 다음 권한이 필요합니다. `db:check`가 부족한 권한을 알려 주고, 정확한 GRANT SQL을 출력합니다.
+
+| 권한 | 필요한 이유 | 없으면 |
+| --- | --- | --- |
+| `SELECT`, `INSERT`, `UPDATE`, `DELETE` | `migrations` 기록, 데이터 보정(`INSERT … SELECT`, `UPDATE … JOIN`) | 첫 migration부터 실패 |
+| `CREATE` | `CREATE TABLE`. DB 단위로 주면 그 이름의 `CREATE DATABASE`도 가능 | 테이블이나 DB 생성 불가 |
+| `ALTER` | 컬럼·FK·제약 변경, `RENAME TABLE` | 컬럼 추가에서 실패 |
+| `DROP` | `RENAME TABLE`의 원본(`ArchiveLegacyMusicSchema`), revert의 `DROP TABLE`, `db:reset` | **9개 중 6번째에서 중간 실패** |
+| `INDEX` | `CREATE/DROP INDEX` | 인덱스 생성에서 실패 |
+
+`REFERENCES`는 MariaDB에서 사용하지 않는 권한이라 필요 없습니다(FK 생성에도 불필요).
 
 ```sql
+-- 서버 관리자(root)로 실행합니다. Synology라면 phpMyAdmin이나 MariaDB CLI에서 실행합니다.
 -- '%'는 가능하면 개발자 IP 대역으로 좁힙니다(예: '203.0.113.%').
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES
-  ON `app_db`.* TO '<dev-user>'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX
+  ON `<dev-db>`.* TO '<dev-user>'@'%';
 -- 같은 계정으로 e2e도 실행하는 경우
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX
   ON `app_db_test`.* TO '<dev-user>'@'%';
-FLUSH PRIVILEGES;
 ```
+
+- 이미 일부 권한이 있다면 `db:check`가 출력한 **빠진 권한만** 추가합니다. 예: ``GRANT DROP ON `<dev-db>`.* TO '<dev-user>'@'%';``
+- 부여한 뒤 같은 세션에서 바로 반영됩니다. `db:check`를 다시 실행해 `privilege: ok`를 확인합니다.
 
 ## 3. Test: `app_db_test`
 
@@ -119,7 +156,7 @@ npm run test:e2e
 CREATE DATABASE IF NOT EXISTS app_db_test
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS 'app_test'@'%' IDENTIFIED BY '<test-password>';
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX
   ON app_db_test.* TO 'app_test'@'%';
 FLUSH PRIVILEGES;
 ```
@@ -134,7 +171,7 @@ FLUSH PRIVILEGES;
 CREATE DATABASE IF NOT EXISTS <prod_db>
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS '<app>'@'localhost' IDENTIFIED BY '<prod-password>';
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX
   ON <prod_db>.* TO '<app>'@'localhost';
 FLUSH PRIVILEGES;
 ```
@@ -210,11 +247,12 @@ pm2 ls
 
 | 메시지 | 원인 · 해결 |
 | --- | --- |
-| `DB_PASSWORD is required.` | env 파일의 `DB_PASSWORD`가 비어 있습니다. 직접 입력합니다 |
+| `DB_PASSWORD is required. (env file: …)` | **그 파일**의 `DB_PASSWORD`가 비어 있습니다. `Hint:`가 나오면 다른 파일에 넣은 것입니다. 명령과 파일의 대응은 2장 표를 봅니다 |
 | `Access denied for '<user>' (1045)` | 아이디나 비밀번호가 틀렸습니다. 특수문자가 있으면 큰따옴표로 감쌉니다 |
 | `does not allow '<user>' from this host (1130)` | 계정의 접속 허용 host에 내 IP가 없습니다. 관리자가 `'<user>'@'<ip>'`를 허용해야 합니다 |
 | `blocked after too many failed connections (1129)` | 연결 실패가 반복되어 서버가 내 IP를 차단했습니다. 관리자가 `FLUSH HOSTS`를 실행합니다 |
 | `lacks privileges on \`<db>\`` (1044/1227) | DB 생성이나 변경 권한이 없습니다. 출력된 GRANT SQL을 관리자에게 요청합니다(2.1) |
+| `privilege: missing …` / `is missing … Stopped before changing anything` | migration에 필요한 권한이 부족합니다. `db:setup`은 아무것도 바꾸지 않고 멈췄습니다. 출력된 GRANT를 실행한 뒤 다시 실행합니다(2.1) |
 | `Connection refused` / `Timed out` | 주소, 포트, 방화벽, 포트포워딩을 확인합니다 |
 | `does not support TLS` | 서버가 TLS를 지원하지 않습니다. `DB_SSL=false`로 둡니다 |
 | `Missing .env.test.local` | test 환경 파일이 없습니다. 3장을 따라 만듭니다 |

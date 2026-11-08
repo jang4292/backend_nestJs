@@ -462,3 +462,45 @@ npm audit --omit=dev  → 5 vulnerabilities (3 moderate, 2 high)
 3. `npm run db:setup`으로 `app_db`를 만들고 테이블을 적용합니다.
 4. `npm run db:setup:test` → `npm run test:e2e`를 실행합니다.
 5. 개발 서버의 DB 포트를 개발자 IP로 제한하거나, SSH 터널을 사용합니다(TLS 미지원).
+
+### 10.1 첫 연결 점검: `DB_PASSWORD is required.`와 권한 부족
+
+**증상**
+
+`.env.test.local`에 비밀번호를 넣고 `npm run db:check`를 실행했는데 `FAIL DB_PASSWORD is required.`가 나왔습니다.
+
+**원인 (읽기 전용으로 확인)**
+
+1. `npm run db:check`는 Dev 명령이라 `.env`를 읽습니다. `.env`의 `DB_PASSWORD`가 비어 있었습니다.
+   - `.env.test.local`의 값은 정상이었습니다(`#`, 따옴표, CRLF 문제 없음).
+   - 셸에 export된 값도 없었습니다.
+   - **오류에 읽은 파일 정보가 없어** 원인을 찾기 어려웠습니다.
+2. `db:check:test`로 접속해 보니 개발 계정의 권한은 서버의 기존 DB 하나에만 있었고, `DROP`이 없었습니다.
+   - `app_db`·`app_db_test`에는 권한이 없어 DB를 만들 수 없었습니다.
+   - 그대로 migration을 실행하면 6번째(`RENAME TABLE`)에서 **중간 실패**했을 상태입니다.
+
+**결정**
+
+Dev는 서버의 기존 빈 DB를 사용합니다. Test는 `app_db_test`를 유지합니다.
+
+**보완**
+
+| ID | 내용 |
+| --- | --- |
+| OPS-10 ✅ | **설정 오류에 맥락 추가**(`src/config/env-diagnostics.ts`)<br>오류에 읽은 env 파일과 `NODE_ENV`를 붙입니다.<br>같은 키가 다른 환경 파일에 있으면 `Hint:`를 출력합니다(값은 출력하지 않음).<br>앱 기동, `env:check`, `db:*`에 적용했습니다 |
+| DB-14 ✅ | **권한 사전 점검**(`evaluatePrivileges`)<br>`SHOW GRANTS`를 해석합니다(전역, DB 단위, 와일드카드, role이면 판정 보류).<br>`db:check`는 부족한 권한과 GRANT SQL을 출력하고, `--strict`에서는 실패합니다.<br>`db:setup`은 권한이 부족하면 **아무것도 바꾸지 않고 멈춥니다** |
+| DB-15 ✅ | DB 이름에 `-`를 허용합니다(백틱으로 감싸 안전). 대상 DB가 없을 때 이 계정에서 보이는 DB 목록을 출력합니다 |
+
+**검증 (실서버, 읽기 전용)**
+
+- `db:check`: 기존 DB에 0 tables, 9 pending, `missing DROP`, 그리고 `GRANT DROP …` 출력
+- `db:check:test`: `app_db_test` 없음, 보이는 DB 목록, 8개 권한 부족과 GRANT 출력
+- `db:setup`: 권한 점검에서 중단. 이후 `db:check`에서 0 applied가 유지됨(변경 없음)
+- 빈 비밀번호 파일을 지정한 재현에서 `env file`과 `Hint:` 출력
+- 로컬 게이트: lint, format, typecheck, 50 suites / 379 tests, build 통과
+
+**사용자가 할 일 (서버 관리자)**
+
+1. `db:check`가 출력한 GRANT를 실행합니다(Dev DB에 `DROP`, `app_db_test`에 8개 권한).
+2. `npm run db:setup` → `npm run db:setup:test` → `npm run test:e2e`를 실행합니다.
+

@@ -37,6 +37,16 @@ npm run start:dev    # http://localhost:3000, Swagger at /api-docs
 
 - Type the password into the `DB_PASSWORD=` line of `.env` yourself. The file
   is ignored by git; do not put the password in chats, docs or commits.
+- Each command reads one file: `db:check`, `db:setup`, `migration:*` and
+  `start:dev` read `.env`; the `:test` commands and `test:e2e` read
+  `.env.test.local`; the `:prod` commands read `.env.production`. When a value
+  is missing, the error names the file it read and hints if another env file
+  has that key.
+- `db:check` also reports whether the account has the privileges migrations
+  need (`SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX`) and prints
+  the exact `GRANT` for anything missing. `db:setup` stops before changing
+  anything when privileges are missing.
+- `DB_DATABASE` may be an existing database (letters, digits, `_`, `-`).
 - `db:setup` is safe to run again: it never recreates an existing database and
   never re-runs an applied migration.
 - The dev MariaDB server has no TLS (`db:check` prints `tls: off`). Restrict its

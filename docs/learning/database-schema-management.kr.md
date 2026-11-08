@@ -169,15 +169,36 @@ migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:te
 
 결정하기 전까지 CI의 drift 단계는 보고만 합니다(`continue-on-error`).
 
+## 8.2 사례: 실제 개발 서버에 처음 연결할 때 (2026-11-09)
+
+**1) 비밀번호를 넣었는데 `DB_PASSWORD is required.`**
+
+- **원인:** 비밀번호는 `.env.test.local`에 넣었는데, 실행한 명령은 Dev용 `npm run db:check`였습니다. 이 명령은 `.env`를 읽습니다.
+- **교훈:** 환경마다 파일이 나뉘어 있으면 "명령 ↔ 파일" 대응을 놓치기 쉽습니다. 그런데 메시지에 어느 파일을 읽었는지가 없어 원인을 바로 알 수 없었습니다.
+- **보완(`src/config/env-diagnostics.ts`):** 검증 실패 메시지에 읽은 파일과 `NODE_ENV`를 붙입니다. 같은 키가 다른 환경 파일에 있으면 `Hint:`로 알려 줍니다.
+  - 앱 기동, `env:check`, `db:*`에 모두 적용했습니다.
+  - 다른 파일의 값은 존재 여부만 확인하고 출력하지 않습니다.
+
+**2) 접속은 되는데 권한이 부족함**
+
+- 개발 계정은 기존 DB 하나에만 `SELECT, INSERT, UPDATE, DELETE, CREATE, INDEX, ALTER` 권한이 있었습니다. `DROP`은 없었습니다.
+- 이 상태로 `migration:run`을 하면, 1~5번 migration은 적용되고 6번 `ArchiveLegacyMusicSchema`의 `RENAME TABLE`에서 실패합니다. `RENAME TABLE`은 원본 테이블의 `DROP` 권한이 필요합니다. 결과적으로 **DB가 반쯤 바뀐 상태로 남습니다.**
+- MariaDB DDL은 트랜잭션으로 되돌릴 수 없으므로(암묵적 커밋), "실패하면 롤백되겠지"가 통하지 않습니다.
+- **보완:** `db:check`와 `db:setup`이 `SHOW GRANTS`를 해석해 migration에 필요한 권한(`MIGRATION_PRIVILEGES`)을 미리 판정합니다.
+  - 부족하면 **아무것도 바꾸지 않고 멈추고**, 빠진 권한만 담은 GRANT SQL을 출력합니다.
+  - role 부여처럼 판정할 수 없는 경우에는 막지 않고 경고만 합니다. 오탐으로 작업을 막지 않기 위해서입니다.
+- **실무 원칙:** 쓰기 작업 전에 **사전 조건(권한, 디스크, 잠금, 백업)을 읽기 전용으로 확인하고, 실패할 것이 확실하면 시작하지 않습니다(fail fast).** 중간 실패를 복구하는 것보다 시작 전에 막는 편이 훨씬 쌉니다.
+
 ## 9. 이 프로젝트의 구현
 
 | 역할 | 코드 |
 | --- | --- |
 | 환경별 env 파일 선택 | [src/config/env-files.ts](../../src/config/env-files.ts) |
+| 설정 오류에 읽은 파일·Hint 추가 | [src/config/env-diagnostics.ts](../../src/config/env-diagnostics.ts) |
 | 환경변수 검증(test는 `*_test`만) | [src/config/app-env.ts](../../src/config/app-env.ts) |
 | TypeORM 옵션, migration 경로, TLS | [src/database/database-options.ts](../../src/database/database-options.ts) |
 | migration CLI용 data-source | [src/database/data-source.ts](../../src/database/data-source.ts) |
-| DB 확인·생성·초기화 로직 | [src/database/database-admin.ts](../../src/database/database-admin.ts) |
+| DB 확인·생성·초기화, 권한 판정(`evaluatePrivileges`) | [src/database/database-admin.ts](../../src/database/database-admin.ts) |
 | `db:check` / `db:ensure` / `db:reset` CLI | [src/database/cli/db-tool.ts](../../src/database/cli/db-tool.ts) |
 | 환경별 실행 래퍼(`--dist` 포함) | [scripts/typeorm-env.cjs](../../scripts/typeorm-env.cjs) |
 | 기동 시 pending 경고 | [src/database/migration-status.service.ts](../../src/database/migration-status.service.ts) |
@@ -192,7 +213,7 @@ migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:te
 - **비밀번호는 어디에도 출력하지 않습니다.** `SHOW GRANTS`의 해시도 가립니다.
 - **같은 규칙을 한 곳에서 씁니다.** 앱, migration CLI, `db-tool`, e2e가 같은 env 파일 규칙과 같은 검증(`validateAppEnv`)을 씁니다.
 
-## 10. 결정 기록 (2026-11-08)
+## 10. 결정 기록 (2026-11-08 ~ 11-09)
 
 | 결정 | 이유 |
 | --- | --- |
@@ -201,6 +222,8 @@ migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:te
 | 비밀번호는 각 env 파일(`.env`, `.env.test.local`)에 직접 입력 | Git 미추적 파일, 권한 `600`. 채팅·문서·커밋에 남기지 않음 |
 | 개발 서버는 TLS 미지원. `DB_SSL=false`를 유지하고 접근을 IP로 제한하거나 SSH 터널 사용 | 인터넷 구간에서 계정 정보가 평문으로 오가므로 노출 범위를 줄입니다 |
 | CI에 MariaDB 10.11 job 추가 | 실제 MariaDB에서 migration 전체 체인을 검증한 적이 없었습니다(감사 미검증 항목) |
+| (2026-11-09) Dev는 서버에 이미 있던 빈 DB를 사용(`DB_DATABASE=<existing-db>`). 이름의 `-`를 허용 | 계정에 이미 권한이 있는 DB를 쓰면 관리자 작업이 `DROP` 하나로 줄어듭니다. 백틱으로 감싸므로 `-`는 안전합니다 |
+| (2026-11-09) 권한 사전 점검을 `db:setup`의 필수 단계로 둠 | 권한 부족으로 migration이 중간에서 멈추면 DDL을 되돌릴 수 없습니다(8.2) |
 
 ## 11. 자가 점검 질문
 
@@ -210,6 +233,8 @@ migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:te
 4. 컬럼을 삭제하는 변경을 한 번의 배포로 하면 배포 도중 어떤 오류가 날 수 있는가?
 5. `migration:revert`로 되돌릴 수 없는 migration이 있을 때 운영 복구 수단은 무엇인가?
 6. 앱 기동 시 pending migration을 발견했을 때 자동 적용 대신 경고만 하는 이유는?
+7. `RENAME TABLE`에는 왜 `DROP` 권한이 필요한가? 권한 없이 migration을 시작하면 DB는 어떤 상태로 남는가?
+8. `npm run db:check`와 `npm run db:check:test`는 각각 어느 파일을 읽는가? 셸에 export한 `DB_PASSWORD`가 있으면 어느 값이 쓰이는가?
 
 ## 12. 실습 과제
 
