@@ -6,7 +6,13 @@ import {
   DatabaseTarget,
   describeDatabaseError,
   ensureDatabase,
+  evaluatePrivileges,
+  formatAccount,
+  grantSqlFor,
   inspectDatabase,
+  matchesDatabasePattern,
+  MIGRATION_PRIVILEGES,
+  parseGrant,
   redactGrant,
   resetTestDatabase,
   resolveDatabaseTarget,
@@ -28,7 +34,7 @@ function fakeConnection(respond: Responder) {
 
 const baseEnv = {
   DB_HOST: 'dev-db.example.com',
-  DB_PORT: 13306,
+  DB_PORT: 3307,
   DB_USERNAME: 'dev_user',
   DB_PASSWORD: 'secret-password',
   DB_DATABASE: 'app_db',
@@ -39,7 +45,7 @@ const baseEnv = {
 const target: DatabaseTarget = {
   server: {
     host: 'dev-db.example.com',
-    port: 13306,
+    port: 3307,
     user: 'dev_user',
     password: 'secret-password',
   },
@@ -51,7 +57,7 @@ describe('resolveDatabaseTarget', () => {
     expect(resolveDatabaseTarget(baseEnv)).toEqual({
       server: {
         host: 'dev-db.example.com',
-        port: 13306,
+        port: 3307,
         user: 'dev_user',
         password: 'secret-password',
       },
@@ -93,12 +99,14 @@ describe('resolveDatabaseTarget', () => {
 describe('assertSafeDatabaseName / createDatabaseSql', () => {
   it('accepts letters, digits and underscores', () => {
     expect(() => assertSafeDatabaseName('app_db_test')).not.toThrow();
+    // 백틱 안의 '-'는 안전하므로 기존 DB 이름(예: my-db)을 허용합니다.
+    expect(() => assertSafeDatabaseName('my-db')).not.toThrow();
     expect(createDatabaseSql('app_db')).toBe(
       'CREATE DATABASE IF NOT EXISTS `app_db` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci',
     );
   });
 
-  it.each(['app-db', 'app`db', 'app db', '', 'a'.repeat(65)])(
+  it.each(['app`db', 'app db', "app'db", 'app.db', '', 'a'.repeat(65)])(
     'rejects unsafe name %p',
     (name) => {
       expect(() => assertSafeDatabaseName(name)).toThrow(DatabaseAdminError);
@@ -106,29 +114,97 @@ describe('assertSafeDatabaseName / createDatabaseSql', () => {
   );
 });
 
+// DB 단위 권한만 있는 개발 계정(DROP 없음)
+const DEV_GRANTS = [
+  "GRANT USAGE ON *.* TO `dev_user`@`%` IDENTIFIED BY PASSWORD '*HASH'",
+  'GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, INDEX, ALTER ON `my-db`.* TO `dev_user`@`%`',
+];
+const FULL_GRANTS = [
+  'GRANT USAGE ON *.* TO `dev_user`@`%`',
+  'GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX ON `app_db`.* TO `dev_user`@`%`',
+];
+
+function adminResponder(grants: string[], existing: string[]): Responder {
+  return (sql, params) => {
+    if (sql.startsWith('SELECT CURRENT_USER()')) {
+      return [{ currentUser: 'dev_user@%' }];
+    }
+    if (sql.startsWith('SHOW GRANTS')) {
+      return grants.map((grant) => ({ 'Grants for dev_user@%': grant }));
+    }
+    if (sql.includes('information_schema.SCHEMATA')) {
+      return existing.includes(String(params?.[0]))
+        ? [{ SCHEMA_NAME: params?.[0] }]
+        : [];
+    }
+    return [];
+  };
+}
+
 describe('ensureDatabase', () => {
-  it('creates the database when it is missing', async () => {
-    const { connection, queries } = fakeConnection(() => []);
+  it('creates the database when it is missing and privileges are sufficient', async () => {
+    const { connection, queries } = fakeConnection(
+      adminResponder(FULL_GRANTS, []),
+    );
 
     await expect(
       ensureDatabase(connection, 'app_db', 'development'),
-    ).resolves.toEqual({ created: true });
-    expect(queries.map((q) => q.sql)).toEqual([
-      'SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = ?',
-      createDatabaseSql('app_db'),
-    ]);
-    expect(queries[0].params).toEqual(['app_db']);
+    ).resolves.toMatchObject({ created: true });
+    expect(queries.at(-1)?.sql).toBe(createDatabaseSql('app_db'));
   });
 
   it('does nothing when the database already exists', async () => {
-    const { connection, queries } = fakeConnection(() => [
-      { SCHEMA_NAME: 'app_db' },
-    ]);
+    const { connection, queries } = fakeConnection(
+      adminResponder(FULL_GRANTS, ['app_db']),
+    );
 
     await expect(
       ensureDatabase(connection, 'app_db', 'development'),
-    ).resolves.toEqual({ created: false });
-    expect(queries).toHaveLength(1);
+    ).resolves.toMatchObject({ created: false });
+    expect(queries.some((q) => q.sql.startsWith('CREATE DATABASE'))).toBe(
+      false,
+    );
+  });
+
+  it('stops before changing anything when DROP is missing (migrations would fail midway)', async () => {
+    const { connection, queries } = fakeConnection(
+      adminResponder(DEV_GRANTS, ['my-db']),
+    );
+
+    await expect(
+      ensureDatabase(connection, 'my-db', 'development'),
+    ).rejects.toThrow(
+      "'dev_user'@'%' is missing DROP on `my-db`. Stopped before changing anything",
+    );
+    await expect(
+      ensureDatabase(connection, 'my-db', 'development'),
+    ).rejects.toThrow("GRANT DROP ON `my-db`.* TO 'dev_user'@'%';");
+    expect(queries.some((q) => /^(CREATE|DROP) /.test(q.sql))).toBe(false);
+  });
+
+  it('refuses to create a database the account has no privileges on', async () => {
+    const { connection, queries } = fakeConnection(
+      adminResponder(DEV_GRANTS, ['my-db']),
+    );
+
+    await expect(
+      ensureDatabase(connection, 'app_db_test', 'test'),
+    ).rejects.toThrow(
+      `GRANT ${MIGRATION_PRIVILEGES.join(', ')} ON \`app_db_test\`.* TO 'dev_user'@'%';`,
+    );
+    expect(queries.some((q) => q.sql.startsWith('CREATE DATABASE'))).toBe(
+      false,
+    );
+  });
+
+  it('does not block when privileges cannot be determined (role grants)', async () => {
+    const { connection } = fakeConnection(
+      adminResponder(['GRANT `app_role` TO `dev_user`@`%`'], []),
+    );
+
+    await expect(
+      ensureDatabase(connection, 'app_db', 'development'),
+    ).resolves.toMatchObject({ created: true });
   });
 
   it('refuses to run in production', async () => {
@@ -147,6 +223,96 @@ describe('ensureDatabase', () => {
       ensureDatabase(connection, 'app`; DROP', 'test'),
     ).rejects.toThrow(DatabaseAdminError);
     expect(queries).toHaveLength(0);
+  });
+});
+
+describe('privilege evaluation', () => {
+  it('parses database-level and global grants and ignores table-level ones', () => {
+    expect(parseGrant(DEV_GRANTS[1])).toEqual({
+      privileges: new Set([
+        'SELECT',
+        'INSERT',
+        'UPDATE',
+        'DELETE',
+        'CREATE',
+        'INDEX',
+        'ALTER',
+      ]),
+      databasePattern: 'my-db',
+    });
+    expect(
+      parseGrant(
+        'GRANT ALL PRIVILEGES ON *.* TO `root`@`localhost` WITH GRANT OPTION',
+      ),
+    ).toEqual({ privileges: new Set(['ALL']) });
+    expect(
+      parseGrant('GRANT SELECT (id, name) ON `app_db`.`users` TO `u`@`%`'),
+    ).toBeUndefined();
+    expect(parseGrant('GRANT `app_role` TO `u`@`%`')).toBeUndefined();
+    expect(parseGrant('GRANT PROXY ON `x`@`%` TO `u`@`%`')).toBeUndefined();
+  });
+
+  it('matches MariaDB database wildcards and escapes', () => {
+    expect(matchesDatabasePattern('app\\_db%', 'app_db_test')).toBe(true);
+    expect(matchesDatabasePattern('app\\_db%', 'appXdb')).toBe(false);
+    expect(matchesDatabasePattern('app_db', 'appXdb')).toBe(true);
+    expect(matchesDatabasePattern('my-db', 'my-db')).toBe(true);
+    expect(matchesDatabasePattern('my-db', 'my-db2')).toBe(false);
+  });
+
+  it('reports the missing DROP privilege for the dev-server grants', () => {
+    expect(evaluatePrivileges(DEV_GRANTS, 'my-db')).toEqual({
+      database: 'my-db',
+      effective: [
+        'ALTER',
+        'CREATE',
+        'DELETE',
+        'INDEX',
+        'INSERT',
+        'SELECT',
+        'UPDATE',
+      ],
+      missingForMigrations: ['DROP'],
+      canCreateDatabase: true,
+      determinate: true,
+    });
+  });
+
+  it('reports every privilege missing for a database without grants', () => {
+    const report = evaluatePrivileges(DEV_GRANTS, 'app_db_test');
+
+    expect(report.missingForMigrations).toEqual([...MIGRATION_PRIVILEGES]);
+    expect(report.canCreateDatabase).toBe(false);
+  });
+
+  it('accepts ALL PRIVILEGES on the database or globally', () => {
+    expect(
+      evaluatePrivileges(
+        ['GRANT ALL PRIVILEGES ON `app_db_test`.* TO `app_test`@`%`'],
+        'app_db_test',
+      ).missingForMigrations,
+    ).toEqual([]);
+    expect(
+      evaluatePrivileges(
+        ['GRANT ALL PRIVILEGES ON *.* TO `root`@`%` WITH GRANT OPTION'],
+        'anything',
+      ).effective,
+    ).toEqual(['ALL PRIVILEGES']);
+  });
+
+  it('is indeterminate with role grants or no grants', () => {
+    expect(evaluatePrivileges([], 'app_db').determinate).toBe(false);
+    expect(
+      evaluatePrivileges(['GRANT `app_role` TO `u`@`%`'], 'app_db').determinate,
+    ).toBe(false);
+  });
+
+  it('formats accounts and builds GRANT SQL with only the given privileges', () => {
+    expect(formatAccount('dev-user@%')).toBe("'dev-user'@'%'");
+    expect(formatAccount("o'brien@10.0.0.%")).toBe("'o''brien'@'10.0.0.%'");
+    expect(grantSqlFor("'u'@'%'", 'my-db', ['DROP'])).toBe(
+      "GRANT DROP ON `my-db`.* TO 'u'@'%';",
+    );
   });
 });
 
@@ -194,6 +360,13 @@ describe('inspectDatabase', () => {
       if (sql.includes('information_schema.TABLES')) {
         return [{ count: 7 }];
       }
+      if (sql === 'SHOW DATABASES') {
+        return [
+          { Database: 'information_schema' },
+          { Database: 'app_db' },
+          { Database: 'mysql' },
+        ];
+      }
       return [{ 'Grants for dev_user@%': grant }];
     });
 
@@ -211,6 +384,14 @@ describe('inspectDatabase', () => {
       grants: [
         "GRANT USAGE ON *.* TO `dev_user`@`%` IDENTIFIED BY PASSWORD '<redacted>'",
       ],
+      privileges: {
+        database: 'app_db',
+        effective: [],
+        missingForMigrations: [...MIGRATION_PRIVILEGES],
+        canCreateDatabase: false,
+        determinate: true,
+      },
+      visibleDatabases: ['app_db'],
     });
   });
 
@@ -263,7 +444,7 @@ describe('describeDatabaseError', () => {
     [{ code: 'HANDSHAKE_NO_SSL_SUPPORT' }, /DB_SSL=false/],
     [
       { code: 'ECONNREFUSED' },
-      /Connection refused by dev-db\.example\.com:13306/,
+      /Connection refused by dev-db\.example\.com:3307/,
     ],
     [{ code: 'ETIMEDOUT' }, /Timed out/],
     [{ code: 'ENOTFOUND' }, /Cannot resolve host/],

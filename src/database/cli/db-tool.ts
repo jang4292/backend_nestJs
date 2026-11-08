@@ -5,7 +5,7 @@
  *   ensure  대상 DB가 없으면 utf8mb4로 생성(dev/test 전용). 테이블은 이어서 migration:run이 만듭니다.
  *   reset   test 전용. *_test DB를 비우고 다시 생성(빈 DB에서 migration 전체 체인 검증용)
  *
- * 옵션: --strict (check에서 DB가 없거나 pending migration이 있으면 종료 코드 1)
+ * 옵션: --strict (check에서 DB가 없거나, migration 권한이 부족하거나, pending migration이 있으면 종료 코드 1)
  *
  * env 파일은 앱과 같은 규칙(src/config/env-files.ts)으로 읽고, 비밀번호는 출력하지 않습니다.
  */
@@ -18,6 +18,7 @@ import {
   type AppEnv,
   type NodeEnvironment,
 } from '../../config/app-env';
+import { explainEnvError } from '../../config/env-diagnostics';
 import {
   assertEnvFileAvailable,
   resolveEnvFilePath,
@@ -28,10 +29,13 @@ import {
   DatabaseAdminError,
   describeDatabaseError,
   ensureDatabase,
+  formatAccount,
+  grantSqlFor,
   inspectDatabase,
   resetTestDatabase,
   resolveDatabaseTarget,
   type AdminConnection,
+  type DatabaseStatus,
   type DatabaseTarget,
   type ServerTarget,
 } from '../database-admin';
@@ -115,17 +119,28 @@ async function runCheck(
     `    tls      : ${status.tlsCipher ?? 'off (credentials and data are sent in plaintext)'}`,
   );
 
+  const privilegesOk = printPrivileges(status);
+
   if (!status.database.exists) {
     write(
       `    database : ${target.database} — missing (or not visible to this account)`,
     );
-    write();
     write(
-      env.NODE_ENV === 'production'
-        ? 'Next: create it with the admin SQL in docs/deployment/database-environments.kr.md (4.1), then npm run migration:run:prod'
-        : `Next: npm run db:setup${suffix}   # creates the database, then runs migrations`,
+      `    visible  : ${status.visibleDatabases.length > 0 ? status.visibleDatabases.join(', ') : '(none)'}`,
     );
     printGrants(status.grants);
+    write();
+    if (!privilegesOk) {
+      write(
+        `Next: ask a DB admin to run the GRANT above, then npm run db:setup${suffix}`,
+      );
+    } else {
+      write(
+        env.NODE_ENV === 'production'
+          ? 'Next: create it with the admin SQL in docs/deployment/database-environments.kr.md (4.1), then npm run migration:run:prod'
+          : `Next: npm run db:setup${suffix}   # creates the database, then runs migrations`,
+      );
+    }
     return strict ? 1 : 0;
   }
 
@@ -145,12 +160,42 @@ async function runCheck(
   }
   printGrants(status.grants);
 
+  if (!privilegesOk) {
+    write();
+    write(
+      `Next: ask a DB admin to run the GRANT above, then ${env.NODE_ENV === 'production' ? 'npm run migration:run:prod' : `npm run db:setup${suffix}`}`,
+    );
+    return strict ? 1 : 0;
+  }
   if (migrations.pending.length > 0) {
     write();
     write(`Next: npm run migration:run${suffix}`);
     return strict ? 1 : 0;
   }
   return 0;
+}
+
+/** 대상 DB 기준 권한 판정을 출력합니다. migration을 실행할 수 있으면 true */
+function printPrivileges(status: DatabaseStatus): boolean {
+  const { privileges } = status;
+  const target = `\`${privileges.database}\``;
+  if (!privileges.determinate) {
+    write(
+      `    privilege: could not be determined from SHOW GRANTS (roles?) — check the grants below`,
+    );
+    return true;
+  }
+  if (privileges.missingForMigrations.length === 0) {
+    write(`    privilege: ok for migrations on ${target}`);
+    return true;
+  }
+  write(
+    `    privilege: missing ${privileges.missingForMigrations.join(', ')} on ${target} — migrations would fail midway`,
+  );
+  write(
+    `      fix (DB admin): ${grantSqlFor(formatAccount(status.currentUser), privileges.database, privileges.missingForMigrations)}`,
+  );
+  return false;
 }
 
 function printGrants(grants: string[]): void {
@@ -168,14 +213,19 @@ export async function main(argv: string[]): Promise<number> {
   }
 
   let env: AppEnv;
-  let envFile: string;
+  const envFile = resolveEnvFilePath();
   try {
-    envFile = resolveEnvFilePath();
     assertEnvFileAvailable(envFile);
     config({ path: envFile, quiet: true });
     env = validateAppEnv(process.env);
   } catch (error) {
-    return fail(error instanceof Error ? error.message : String(error));
+    // 어느 파일을 어떤 NODE_ENV로 읽었는지, 다른 env 파일에 그 키가 있는지 함께 알려 줍니다.
+    return fail(
+      explainEnvError(error, {
+        envFile,
+        nodeEnv: process.env.NODE_ENV?.trim() || 'development',
+      }),
+    );
   }
 
   const target = resolveDatabaseTarget(env);

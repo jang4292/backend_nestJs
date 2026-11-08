@@ -16,6 +16,7 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 import { ProviderReadinessGuard } from './common/auth/provider-readiness.guard';
 import { RequestIdInterceptor } from './common/request-id/request-id.interceptor';
 import { validateAppEnv } from './config/app-env';
+import { explainEnvError } from './config/env-diagnostics';
 import { assertEnvFileAvailable, resolveEnvFilePath } from './config/env-files';
 import { UsersModule } from './users/users.module';
 import { MusicModule } from './music/music.module';
@@ -33,7 +34,22 @@ assertEnvFileAvailable(envFilePath);
       isGlobal: true,
       envFilePath,
       cache: true,
-      validate: validateAppEnv,
+      // 검증 실패 메시지에 읽은 env 파일과 NODE_ENV를 덧붙입니다.
+      validate: (config: Record<string, unknown>) => {
+        try {
+          return validateAppEnv(config);
+        } catch (error) {
+          throw new Error(
+            explainEnvError(error, {
+              envFile: envFilePath,
+              nodeEnv:
+                typeof config.NODE_ENV === 'string' && config.NODE_ENV.trim()
+                  ? config.NODE_ENV.trim()
+                  : 'development',
+            }),
+          );
+        }
+      },
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

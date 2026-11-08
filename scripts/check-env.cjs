@@ -42,6 +42,9 @@ function main(argv) {
     path.join(distConfig, 'env-files.js'),
   );
   const { validateAppEnv } = require(path.join(distConfig, 'app-env.js'));
+  const { explainEnvError } = require(
+    path.join(distConfig, 'env-diagnostics.js'),
+  );
 
   const envFile = resolveEnvFilePath(process.env, root);
   try {
@@ -67,8 +70,9 @@ function main(argv) {
     );
     return 0;
   } catch (error) {
+    // 어느 파일을 읽었는지, 다른 env 파일에 그 키가 있는지 함께 알려 줍니다(값은 출력하지 않음).
     process.stderr.write(
-      `FAIL ${error instanceof Error ? error.message : String(error)}\n`,
+      `FAIL ${explainEnvError(error, { envFile, nodeEnv: environment, cwd: root })}\n`,
     );
     return 1;
   }
