@@ -202,6 +202,12 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     );
   }
 
+  // 클라이언트가 보낸 Kakao accessToken의 발급 앱(app_id) 검증에 사용합니다. 없으면 다른 Kakao 앱의 토큰으로
+  // 로그인할 수 있으므로(토큰 치환) Apple aud와 같이 환경과 무관하게 필수입니다.
+  if (authKakaoEnabled && optionalString(config.KAKAO_APP_ID) === undefined) {
+    throw new Error('KAKAO_APP_ID is required when Kakao login is enabled.');
+  }
+
   // 활성 provider의 기본 검증 설정은 production에서 반드시 존재해야 합니다.
   validateEnabledProviderConfig(nodeEnv, authGoogleEnabled, [
     ['GOOGLE_ALLOWED_AUDIENCES', googleAllowedAudiences],
@@ -230,10 +236,6 @@ export function validateAppEnv(config: RawEnv): AppEnv {
   ]);
   validateEnabledProviderConfig(nodeEnv, authKakaoEnabled, [
     ['KAKAO_REDIRECT_URIS', optionalString(config.KAKAO_REDIRECT_URIS)],
-  ]);
-  // 클라이언트가 보낸 Kakao accessToken의 발급 앱(app_id) 검증에 사용합니다.
-  validateEnabledProviderConfig(nodeEnv, authKakaoEnabled, [
-    ['KAKAO_APP_ID', optionalString(config.KAKAO_APP_ID)],
   ]);
   validateEnabledProviderConfig(nodeEnv, authNaverEnabled, [
     ['NAVER_CLIENT_ID', optionalString(config.NAVER_CLIENT_ID)],

@@ -21,6 +21,7 @@ import { VerifyIdTokenDto } from './dto/verify-id-token.dto';
 import { ExchangeCodeDto } from './dto/exchange-code.dto';
 import { AppleLoginDto } from './dto/apple-login.dto';
 import { SocialAuthExceptionFilter } from '../../shared/interface/social-auth-exception.filter';
+import { SocialProviderRoute } from '../../../common/auth/social-provider-route.decorator';
 import { toSocialAuthError } from '../../shared/interface/to-social-auth-error';
 import {
   AppleAuthError,
@@ -48,6 +49,7 @@ const wrapUnexpected = (cause: unknown) =>
 @Controller('auth/apple')
 @ApiTags('auth/apple')
 @UseFilters(SocialAuthExceptionFilter)
+@SocialProviderRoute('apple')
 export class AuthAppleController {
   constructor(
     private readonly verifyIdTokenUseCase: VerifyAppleIdTokenUseCase,

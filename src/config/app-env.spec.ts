@@ -200,6 +200,7 @@ describe('validateAppEnv', () => {
         NODE_ENV: 'production',
         CORS_ORIGIN: 'https://example.com',
         AUTH_KAKAO_ENABLED: 'true',
+        KAKAO_APP_ID: '123456',
         KAKAO_REST_API_KEY: 'kakao-rest-key',
       }),
     ).toThrow(
@@ -390,18 +391,22 @@ describe('validateAppEnv', () => {
     );
   });
 
-  it('requires KAKAO_APP_ID when Kakao is enabled in production', () => {
-    expect(() =>
-      validateAppEnv({
-        ...baseEnv,
-        NODE_ENV: 'production',
-        CORS_ORIGIN: 'https://example.com',
-        AUTH_KAKAO_ENABLED: 'true',
-        KAKAO_REST_API_KEY: 'kakao-rest-key',
-        KAKAO_REDIRECT_URIS: 'https://example.com/auth/kakao/callback',
-      }),
-    ).toThrow('Enabled provider configuration is missing: KAKAO_APP_ID.');
-  });
+  // 토큰 치환 방어(app_id 비교)에 필요하므로 개발 환경에서도 필수입니다(SEC-17 심층 방어).
+  it.each(['development', 'production'])(
+    'requires KAKAO_APP_ID whenever Kakao is enabled (%s)',
+    (nodeEnv) => {
+      expect(() =>
+        validateAppEnv({
+          ...baseEnv,
+          NODE_ENV: nodeEnv,
+          CORS_ORIGIN: 'https://example.com',
+          AUTH_KAKAO_ENABLED: 'true',
+          KAKAO_REST_API_KEY: 'kakao-rest-key',
+          KAKAO_REDIRECT_URIS: 'https://example.com/auth/kakao/callback',
+        }),
+      ).toThrow('KAKAO_APP_ID is required when Kakao login is enabled.');
+    },
+  );
 
   it('rejects JWT_EXPIRES_IN values the session issuer cannot interpret', () => {
     expect(() =>

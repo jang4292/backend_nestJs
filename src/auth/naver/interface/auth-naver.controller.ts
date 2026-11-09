@@ -18,6 +18,7 @@ import type { NaverLoginOutput } from '../application/use-cases/naver-login.use-
 import { ExchangeCodeDto } from './dto/exchange-code.dto';
 import { NaverLoginDto } from './dto/naver-login.dto';
 import { SocialAuthExceptionFilter } from '../../shared/interface/social-auth-exception.filter';
+import { SocialProviderRoute } from '../../../common/auth/social-provider-route.decorator';
 import { toSocialAuthError } from '../../shared/interface/to-social-auth-error';
 import {
   NaverAuthError,
@@ -45,6 +46,7 @@ const wrapUnexpected = (cause: unknown) =>
 @Controller('auth/naver')
 @ApiTags('auth/naver')
 @UseFilters(SocialAuthExceptionFilter)
+@SocialProviderRoute('naver')
 export class AuthNaverController {
   constructor(
     private readonly exchangeCodeUseCase: ExchangeNaverAuthCodeUseCase,

@@ -1,5 +1,4 @@
 import { ConfigService } from '@nestjs/config';
-import { Logger } from '@nestjs/common';
 import { KakaoAuthErrorCode } from '../domain/kakao-auth.errors';
 import { KakaoOAuthClientAdapter } from './kakao-oauth-client.adapter';
 
@@ -76,14 +75,49 @@ describe('KakaoOAuthClientAdapter.verifyAccessTokenAudience', () => {
     });
   });
 
-  it('skips the check with a warning when KAKAO_APP_ID is not configured (non-production only)', async () => {
-    const warn = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
-
+  // fail-closed: 설정이 없으면 검증을 건너뛰지 않고 거부합니다(SEC-17 심층 방어).
+  it('rejects without calling Kakao when KAKAO_APP_ID is not configured', async () => {
     await expect(
       adapterWith({}).verifyAccessTokenAudience('t'),
-    ).resolves.toBeUndefined();
+    ).rejects.toMatchObject({
+      errorCode: KakaoAuthErrorCode.AUTH_KAKAO_CONFIG_MISSING,
+    });
     expect(fetchSpy).not.toHaveBeenCalled();
-    expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
+  });
+});
+
+describe('KakaoOAuthClientAdapter.exchange', () => {
+  let fetchSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    fetchSpy = jest.spyOn(globalThis, 'fetch');
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it('rejects the code flow when KAKAO_REDIRECT_URIS is not configured', async () => {
+    await expect(
+      adapterWith({ KAKAO_REST_API_KEY: 'k' }).exchange({
+        code: 'c',
+        redirectUri: 'https://evil.example/callback',
+      }),
+    ).rejects.toMatchObject({
+      errorCode: KakaoAuthErrorCode.AUTH_KAKAO_CONFIG_MISSING,
+    });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('rejects a redirect URI outside the allowed list', async () => {
+    await expect(
+      adapterWith({
+        KAKAO_REST_API_KEY: 'k',
+        KAKAO_REDIRECT_URIS: 'https://app.example/callback',
+      }).exchange({ code: 'c', redirectUri: 'https://evil.example/callback' }),
+    ).rejects.toMatchObject({
+      errorCode: KakaoAuthErrorCode.AUTH_KAKAO_BAD_REQUEST,
+    });
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

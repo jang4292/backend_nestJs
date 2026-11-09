@@ -60,10 +60,14 @@ export class NaverOAuthClientAdapter implements NaverOAuthPort {
     state?: string;
     expectedState?: string;
   }): Promise<NaverAccessTokenSet> {
-    if (
-      this.allowedRedirectUris.length > 0 &&
-      !this.allowedRedirectUris.includes(params.redirectUri)
-    ) {
+    // 허용 목록이 없으면 임의 redirect URI로 받은 code를 교환할 수 있으므로 code flow를 거부합니다(SEC-16).
+    if (this.allowedRedirectUris.length === 0) {
+      throw new NaverAuthError(
+        NaverAuthErrorCode.AUTH_NAVER_CONFIG_MISSING,
+        'NAVER_REDIRECT_URIS is not configured.',
+      );
+    }
+    if (!this.allowedRedirectUris.includes(params.redirectUri)) {
       throw new NaverAuthError(
         NaverAuthErrorCode.AUTH_NAVER_BAD_REQUEST,
         'redirectUri is not in the allowed list.',

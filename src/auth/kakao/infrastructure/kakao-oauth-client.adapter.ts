@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SocialIdentity } from '../../../users/domain/social-identity';
 import {
@@ -43,7 +43,6 @@ interface KakaoProfileResponse {
 
 @Injectable()
 export class KakaoOAuthClientAdapter implements KakaoOAuthPort {
-  private readonly logger = new Logger(KakaoOAuthClientAdapter.name);
   private readonly appId?: string;
   private readonly restApiKey?: string;
   private readonly clientSecret?: string;
@@ -67,10 +66,14 @@ export class KakaoOAuthClientAdapter implements KakaoOAuthPort {
     state?: string;
     expectedState?: string;
   }): Promise<KakaoAccessTokenSet> {
-    if (
-      this.allowedRedirectUris.length > 0 &&
-      !this.allowedRedirectUris.includes(params.redirectUri)
-    ) {
+    // 허용 목록이 없으면 임의 redirect URI로 code를 교환할 수 있으므로 code flow를 거부합니다(SEC-16).
+    if (this.allowedRedirectUris.length === 0) {
+      throw new KakaoAuthError(
+        KakaoAuthErrorCode.AUTH_KAKAO_CONFIG_MISSING,
+        'KAKAO_REDIRECT_URIS is not configured.',
+      );
+    }
+    if (!this.allowedRedirectUris.includes(params.redirectUri)) {
       throw new KakaoAuthError(
         KakaoAuthErrorCode.AUTH_KAKAO_BAD_REQUEST,
         'redirectUri is not in the allowed list.',
@@ -157,14 +160,14 @@ export class KakaoOAuthClientAdapter implements KakaoOAuthPort {
   /**
    * 클라이언트가 직접 보낸 accessToken이 이 앱(KAKAO_APP_ID)에서 발급되었는지 확인합니다.
    * 다른 Kakao 앱에서 받은 사용자 토큰으로 이 서비스에 로그인하는 토큰 치환 공격을 막습니다.
-   * production은 app-env.ts가 KAKAO_APP_ID를 필수로 검증하며, 개발 환경에서 미설정이면 경고 후 생략합니다.
+   * app-env.ts가 Kakao 활성 시 KAKAO_APP_ID를 필수로 검증합니다. 설정이 없으면 검증을 생략하지 않고 거부합니다(fail-closed).
    */
   async verifyAccessTokenAudience(accessToken: string): Promise<void> {
     if (!this.appId) {
-      this.logger.warn(
-        'KAKAO_APP_ID is not configured; skipping Kakao access token app verification.',
+      throw new KakaoAuthError(
+        KakaoAuthErrorCode.AUTH_KAKAO_CONFIG_MISSING,
+        'KAKAO_APP_ID is not configured.',
       );
-      return;
     }
 
     let response: Response;

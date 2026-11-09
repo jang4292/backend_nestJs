@@ -18,6 +18,7 @@ import type { KakaoLoginOutput } from '../application/use-cases/kakao-login.use-
 import { ExchangeCodeDto } from './dto/exchange-code.dto';
 import { KakaoLoginDto } from './dto/kakao-login.dto';
 import { SocialAuthExceptionFilter } from '../../shared/interface/social-auth-exception.filter';
+import { SocialProviderRoute } from '../../../common/auth/social-provider-route.decorator';
 import { toSocialAuthError } from '../../shared/interface/to-social-auth-error';
 import {
   KakaoAuthError,
@@ -45,6 +46,7 @@ const wrapUnexpected = (cause: unknown) =>
 @Controller('auth/kakao')
 @ApiTags('auth/kakao')
 @UseFilters(SocialAuthExceptionFilter)
+@SocialProviderRoute('kakao')
 export class AuthKakaoController {
   constructor(
     private readonly exchangeCodeUseCase: ExchangeKakaoAuthCodeUseCase,

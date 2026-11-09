@@ -18,6 +18,7 @@ import type { FacebookLoginOutput } from '../application/use-cases/facebook-logi
 import { ExchangeCodeDto } from './dto/exchange-code.dto';
 import { FacebookLoginDto } from './dto/facebook-login.dto';
 import { SocialAuthExceptionFilter } from '../../shared/interface/social-auth-exception.filter';
+import { SocialProviderRoute } from '../../../common/auth/social-provider-route.decorator';
 import { toSocialAuthError } from '../../shared/interface/to-social-auth-error';
 import {
   FacebookAuthError,
@@ -45,6 +46,7 @@ const wrapUnexpected = (cause: unknown) =>
 @Controller('auth/facebook')
 @ApiTags('auth/facebook')
 @UseFilters(SocialAuthExceptionFilter)
+@SocialProviderRoute('facebook')
 export class AuthFacebookController {
   constructor(
     private readonly exchangeCodeUseCase: ExchangeFacebookAuthCodeUseCase,

@@ -21,6 +21,7 @@ import { VerifyIdTokenDto } from './dto/verify-id-token.dto';
 import { ExchangeCodeDto } from './dto/exchange-code.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
 import { SocialAuthExceptionFilter } from '../../shared/interface/social-auth-exception.filter';
+import { SocialProviderRoute } from '../../../common/auth/social-provider-route.decorator';
 import { toSocialAuthError } from '../../shared/interface/to-social-auth-error';
 import {
   GoogleAuthError,
@@ -48,6 +49,7 @@ const wrapUnexpected = (cause: unknown) =>
 @Controller('auth/google')
 @ApiTags('auth/google')
 @UseFilters(SocialAuthExceptionFilter)
+@SocialProviderRoute('google')
 export class AuthGoogleController {
   constructor(
     private readonly verifyIdTokenUseCase: VerifyGoogleIdTokenUseCase,
