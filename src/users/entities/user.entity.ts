@@ -37,6 +37,13 @@ export class User {
   })
   role: UserRole;
 
+  /**
+   * 세션 무효화 버전(AUTH-3). 세션 JWT의 `sv`와 다르면 JwtStrategy가 401을 반환합니다.
+   * 비밀번호를 바꾸면 1 증가해 기존 토큰이 모두 무효가 됩니다.
+   */
+  @Column({ type: 'int', unsigned: true, default: 0 })
+  sessionVersion: number;
+
   @OneToMany(() => SocialAccount, (socialAccount) => socialAccount.user)
   socialAccounts: SocialAccount[];
 

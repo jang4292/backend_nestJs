@@ -131,6 +131,7 @@ export class SocialAccountLinkerTypeOrmAdapter implements SocialAccountLinkerPor
       username: user.username,
       email: user.email,
       name: user.name,
+      sessionVersion: user.sessionVersion ?? 0,
     };
   }
 }

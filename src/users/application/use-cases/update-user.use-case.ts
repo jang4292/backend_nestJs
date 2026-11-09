@@ -50,6 +50,8 @@ export class UpdateUserUseCase {
     if (command.password !== undefined) {
       await this.assertCanChangePassword(user.id, command.currentPassword);
       user.password = await this.passwordHasher.hash(command.password);
+      // 기존에 발급된 모든 세션 토큰(탈취된 토큰 포함)을 무효화합니다. 현재 토큰도 무효가 되므로 다시 로그인합니다.
+      user.sessionVersion = (user.sessionVersion ?? 0) + 1;
     }
 
     return this.users.save(user);

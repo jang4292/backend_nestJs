@@ -11,6 +11,7 @@ function buildUser(overrides: Partial<User> = {}): User {
     email: 'alice@example.com',
     name: 'Alice',
     role: UserRole.USER,
+    sessionVersion: 0,
     socialAccounts: [],
     createdAt: new Date(0),
     updatedAt: new Date(0),
@@ -97,6 +98,26 @@ describe('UpdateUserUseCase', () => {
       'current-hash',
     );
     expect(result.password).toBe('new-hash');
+  });
+
+  // AUTH-3: 비밀번호를 바꾸면 기존 세션 토큰이 모두 무효가 되도록 세션 버전을 올립니다.
+  it('bumps sessionVersion when the password changes', async () => {
+    users.findById.mockResolvedValue(buildUser({ sessionVersion: 3 }));
+
+    const result = await useCase.execute(1, {
+      password: 'new-password',
+      currentPassword: 'current-password',
+    });
+
+    expect(result.sessionVersion).toBe(4);
+  });
+
+  it('keeps sessionVersion for profile-only updates', async () => {
+    users.findById.mockResolvedValue(buildUser({ sessionVersion: 3 }));
+
+    const result = await useCase.execute(1, { name: 'Alice Updated' });
+
+    expect(result.sessionVersion).toBe(3);
   });
 
   it('lets an SNS-only account set its first password without currentPassword', async () => {

@@ -8,7 +8,11 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { DomainError, DomainErrorKind } from '../errors/domain-error';
+import {
+  DomainError,
+  DomainErrorKind,
+  RateLimitedError,
+} from '../errors/domain-error';
 import { errorResponse } from '../http/api-response';
 import { redactSensitiveText } from '../logging/redact-sensitive-text';
 import { REQUEST_ID_HEADER } from '../request-id/request-id.constants';
@@ -34,6 +38,7 @@ const STATUS_BY_DOMAIN_ERROR_KIND: Readonly<Record<DomainErrorKind, number>> = {
   forbidden: HttpStatus.FORBIDDEN,
   not_found: HttpStatus.NOT_FOUND,
   conflict: HttpStatus.CONFLICT,
+  rate_limited: HttpStatus.TOO_MANY_REQUESTS,
 };
 
 const INTERNAL_SERVER_ERROR_STATUS = Number(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -74,6 +79,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     response.setHeader(REQUEST_ID_HEADER, requestId);
+    if (
+      exception instanceof RateLimitedError &&
+      exception.retryAfterSeconds !== undefined
+    ) {
+      response.setHeader('Retry-After', String(exception.retryAfterSeconds));
+    }
     response.status(status).json(errorResponse(requestId, errorCode, message));
   }
 

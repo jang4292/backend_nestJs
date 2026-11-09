@@ -12,6 +12,8 @@ import {
 interface JwtPayload {
   sub: number;
   username: string;
+  /** 세션 무효화 버전. 이 필드가 생기기 전에 발급된 토큰에는 없으며 0으로 간주합니다. */
+  sv?: number;
 }
 
 @Injectable()
@@ -39,6 +41,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const user = await this.usersService.findById(payload.sub);
     if (!user) {
       throw new UnauthorizedException();
+    }
+    // 비밀번호 변경 등으로 세션 버전이 올라가면 그 전에 발급된 토큰을 거부합니다(AUTH-3).
+    if ((payload.sv ?? 0) !== (user.sessionVersion ?? 0)) {
+      throw new UnauthorizedException('Session has been revoked');
     }
     return toPublicUser(user);
   }

@@ -17,6 +17,7 @@ describe('UsersController', () => {
     email: 'test@example.com',
     name: 'Test User',
     role: UserRole.USER,
+    sessionVersion: 0,
     socialAccounts: [{ provider: 'google' } as User['socialAccounts'][number]],
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     updatedAt: new Date('2026-01-01T00:00:00.000Z'),

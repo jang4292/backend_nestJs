@@ -7,6 +7,8 @@ export interface SocialUserRecord {
   username: string;
   email?: string | null;
   name?: string | null;
+  /** 세션 JWT에 넣는 무효화 버전(users.sessionVersion) */
+  sessionVersion?: number;
 }
 
 export interface SocialAccountLinkerPort {

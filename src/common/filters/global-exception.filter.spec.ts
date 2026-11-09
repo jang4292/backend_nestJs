@@ -5,6 +5,7 @@ import {
   ForbiddenError,
   InvalidArgumentError,
   NotFoundError,
+  RateLimitedError,
   UnauthorizedError,
 } from '../errors/domain-error';
 import { REQUEST_ID_HEADER } from '../request-id/request-id.constants';
@@ -107,6 +108,7 @@ describe('GlobalExceptionFilter', () => {
     [new ForbiddenError('denied'), 403, 'FORBIDDEN'],
     [new NotFoundError('missing'), 404, 'NOT_FOUND'],
     [new ConflictError('taken'), 409, 'CONFLICT'],
+    [new RateLimitedError('slow down'), 429, 'RATE_LIMITED'],
   ])(
     'maps %p to HTTP %p with error code %p',
     (error, expectedStatus, expectedCode) => {
@@ -132,5 +134,12 @@ describe('GlobalExceptionFilter', () => {
     expect(response.json).toHaveBeenCalledWith(
       expect.objectContaining({ errorCode: 'FOREIGN_KEY_CONSTRAINT' }),
     );
+  });
+
+  it('sets Retry-After for rate-limited domain errors', () => {
+    filter.catch(new RateLimitedError('slow down', 120), createHost(response));
+
+    expect(response.status).toHaveBeenCalledWith(429);
+    expect(response.setHeader).toHaveBeenCalledWith('Retry-After', '120');
   });
 });

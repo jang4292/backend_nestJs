@@ -12,6 +12,7 @@ describe('VerifyCredentialsUseCase', () => {
     email: 'alice@example.com',
     name: null,
     role: UserRole.USER,
+    sessionVersion: 0,
     socialAccounts: [],
     createdAt: new Date(0),
     updatedAt: new Date(0),

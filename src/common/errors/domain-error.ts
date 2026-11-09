@@ -5,7 +5,12 @@
  * - HTTP 상태 코드와 응답 envelope 변환은 GlobalExceptionFilter가 한 곳에서 담당합니다.
  */
 export type DomainErrorKind =
-  'invalid_argument' | 'unauthorized' | 'forbidden' | 'not_found' | 'conflict';
+  | 'invalid_argument'
+  | 'unauthorized'
+  | 'forbidden'
+  | 'not_found'
+  | 'conflict'
+  | 'rate_limited';
 
 export abstract class DomainError extends Error {
   abstract readonly kind: DomainErrorKind;
@@ -41,4 +46,17 @@ export class NotFoundError extends DomainError {
 
 export class ConflictError extends DomainError {
   readonly kind = 'conflict' as const;
+}
+
+/** 요청 횟수 제한에 걸림(429). retryAfterSeconds가 있으면 Retry-After 헤더로 내려갑니다. */
+export class RateLimitedError extends DomainError {
+  readonly kind = 'rate_limited' as const;
+
+  constructor(
+    message: string,
+    readonly retryAfterSeconds?: number,
+    code?: string,
+  ) {
+    super(message, code);
+  }
 }

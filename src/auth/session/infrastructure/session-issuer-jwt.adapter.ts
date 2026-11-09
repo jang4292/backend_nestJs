@@ -22,7 +22,12 @@ export class SessionIssuerJwtAdapter implements SessionIssuerPort {
   }
 
   issue(user: SocialUserRecord): Promise<SessionTokens> {
-    const payload = { username: user.username, sub: user.id };
+    // sv: 세션 무효화 버전. 비밀번호 변경 등으로 DB 값이 바뀌면 이 토큰은 JwtStrategy에서 거부됩니다.
+    const payload = {
+      username: user.username,
+      sub: user.id,
+      sv: user.sessionVersion ?? 0,
+    };
     const accessToken = this.jwtService.sign(payload);
     return Promise.resolve({ accessToken, expiresIn: this.expiresInSeconds });
   }
