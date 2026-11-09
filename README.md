@@ -153,6 +153,11 @@ curl -fsS http://127.0.0.1:${PORT:-3000}/health   # 503 when the DB is down
 
 - **After `1765000000000-AddRoleToUsers`:** grant admin manually with
   `UPDATE users SET role = 'admin' WHERE username = '<admin-username>';`.
+- **`1766000000000-AddSessionVersionToUsers`** adds `users.sessionVersion`.
+  A password change now revokes every earlier token. To roll the column back,
+  redeploy the previous build first, then run `migration:revert:prod`.
+- Keep database dumps outside the repository (`umask 077`); `*.sql` and
+  `*.sql.gz` are git-ignored.
 - **Optional AWS Secrets Manager:** run
   `eval "$(AWS_SECRET_ID=<id> AWS_REGION=ap-northeast-2 npm run -s secrets:export)"`
   first. Exported values override `.env.production`.
@@ -219,8 +224,9 @@ npm run db:setup:test && npm run test:e2e      # needs .env.test.local
 GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs
 on every pull request and on every push to `develop` and `main`:
 
-- **`verify`:** lint, format, typecheck, unit tests, build and a critical
-  production `npm audit`.
+- **`verify`:** lint, format, typecheck, unit tests, build, a critical
+  production `npm audit`, and a link/anchor check of every Markdown document
+  (`npm run docs:html:verify`).
 - **`database`** (MariaDB 10.11 service container):
   1. apply every migration to an empty database
   2. assert that nothing is pending
@@ -233,6 +239,7 @@ on every pull request and on every push to `develop` and `main`:
 | Topic | Document |
 | --- | --- |
 | Index and reading order | [docs/README.md](docs/README.md) |
+| Learning site (HTML snapshot, open `docs/html/index.html`) | [docs/html/README.md](docs/html/README.md) |
 | Learning roadmap (all guides, exercises) | [docs/learning/README.md](docs/learning/README.md) |
 | Work history and lessons (2026-11) | [docs/learning/work-history-2026-11.kr.md](docs/learning/work-history-2026-11.kr.md) |
 | Product scope, features, API contract | [docs/product/](docs/product/) |
@@ -241,6 +248,9 @@ on every pull request and on every push to `develop` and `main`:
 | DB and schema management (concepts) | [docs/learning/database-schema-management.kr.md](docs/learning/database-schema-management.kr.md) |
 | Environments, DB setup, errors (procedures) | [docs/deployment/database-environments.kr.md](docs/deployment/database-environments.kr.md) |
 | EC2 deployment and rollback | [docs/deployment/mariadb-systemd.kr.md](docs/deployment/mariadb-systemd.kr.md) |
-| Security and secrets | [docs/learning/security-guide.kr.md](docs/learning/security-guide.kr.md), [docs/learning/deployment-secrets-checklist.kr.md](docs/learning/deployment-secrets-checklist.kr.md) |
-| Latest audit, roadmap, release checklist | [docs/audit/2026-11-08-project-audit.kr.md](docs/audit/2026-11-08-project-audit.kr.md) |
+| API security (threat model, auth, IdP tokens, self-audit) | [docs/learning/api-security-guide.kr.md](docs/learning/api-security-guide.kr.md) |
+| Secrets and push checks | [docs/learning/security-guide.kr.md](docs/learning/security-guide.kr.md), [docs/learning/deployment-secrets-checklist.kr.md](docs/learning/deployment-secrets-checklist.kr.md) |
+| DB improvement roadmap | [docs/learning/database-improvement-guide.kr.md](docs/learning/database-improvement-guide.kr.md) |
+| Latest security audit (2026-11-09) | [docs/audit/2026-11-09-security-audit.kr.md](docs/audit/2026-11-09-security-audit.kr.md) |
+| Project audit, roadmap, release checklist | [docs/audit/2026-11-08-project-audit.kr.md](docs/audit/2026-11-08-project-audit.kr.md) |
 | Past runtime issues | [docs/learning/runtime-troubleshooting-history.kr.md](docs/learning/runtime-troubleshooting-history.kr.md) |

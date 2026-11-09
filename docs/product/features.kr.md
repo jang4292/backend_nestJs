@@ -9,10 +9,10 @@
 
 | 항목 | 규칙 |
 | --- | --- |
-| username | 필수, 4자 이상, 고유. 대소문자와 관계없이 `google_`, `apple_`, `kakao_`, `naver_`, `facebook_` 접두사 사용 불가(SNS 계정용 예약) |
-| password | 필수, 6자 이상. bcrypt(cost 10)로 저장 |
-| email | 선택, 이메일 형식, 고유 |
-| name | 선택 |
+| username | 필수, 4~50자, 고유. 대소문자와 관계없이 `google_`, `apple_`, `kakao_`, `naver_`, `facebook_` 접두사 사용 불가(SNS 계정용 예약) |
+| password | 필수, **8자 이상, UTF-8 72바이트 이하**(bcrypt는 72바이트 이후를 무시). bcrypt(cost 10)로 저장 |
+| email | 선택, 이메일 형식, 255자 이하, 고유 |
+| name | 선택, 100자 이하 |
 | 실패 | 형식 오류 400, username/email 중복 409 |
 
 ### 1.2 로그인 `POST /auth/login`
@@ -21,7 +21,9 @@
 - 성공: `{ access_token, user }` (JWT HS256, 기본 만료 1시간 `JWT_EXPIRES_IN`)
 - 실패
   - 401 `Invalid credentials`. 계정 없음, 비밀번호 없음(SNS 전용 계정), 불일치를 구분하지 않으며 응답 시간도 같게 맞춥니다.
-  - 요청 제한 초과 시 429. 로그인은 분당 5회입니다.
+  - 요청 제한 초과 시 429. 로그인은 IP당 분당 5회입니다.
+  - **계정 단위 제한:** 같은 식별자(대소문자·앞뒤 공백 무시)로 15분 안에 10번 실패하면, 어떤 IP에서든 그 창이 끝날 때까지 429 `RATE_LIMITED`와 `Retry-After`(초)를 반환합니다. 올바른 비밀번호도 거부되며, 로그인에 성공하면 횟수가 초기화됩니다. 없는 계정도 같은 방식으로 셉니다.
+  - 입력 상한: `identifier` 255자, `password` 1024자. 기존 비밀번호 호환을 위해 72바이트 제한은 두지 않습니다.
 
 ### 1.3 프로필 `GET/PATCH /users/profile` (로그인 필요)
 
@@ -31,7 +33,8 @@
 - 비밀번호 변경
   - 기존 비밀번호가 있는 계정은 `currentPassword`가 필수입니다. 없으면 400, 틀리면 403입니다.
   - 비밀번호가 없는 SNS 전용 계정은 `currentPassword` 없이 최초 설정할 수 있습니다.
-  - 정책 미확정: 비밀번호 변경 후 기존 토큰을 무효화할지(현재는 만료 시까지 유효)
+  - 새 비밀번호는 가입과 같은 정책(8자 이상, 72바이트 이하)입니다.
+  - **비밀번호를 바꾸면 그 전에 발급된 토큰이 모두 무효가 됩니다.** 요청에 쓴 현재 토큰도 포함하므로 클라이언트는 다시 로그인해야 합니다(`users.sessionVersion`, 2026-11-09 결정).
 
 ## 2. SNS 로그인
 
@@ -57,7 +60,8 @@
 - **자동 병합 없음:** 로컬 계정과 같은 email이어도 자동으로 병합하지 않습니다(계정 탈취 방지).
 - **name:** 사용자가 설정한 `users.name`을 SNS 로그인 때마다 덮어쓰지 않습니다.
 - **Apple email:** ID Token claim을 우선합니다. 최초 인증 시 클라이언트가 보낸 email은 token에 email이 없을 때만 미검증으로 사용합니다.
-- **기능 플래그(명시적 opt-in):** `AUTH_<PROVIDER>_ENABLED=true`가 아니면(미지정 포함) 해당 provider의 모든 라우트가 외부 호출 없이 503 `AUTH_<PROVIDER>_DISABLED`를 반환합니다. credential 키가 있어도 자동으로 켜지지 않습니다.
+- **기능 플래그(명시적 opt-in):** `AUTH_<PROVIDER>_ENABLED=true`가 아니면(미지정 포함) 해당 provider의 모든 라우트가 외부 호출 없이 503 `AUTH_<PROVIDER>_DISABLED`를 반환합니다. 경로의 대소문자와 관계없이 적용됩니다. credential 키가 있어도 자동으로 켜지지 않습니다.
+- **fail-closed:** 켜진 provider라도 검증 설정(audience, `KAKAO_APP_ID`, redirect URI 허용 목록)이 비어 있으면 검증을 생략하지 않고 503 `AUTH_<PROVIDER>_CONFIG_MISSING`으로 거부합니다.
 - **오류 코드:** `AUTH_<PROVIDER>_<REASON>`
   - `BAD_REQUEST`: 400
   - `STATE_MISMATCH`, `EXCHANGE_FAILED`, `PROFILE_FETCH_FAILED`, `INVALID_*`, `TOKEN_EXPIRED`, `MISSING_SUB`, `NONCE_MISMATCH`: 401
@@ -72,7 +76,7 @@
 - **Track:** `title`(1–200자), `artist`(1–200자), `bpm`(0–400, 선택)
 - **AudioAsset**
   - Track 하나에 여러 개를 둘 수 있습니다(1:N).
-  - 필드: `url`(선택), `duration`(초), `bpm`(분석값)
+  - 필드: `url`(선택, http(s) 절대 URL, 2000자 이하), `duration`(초), `bpm`(분석값)
   - `Track.bpm`과 자동 동기화하지 않습니다.
 - **조회**
   - Track 목록·상세는 공개입니다. 목록은 최신순이며 `page`, `limit`(최대 100)를 받습니다.
@@ -101,8 +105,8 @@
 | 항목 | 정책 |
 | --- | --- |
 | 오류 응답 | `{ ok: false, requestId, errorCode, message }`. 5xx 메시지는 일반화하고 비밀값은 마스킹합니다 |
-| 요청 ID | `x-request-id`를 받거나 생성하고, 응답 헤더로 돌려줍니다(CORS 노출) |
-| 입력 검증 | 전역 `ValidationPipe(whitelist, forbidNonWhitelisted, transform)` |
-| 요청 제한 | 전역 `THROTTLE_LIMIT`/`THROTTLE_TTL`(기본 10회/60초), 로그인 5회/분, `/health` 제외. proxy 뒤에서는 `TRUST_PROXY` 필수 |
+| 요청 ID | `x-request-id`가 영문·숫자·`. _ : = + / -` 128자 이하면 그대로 쓰고, 아니면 새 UUID를 생성합니다. 응답 헤더로 돌려줍니다(CORS 노출) |
+| 입력 검증 | 전역 `ValidationPipe(whitelist, forbidNonWhitelisted, transform)`. 모든 문자열 입력에 길이 상한(DB 컬럼 길이 이하) |
+| 요청 제한 | 전역 `THROTTLE_LIMIT`/`THROTTLE_TTL`(기본 10회/60초), 로그인 IP당 5회/분 + 계정당 실패 10회/15분, `/health` 제외. proxy 뒤에서는 `TRUST_PROXY` 필수 |
 | CORS | `CORS_ORIGIN` 쉼표 목록, `*` 금지 |
 | 문서 | Swagger `/api-docs`. production에서는 비노출 |

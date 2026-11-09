@@ -64,15 +64,20 @@ CREATE DATABASE IF NOT EXISTS music_db
 
 비밀번호가 shell history에 남지 않는 방법을 사용합니다. 아래 명령은 예시이며 실제 운영 계정과 경로로 대체합니다.
 
+덤프에는 사용자 데이터와 비밀번호 해시가 들어 있습니다. **저장소 밖의 권한이 막힌 디렉터리**에 만들고(`umask 077`), 프로젝트 루트에 두지 않습니다. `*.sql`, `*.sql.gz`는 `.gitignore`에 있습니다.
+
 ```bash
-mariadb-dump --single-transaction --routines --triggers -u <user> -p music_db > music_db_$(date +%Y%m%d_%H%M%S).sql
-mariadb -u <user> -p music_db < music_db_backup.sql
+umask 077
+mkdir -p ~/backups
+mariadb-dump --single-transaction --routines --triggers -u <user> -p music_db \
+  | gzip > ~/backups/music_db_$(date +%Y%m%d_%H%M%S).sql.gz
+gunzip -c ~/backups/music_db_<timestamp>.sql.gz | mariadb -u <user> -p music_db
 ```
 
 - MariaDB DDL은 암묵적으로 커밋되므로, migration 도중 실패하면 트랜잭션 rollback으로 되돌릴 수 없습니다.
 - `ArchiveLegacyMusicSchema`·`RepairLegacyMariaDbSchema`처럼 down이 없는 migration이 있으므로 **배포 전 백업은 필수**입니다.
 
-backup 위치, 보존 기간, restore 리허설 결과를 운영 기록으로 남깁니다.
+backup 위치, 보존 기간, restore 리허설 결과를 운영 기록으로 남깁니다. 자동화와 복원 훈련 방법은 [DB 개선 가이드](../../learning/database-improvement-guide.kr.md#백업-자동화와-복원-훈련)에 있습니다.
 
 ## 문자셋과 시간
 

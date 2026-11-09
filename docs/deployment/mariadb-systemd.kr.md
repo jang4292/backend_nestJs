@@ -20,7 +20,8 @@ NestJS 프로세스와 MariaDB가 같은 EC2 호스트에 있는 구성을 기�
 
 ## 2. 배포 전 점검
 
-- [ ] DB 백업을 완료했습니다([MariaDB 운영](../music/database/mariadb-operations.md#backup-및-restore)).
+- [ ] DB 백업을 완료했습니다([MariaDB 운영](../music/database/mariadb-operations.md#backup-및-restore)). 덤프는 저장소 밖(`~/backups`, `umask 077`)에 둡니다.
+- [ ] 이번 릴리스의 migration을 확인했습니다. 2026-11-09 기준 `1766000000000-AddSessionVersionToUsers`가 추가되었습니다(비밀번호 변경 시 기존 토큰 무효화, [보안 감사 6장](../audit/2026-11-09-security-audit.kr.md#6-배포-영향-develop--main)).
 - [ ] 서버의 `.env.production`을 최신 템플릿(`.env.production.example`)과 비교해, 빠진 키가 없습니다.
 - [ ] **`npm run env:check:prod`가 `OK`입니다.**
   - 이 명령은 서버·DB에 접속하지 않고 기동 시와 같은 검증만 실행합니다.
@@ -60,6 +61,8 @@ pm2 logs backend-nestjs --lines 50 | grep -i migration   # pending 경고(Migrat
 ## 4. systemd 배포 절차 (대안)
 
 1. `deploy/backend-nestjs.service.example`을 `/etc/systemd/system/backend-nestjs.service`로 복사하고, 배포 경로(`WorkingDirectory`)와 서비스 계정을 맞춥니다.
+   - 예시에는 샌드박스 지시어(`NoNewPrivileges`, `ProtectSystem=strict`, `PrivateTmp` 등)가 들어 있습니다. 앱이 파일을 써야 하는 경로가 있으면 `ReadWritePaths`에 추가합니다.
+   - 적용 후 `systemd-analyze security backend-nestjs`로 노출 점수를 확인합니다.
 2. `WorkingDirectory`에 `.env.production`을 두고(chmod 600, 서비스 계정 소유), `npm run env:check:prod` → `npm run db:check:prod` → `npm run migration:run:prod`를 실행합니다.
 3. 서비스를 기동합니다.
    ```bash
@@ -83,12 +86,14 @@ SELECT id, username, role FROM users WHERE role = 'admin';
 - `GET /health`가 200 `{"status":"ok","database":"up"}`인지 확인합니다.
 - `GET /music/public/playlists`가 200인지 확인합니다.
 - 일반 사용자 토큰으로 `POST /music/tracks`를 보내 403, admin 토큰으로는 201인지 확인합니다.
-- 비활성 provider `POST /auth/<provider>/login`이 503 `AUTH_<PROVIDER>_DISABLED`인지 확인합니다.
+- 비활성 provider `POST /auth/<provider>/login`이 503 `AUTH_<PROVIDER>_DISABLED`인지 확인합니다. 대소문자를 바꾼 경로(`/auth/GOOGLE/login`)도 503이어야 합니다(SEC-17).
+- 비밀번호를 바꾼 뒤 이전 토큰으로 `GET /users/profile`이 401인지 확인합니다(AUTH-3).
 
 ## 6. 롤백
 
 - 애플리케이션: 이전 커밋으로 `npm ci && npm run build && npm run pm2:reload`
-- 최근 migration: `npm run migration:revert:prod`(`AddRoleToUsers`는 컬럼만 삭제)
+- 최근 migration: `npm run migration:revert:prod`(`AddSessionVersionToUsers`, `AddRoleToUsers`는 컬럼만 삭제)
+  - `AddSessionVersionToUsers`를 되돌릴 때는 **앱을 먼저 이전 빌드로 되돌린 뒤** revert합니다. 새 코드는 이 컬럼을 조회합니다.
 - `ArchiveLegacyMusicSchema`·`RepairLegacyMariaDbSchema`는 down이 없습니다. 문제가 생기면 배포 전 백업으로 복원합니다.
 - 최신 migration의 down/up은 CI `database` job이 매 PR마다 MariaDB 10.11에서 검증합니다(`migration:revert:test` → `migration:run:test`).
 

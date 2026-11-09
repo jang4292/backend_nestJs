@@ -29,7 +29,7 @@ src/
     http/                 api-response.ts({ok, requestId, data|errorCode})
     logging/              redact-sensitive-text.ts
     request-id/           RequestIdInterceptor·Service
-    auth/                 ProviderReadinessGuard(AUTH_*_ENABLED), AuthenticatedRequest
+    auth/                 ProviderReadinessGuard(AUTH_*_ENABLED, @SocialProviderRoute 메타데이터), AuthenticatedRequest
   auth/
     session/              JWT 발급(SessionIssuerPort)·검증(JwtStrategy), RolesGuard, @AdminOnly()
     local/                로컬 로그인 use-case
@@ -132,14 +132,17 @@ UsersController (interface)            ── DTO 검증, PublicUser로 변환
 ## 8. 인증과 인가
 
 ```text
-요청 → ThrottlerGuard → ProviderReadinessGuard(/auth/<provider>/*만)
-     → JwtAuthGuard (HS256만 허용, 토큰 검증 → DB에서 사용자 재조회 → req.user = PublicUser{role, providers})
+요청 → ThrottlerGuard → ProviderReadinessGuard(@SocialProviderRoute가 붙은 SNS 컨트롤러만)
+     → JwtAuthGuard (HS256만 허용, 토큰 검증 → DB에서 사용자 재조회 → sessionVersion 비교 → req.user = PublicUser{role, providers})
      → RolesGuard (@Roles(UserRole.ADMIN) 메타데이터와 req.user.role 비교 → 아니면 403)
 ```
 
 - **라우트 데코레이터:** `@Authenticated()`는 로그인, `@AdminOnly()`는 admin을 요구합니다(`src/auth/session/interface/auth-route.decorators.ts`).
 - **역할 반영:** 역할을 JWT에 넣지 않고 매 요청 DB에서 읽으므로, 권한 변경이 즉시 반영됩니다.
 - **회귀 방지:** 음악 쓰기 라우트에 `@AdminOnly()`가 빠지면 `src/music/music-authorization.spec.ts`가 실패합니다.
+- **provider 판정은 메타데이터로:** `ProviderReadinessGuard`는 요청 경로가 아니라 컨트롤러의 `@SocialProviderRoute()`를 읽습니다. Express 라우팅은 대소문자를 구분하지 않아 경로 검사로는 `/auth/GOOGLE/*`을 놓칩니다([API 보안 가이드 8장](api-security-guide.kr.md#8-사례-대소문자-경로로-비활성-provider-우회-sec-17)).
+- **토큰 무효화:** JWT의 `sv`가 `users.sessionVersion`과 다르면 401입니다. 비밀번호를 바꾸면 버전이 오릅니다.
+- **계정 단위 로그인 제한:** IP 단위 `@Throttle`과 별개로, 같은 식별자의 실패가 15분에 10회면 429입니다(`LoginAttemptLimiterPort`).
 
 ## 9. SNS 로그인: provider별 모듈 + 공통 커널
 

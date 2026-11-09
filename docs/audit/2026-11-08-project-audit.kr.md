@@ -5,6 +5,7 @@
 > 후속 조치(같은 날): 환경별 DB·env 파일 정리와 SNS 로그인 전면 비활성화 — [9장](#9-후속-조치-환경별-db-설정과-sns-비활성화)
 > 후속 조치(2026-11-09): 새 개발 DB 연결, DB 생성·점검 도구, MariaDB CI 검증, migration 결함 수정, Local/Test/Prod 정리와 다른 DB 삭제 방지 — [10장](#10-후속-조치-개발-db-연결과-스키마-관리-체계)
 > 전체 작업 내역과 배운 점: [작업 내역과 배운 점](../learning/work-history-2026-11.kr.md)
+> **후속 보안 감사(2026-11-09):** [보안 전수 감사](2026-11-09-security-audit.kr.md). 비활성 SNS provider 우회(SEC-17, High)를 수정하고, 이 리포트의 AUTH-3·SEC-14·SEC-16을 해결했습니다. 이후 보안 항목은 그 리포트를 기준으로 봅니다.
 
 ## 0. 요약
 
@@ -110,9 +111,9 @@
 | SEC-11 | Medium | Apple 비운영 환경에서 aud 미검증(다른 앱용 Apple 토큰도 통과) | ✅ Apple이 활성화되면 환경과 무관하게 `APPLE_ALLOWED_AUDIENCES` 필수 |
 | SEC-12 | Low | 로컬 가입으로 `google_<sub>` 같은 SNS username을 선점하면 해당 SNS 사용자의 최초 로그인이 막힘 | ✅ `<provider>_` 접두사 예약 |
 | SEC-13 | Low | CORS가 origin 1개만 받고 `*`를 거부하지 않음, `x-request-id` 미노출 | ✅ 쉼표 목록 지원, `*` 거부, `exposedHeaders` 설정 |
-| SEC-14 | Low | 클라이언트가 보낸 `x-request-id`를 형식·길이 검사 없이 사용함(로그 주입) | 📌 P2 |
+| SEC-14 | Low | 클라이언트가 보낸 `x-request-id`를 형식·길이 검사 없이 사용함(로그 주입) | ✅ 2026-11-09 [보안 감사](2026-11-09-security-audit.kr.md)에서 수정 |
 | SEC-15 | Low | Facebook Graph 호출에 `appsecret_proof` 없음 | 📌 P2 |
-| SEC-16 | Low | redirect URI 허용 목록이 비어 있으면 검사를 생략함(Google/Apple/Naver는 운영에서도 필수가 아님) | 📌 P1 |
+| SEC-16 | Low | redirect URI 허용 목록이 비어 있으면 검사를 생략함(Google/Apple/Naver는 운영에서도 필수가 아님) | ✅ 2026-11-09 [보안 감사](2026-11-09-security-audit.kr.md)에서 수정(목록이 비면 code flow 거부) |
 
 ### 3.3 인증·세션
 
@@ -120,7 +121,7 @@
 | --- | --- | --- | --- |
 | AUTH-1 | Medium | JWT 검증 알고리즘 미고정, placeholder 탐지가 `change-this`/`your-`만 확인해 `replace-with-…`가 운영에서 통과, 길이 기준 없음 | ✅ HS256 고정(서명·검증), 운영에서 32자 이상과 `replace-with` 탐지 |
 | AUTH-2 | Medium | `JWT_EXPIRES_IN` 해석 불일치. `'3600'`을 서명할 때는 3.6초(ms)로, 응답에는 3600초로 보고. `'7 days'`는 서명은 7일인데 응답에는 3600 | ✅ 기간 파서를 하나로 통일하고 기동 시 형식 검증 |
-| AUTH-3 | Medium | refresh token과 폐기 기능이 없음. 비밀번호를 바꿔도 기존 토큰이 만료 전까지 유효 | 📌 P1 |
+| AUTH-3 | Medium | refresh token과 폐기 기능이 없음. 비밀번호를 바꿔도 기존 토큰이 만료 전까지 유효 | ✅ 2026-11-09 비밀번호 변경 시 무효화(`sessionVersion`) / 📌 P1 refresh token |
 | AUTH-4 | Medium | `PublicUser.providers`가 항상 `[]`(`byId`가 `socialAccounts`를 로드하지 않음) | ✅ |
 | AUTH-5 | Medium | 응답 형식 불일치: local은 `{access_token, user}`, SNS는 `{ok, requestId, data:{accessToken,…}}` | 📌 P1 클라이언트 계약 결정 필요 |
 | AUTH-6 | Low | JWT에 iss/aud claim 없음 | 📌 P2 |
@@ -280,11 +281,11 @@
 
 - 인증·세션
   - refresh token(원문 미저장, rotation), logout/revoke
-  - 비밀번호 변경 시 기존 토큰 무효화(AUTH-3)
+  - ~~비밀번호 변경 시 기존 토큰 무효화(AUTH-3)~~ → 2026-11-09 완료(`sessionVersion`)
 - OAuth
   - 서버 저장형 state/nonce/PKCE 트랜잭션(SEC-5)
   - `exchange-code`·`verify-id-token` 공개 범위 재검토(SEC-6)
-  - redirect URI 허용 목록을 운영 필수로 전환(SEC-16)
+  - ~~redirect URI 허용 목록을 운영 필수로 전환(SEC-16)~~ → 2026-11-09 완료(목록이 비면 code flow 거부)
 - 응답 계약: local과 SNS 로그인 응답 envelope 통일(AUTH-5)
 - Playlist 정책
   - 공개 상태 전이 규칙(CA-8)
@@ -311,7 +312,7 @@
 - legacy 음악 모듈 폐기 일정과 데이터 이전 결정
 - Playlist 소유권(ownerId) 또는 editor 역할이 필요한지 제품 결정
 - 검색: LIKE 이스케이프, FULLTEXT 또는 별도 검색 인덱스(DB-9). 공개 목록 count 쿼리 최적화(DB-10)
-- `x-request-id` 형식 검증(SEC-14), Facebook `appsecret_proof`(SEC-15), JWT iss/aud(AUTH-6)
+- ~~`x-request-id` 형식 검증(SEC-14)~~(2026-11-09 완료), Facebook `appsecret_proof`(SEC-15), JWT iss/aud(AUTH-6)
 - `GET /music/tracks/:trackId/audio-assets`가 없는 트랙에도 `[]`을 반환하는 문제를 404로 정리(스모크 테스트에서 발견)
 - 배포 경로를 하나로 통일(OPS-8), 의도된 503의 로그 등급 조정(OPS-9), `DB_POOL_MIN` 정리(DB-11)
 - `noImplicitAny` 활성화 등 tsconfig strict 강화

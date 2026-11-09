@@ -232,6 +232,24 @@ migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:te
 - **파괴적 명령은 "무엇을 지워도 되는가"를 이름이 아니라 내용으로 확인합니다.** `*_test`라는 이름만으로는 안전을 보장할 수 없습니다.
 - **공유 서버에서는 앱마다 DB와 권한을 분리합니다.** 한 계정의 권한이 다른 앱의 DB에 미치지 않게 합니다.
 
+## 8.4 사례: 보안 수정에 필요한 컬럼 추가 (2026-11-09)
+
+비밀번호를 바꿔도 기존 토큰이 살아 있는 문제(AUTH-3)를 고치려고 `users.sessionVersion`을 추가했습니다([보안 감사](../audit/2026-11-09-security-audit.kr.md)). 작은 변경이지만 이 가이드의 원칙을 처음부터 끝까지 따른 예입니다.
+
+| 단계 | 한 일 | 원칙 |
+| --- | --- | --- |
+| 설계 | `INT UNSIGNED NOT NULL DEFAULT 0`. 기존 행은 자동으로 0이 되고, 0은 "옛 토큰(`sv` 없음)"과 같은 뜻 | **추가 전용(expand).** 기존 데이터와 기존 토큰을 바꾸지 않음 |
+| 작성 | migration과 entity에 같은 타입·기본값을 씀 | drift를 늘리지 않음 |
+| 읽기 전용 확인 | `db:check:test` → ownership dedicated, 1 pending | 쓰기 전에 대상과 상태를 확인 |
+| 적용 | `db:setup:test` → `db:check:test --strict`(0 pending) | 명령으로 적용 |
+| 되돌리기 검증 | `migration:revert:test` → `migration:run:test` | down이 실제로 동작하는지 확인 |
+| drift 확인 | `migration:check:test`에 `sessionVersion`이 없음 | 새 차이가 없음을 확인 |
+| 동작 확인 | e2e, HTTP 스모크(비밀번호 변경 후 이전 토큰 401) | 기능까지 확인 |
+
+**배포 순서의 함정:** 컬럼을 되돌릴 때는 **앱을 먼저** 이전 빌드로 돌려야 합니다. 새 코드는 entity가 이 컬럼을 조회하므로, 컬럼부터 지우면 모든 사용자 조회가 실패합니다. 추가는 "DB 먼저, 앱 나중", 제거는 "앱 먼저, DB 나중"입니다.
+
+앞으로의 DB 과제(drift 해소, 계정 분리, 백업 자동화 등)는 [DB 개선 가이드](database-improvement-guide.kr.md)에 우선순위와 단계로 정리했습니다.
+
 ## 9. 이 프로젝트의 구현
 
 | 역할 | 코드 |
@@ -272,6 +290,7 @@ migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:te
 | (2026-11-09) 환경 용어를 Local / Test / Prod로 통일. 파일과 명령은 유지 | 실제 운용(PC에서 개발, EC2에서 운영)과 이름을 맞춥니다 |
 | (2026-11-09) Local은 앱 전용 새 DB `app_db_dev`를 사용. 기존 DB는 사용하지 않음 | 기존 DB에 `DROP` 권한을 주지 않기 위해서입니다(8.3) |
 | (2026-11-09) `db:setup`·`db:reset`은 앱 소유 DB에서만 동작. `synchronize`는 모든 환경에서 금지 | 다른 앱의 객체와 데이터를 어떤 경우에도 지우지 않기 위해서입니다(8.3) |
+| (2026-11-09) 토큰 무효화는 `users.sessionVersion` 컬럼으로 | 추가 전용 변경이라 기존 데이터·토큰에 영향이 없습니다(8.4) |
 
 ## 11. 자가 점검 질문
 
@@ -285,6 +304,7 @@ migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:te
 8. `npm run db:check`와 `npm run db:check:test`는 각각 어느 파일을 읽는가? 셸에 export한 `DB_PASSWORD`가 있으면 어느 값이 쓰이는가?
 9. `db:reset:test`가 이름(`*_test`)만 보고 DB를 지우면 어떤 사고가 날 수 있는가? 이 프로젝트는 무엇을 추가로 확인하는가?
 10. 새 테이블을 만드는 migration을 추가할 때 `APP_TABLES`도 고쳐야 하는 이유는? 고치지 않으면 무엇이 알려 주는가?
+11. 컬럼을 추가할 때와 제거할 때 앱과 DB의 배포 순서가 반대인 이유는 무엇인가?(8.4)
 
 ## 12. 실습 과제
 

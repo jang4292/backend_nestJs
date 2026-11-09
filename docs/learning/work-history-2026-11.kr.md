@@ -2,7 +2,7 @@
 
 > 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11` (PR #10)
 > 2026-11-08 ~ 11-09에 한 모든 작업을 시간순으로 정리한 학습 기록입니다. 단계마다 **문제 → 원인 → 조치 → 배운 점 → 관련 자료** 순서로 적었습니다.
-> 세부 근거는 [감사 리포트](../audit/2026-11-08-project-audit.kr.md)에 있습니다(ID로 찾을 수 있음).
+> 세부 근거는 [감사 리포트](../audit/2026-11-08-project-audit.kr.md)와 [보안 감사](../audit/2026-11-09-security-audit.kr.md)에 있습니다(ID로 찾을 수 있음).
 
 ## 한눈에 보기
 
@@ -13,7 +13,9 @@
 | 3 | 11-08 | 환경별 env 파일, SNS 로그인 opt-in·전면 비활성 | `6964f5f`, `305e670` |
 | 4 | 11-08 | DB 도구, 기동 시 pending 경고, CI MariaDB 검증, migration 결함 | `ae95565`, `7d3c4c2`, `1d2a21d`, `5b753f2` |
 | 5 | 11-09 | env 파일 진단, migration 권한 사전 점검 | `d582af6`, `19b2834` |
-| 6 | 11-09 | Local/Test/Prod 정리, 앱 전용 DB, 다른 DB 삭제 방지 | `da10717` 이후 |
+| 6 | 11-09 | Local/Test/Prod 정리, 앱 전용 DB, 다른 DB 삭제 방지 | `da10717`, `532ccc7` |
+| 7 | 11-09 | 보안 전수 감사: provider 가드 우회, 토큰 무효화, 계정 단위 제한, 입력 상한 | `1aa4946`, `cc31e95`, `09c8e0b`, `610078f` |
+| 8 | 11-09 | 학습 문서 정리, docs/html 학습 사이트(md → HTML 스냅샷) | `docs`, `docs(html)` 커밋 |
 
 ## 1단계: 감사와 품질 게이트
 
@@ -167,6 +169,75 @@
 
 **자료:** [환경별 가이드 2장 DB 삭제 안전 원칙](../deployment/database-environments.kr.md#2-db-삭제-안전-원칙), [DB·스키마 관리 학습 가이드 8.3](database-schema-management.kr.md#83-사례-같은-서버의-다른-db를-지키기-2026-11-09)
 
+## 7단계: 보안 전수 감사
+
+**요청:** 보안 관련 전수 감사를 하고, 개선 방향을 적용하고, 관련 코드와 문서를 보완합니다. DB 관련 개선 방향도 가이드로 정리합니다.
+
+**가장 큰 발견: 꺼진 SNS 로그인이 대소문자를 바꾼 경로로 열림(SEC-17, High)**
+
+- **문제:** `POST /auth/GOOGLE/verify-id-token`이 비활성 가드를 통과해 컨트롤러까지 실행됐습니다(수정 전 커밋을 빌드해 500으로 재현).
+- **원인 1:** Express는 기본적으로 대소문자를 구분하지 않고 라우팅합니다. 가드는 경로를 대소문자 구분 정규식으로 검사했습니다.
+- **원인 2:** 꺼진 provider는 설정이 비어 있는데, 검증 코드는 설정이 비면 검사를 생략했습니다(Google·Apple은 audience 없이, Kakao는 `app_id` 확인 없이). 두 결함이 겹쳐 다른 앱에서 발급된 토큰으로 계정이 생기고 세션이 발급되는 상태였습니다.
+- **조치**
+  - 가드가 경로 대신 컨트롤러 메타데이터(`@SocialProviderRoute`)로 판정합니다.
+  - 설정이 비면 거부합니다(fail-closed). `KAKAO_APP_ID`는 Kakao가 켜지면 모든 환경에서 필수입니다.
+  - 메타데이터 누락 spec과 대소문자 경로 e2e로 고정했습니다.
+
+**나머지 조치**
+
+| 문제 | 조치 | ID |
+| --- | --- | --- |
+| 비밀번호를 바꿔도 탈취된 토큰이 만료까지 유효 | `users.sessionVersion`(migration 1766) + JWT `sv` 비교 | AUTH-3 |
+| IP를 바꾸면 한 계정에 무제한 로그인 시도 | 식별자별 실패 10회/15분이면 429 + `Retry-After` | SEC-19 |
+| bcrypt가 72바이트 이후를 무시, 긴 입력은 DB 오류 500 | 새 비밀번호 8자·72바이트, 모든 DTO에 상한 | SEC-18 |
+| 비로그인 검색에 `%`·`_` 패턴 조작 | 100자 상한, `escapeLike` | SEC-21 |
+| 클라이언트 `x-request-id`를 그대로 로그에 기록 | 안전한 형식만 사용 | SEC-14 |
+| redirect URI 허용 목록이 비면 검사 생략 | 비면 code flow 거부 | SEC-16 |
+| 공유 Claude 설정이 `npm run *` 전부 허용 | 읽기 전용·품질 게이트 명령만 | R-7 |
+| 의존성 업데이트 자동화 없음, CI 토큰이 `.git/config`에 남음 | Dependabot, `persist-credentials: false` | OPS-12 |
+
+**검증**
+
+- 유닛 58 suites / 442 tests
+- `app_db_test`에 1766 적용 → `--strict` → revert/재적용 → drift 확인(새 차이 없음) → e2e 5/5
+- 빌드 결과 HTTP 스모크 16/16. 임시 사용자는 만든 뒤 삭제했습니다.
+
+**배운 점**
+
+- **보안 판단은 라우터가 내린 결정에 붙입니다.** 경로 문자열을 다시 해석하면 라우터와 다른 결론을 낼 수 있습니다.
+- **"꺼져 있다"는 방어가 아닙니다.** 꺼진 기능의 코드도 설정이 비었을 때 거부해야 합니다(fail-closed).
+- **재현이 먼저입니다.** 수정 전 커밋을 빌드해 실제로 뚫리는지 확인한 덕분에 심각도를 확신할 수 있었습니다.
+- **정책은 새 입력에만 적용합니다.** 비밀번호 최소 길이·72바이트 제한을 로그인에도 걸면 기존 사용자가 잠깁니다.
+
+**자료:** [보안 감사](../audit/2026-11-09-security-audit.kr.md), [API 보안 학습 가이드](api-security-guide.kr.md), [DB 개선 가이드](database-improvement-guide.kr.md), [DB 가이드 8.4](database-schema-management.kr.md#84-사례-보안-수정에-필요한-컬럼-추가-2026-11-09)
+
+## 8단계: 학습 문서와 docs/html 학습 사이트
+
+**요청:** 전체 작업 내역과 알아야 할 내용을 `docs/html/` 아래 웹사이트 구조의 학습 자료로 만들고, 사이트 자체도 문서화해 계속 갱신할 수 있게 합니다.
+
+**결정(사용자)**
+
+- 평소에는 **md만 수정**하고, 필요한 시점에 **현재 md 전체를 기준으로 HTML을 독립적으로 구성**합니다.
+- 사이트 관련 트리(생성기, 설정, 문서, 결과)는 모두 `docs/html/` 아래에 둡니다.
+
+**조치**
+
+| 구분 | 내용 |
+| --- | --- |
+| 새 학습 문서 | [API 보안 학습 가이드](api-security-guide.kr.md), [DB 개선 가이드](database-improvement-guide.kr.md), [용어집](glossary.kr.md), [보안 감사 리포트](../audit/2026-11-09-security-audit.kr.md) |
+| 생성기 | `docs/html/_tools/build.mjs`: md → HTML, GitHub 방식 앵커, 링크 재작성(코드 파일은 스냅샷 커밋의 GitHub 링크), 깨진 링크·앵커면 실패 |
+| 사이트 기능 | 학습 순서 사이드바, 검색(`file://`에서도 동작), 목차, 이전/다음, 다크 테마, 읽음 표시와 진도 |
+| 명령 | `docs:html`(스냅샷), `docs:html:verify`(검사만, CI), `docs:html:status`(바뀐 md 목록) |
+| 문서화 | [사이트 관리 가이드](../html/README.md): 구조, 갱신 시점과 절차, 링크 규칙, 문제 해결, 체크리스트 |
+
+**배운 점**
+
+- **원본은 하나만 둡니다.** 같은 내용을 md와 HTML 두 벌로 관리하면 반드시 어긋납니다. HTML은 원본에서 만든 결과물로 취급합니다.
+- **문서 링크도 테스트 대상입니다.** 생성기가 모든 내부 링크와 앵커를 검사하므로, 제목을 바꾸면 그 제목을 가리키던 링크를 바로 알 수 있습니다.
+- **갱신 시점과 무결성 검사를 분리합니다.** 스냅샷은 사람이 정한 시점에 만들고, 링크 검사는 매 PR 자동으로 합니다.
+
+**자료:** [사이트 관리 가이드](../html/README.md), [학습 로드맵](README.md)
+
 ## 반복해서 쓰인 원칙
 
 | 원칙 | 이번 작업에서의 예 |
@@ -177,15 +248,18 @@
 | **읽기 전용 점검이 먼저** | `db:check`, `migration:show`, 운영 배포 전 `db:check:prod` |
 | **최소 권한** | 앱 DB 단위 GRANT, 운영 계정 `'<app>'@'localhost'`, 운영에서 DB 생성 금지 |
 | **위험한 기능은 명시적으로 켜기** | SNS opt-in, Naver accessToken 기본 차단, `synchronize` 금지 |
+| **설정이 비면 거부(fail-closed)** | audience·`KAKAO_APP_ID`·redirect 허용 목록이 비면 503 `CONFIG_MISSING` |
+| **보안 판단은 메타데이터로** | `@AdminOnly`, `@SocialProviderRoute`. 경로 문자열로 판단하지 않음 |
+| **원본은 하나, 결과물은 생성** | md → HTML 스냅샷, `runtime-env-keys.cjs` → PM2·Secrets export |
 | **빈 DB에서 처음부터 검증** | CI `database` job, `db:reset:test` |
 | **비밀은 출력하지 않기** | 비밀번호·secret 미출력, `SHOW GRANTS` 해시 가림, Hint는 키 존재만 |
 | **사람이 결정할 것은 기록하고 남기기** | DB-12 drift 방향, P0 배포 전 확인 항목(감사 리포트 6장) |
 
 ## 남은 과제
 
-- **DB-12:** entity·migration drift 해소. 권장은 entity에 이름과 정밀도를 선언하는 것이며, 해소 후 CI drift 단계를 필수로 바꿉니다.
+- **DB:** drift 해소(DB-12), 계정 분리(DB-18), 백업 자동화, 전송 구간 보호(DB-19). 순서와 단계는 [DB 개선 가이드](database-improvement-guide.kr.md)에 있습니다.
 - **P0(main 배포 전):**
   - 운영 `.env.production` 작성
-  - 클라이언트에 브레이킹 변경 공지
-  - 브랜치 보호
-- **P1:** e2e 시나리오 확장, refresh token, legacy use-case spec 등. [감사 리포트 6장](../audit/2026-11-08-project-audit.kr.md#6-로드맵)을 봅니다.
+  - 클라이언트에 브레이킹 변경 공지(11-08 감사 1~9번 + 보안 감사 10~14번)
+  - 브랜치 보호, GitHub secret scanning과 push protection([보안 감사 9장](../audit/2026-11-09-security-audit.kr.md#9-사용자가-할-일))
+- **P1:** refresh token, 서버 저장형 OAuth state, e2e 시나리오 확장, legacy use-case spec 등. [감사 리포트 6장](../audit/2026-11-08-project-audit.kr.md#6-로드맵)과 [보안 감사 7장](../audit/2026-11-09-security-audit.kr.md#7-로드맵)을 봅니다.

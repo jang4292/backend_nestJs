@@ -91,7 +91,10 @@ curl -X POST http://localhost:3000/users/register \
 
 Rules:
 
-- `username` must be at least 4 characters and `password` at least 6.
+- `username` must be 4–50 characters.
+- `password` must be at least 8 characters and at most 72 bytes in UTF-8
+  (bcrypt ignores anything after 72 bytes). One Korean character is 3 bytes.
+- `email` is at most 255 characters and `name` at most 100.
 - Usernames starting with `google_`, `apple_`, `kakao_`, `naver_` or
   `facebook_` are reserved for SNS accounts and return 400.
 - A duplicate username or email returns 409.
@@ -129,6 +132,19 @@ curl -X POST http://localhost:3000/auth/login \
 - Wrong credentials, an unknown account, and an SNS-only account (no password)
   all return the same 401 `Invalid credentials`.
 - The endpoint allows 5 requests per minute per client IP.
+- After 10 failed attempts for the same identifier within 15 minutes (from any
+  IP), further attempts return 429 `RATE_LIMITED` with a `Retry-After` header
+  in seconds, even with the right password. A successful login resets the
+  count.
+
+```json
+{
+  "ok": false,
+  "requestId": "6f1c…",
+  "errorCode": "RATE_LIMITED",
+  "message": "Too many failed login attempts. Try again later."
+}
+```
 
 ## 4. Profile (JWT)
 
@@ -165,9 +181,12 @@ curl -X PATCH http://localhost:3000/users/profile \
 | --- | --- |
 | `currentPassword` missing | 400 |
 | `currentPassword` wrong | 403 |
+| New password shorter than 8 characters or longer than 72 bytes | 400 |
 | SNS-only account without a password | First password can be set without `currentPassword` |
 
-Existing tokens stay valid until they expire.
+**A password change revokes every existing token, including the one used for
+the request.** The next request with an old token returns 401, so the client
+should send the user back to the login screen.
 
 ## 5. Social Login (public)
 
@@ -325,19 +344,19 @@ matches `requestId`:
   "ok": false,
   "requestId": "6f1c…",
   "errorCode": "BAD_REQUEST",
-  "message": "username must be longer than or equal to 4 characters, password must be longer than or equal to 6 characters"
+  "message": "username must be longer than or equal to 4 characters, password must be longer than or equal to 8 characters"
 }
 ```
 
 | HTTP | `errorCode` | Example |
 | --- | --- | --- |
 | 400 | `BAD_REQUEST` | Validation failure, reserved username, missing `currentPassword` |
-| 401 | `UNAUTHORIZED` | Missing, expired or tampered token; invalid credentials |
+| 401 | `UNAUTHORIZED` | Missing, expired or tampered token; token issued before a password change; invalid credentials |
 | 403 | `FORBIDDEN` | Not an admin; wrong `currentPassword` |
 | 404 | `NOT_FOUND` | Resource not found |
 | 409 | `CONFLICT`, `FOREIGN_KEY_CONSTRAINT` | Duplicate username/email; resource still referenced |
-| 429 | `RATE_LIMITED` | Too many requests |
-| 503 | `AUTH_<PROVIDER>_DISABLED` | SNS provider disabled |
+| 429 | `RATE_LIMITED` | Too many requests per IP, or 10 failed logins for one account in 15 minutes (`Retry-After`) |
+| 503 | `AUTH_<PROVIDER>_DISABLED`, `AUTH_<PROVIDER>_CONFIG_MISSING` | SNS provider disabled, or enabled without required verification settings |
 | 500 | `INTERNAL_SERVER_ERROR` / `AUTH_<PROVIDER>_INTERNAL_ERROR` | Message is always `Internal server error`; details are logged server-side |
 
 SNS routes use `AUTH_<PROVIDER>_<REASON>` codes, for example

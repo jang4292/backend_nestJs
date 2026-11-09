@@ -218,7 +218,8 @@ npm ci
 npm run build
 npm run env:check:prod           # DB 접속 없이 설정만 검증. FAIL이면 중단
 npm run db:check:prod            # 읽기 전용: 접속, 권한, 소유, pending migration 확인
-mysqldump --single-transaction --routines --triggers <prod_db> > backup-$(date +%Y%m%d%H%M).sql   # pending이 있으면 반드시
+umask 077; mkdir -p ~/backups  # 덤프는 저장소 밖, 본인만 읽기(사용자 데이터·비밀번호 해시 포함)
+mysqldump --single-transaction --routines --triggers <prod_db> | gzip > ~/backups/<prod_db>-$(date +%Y%m%d%H%M).sql.gz   # pending이 있으면 반드시
 npm run migration:show:prod      # 적용될 목록 확인([ ] 표시)
 npm run migration:run:prod       # 실패하면 재시작하지 말고 중단(이전 버전이 계속 동작)
 npm run pm2:reload               # ecosystem.config.cjs: cwd=프로젝트 루트, NODE_ENV=production
@@ -256,6 +257,8 @@ pm2 ls
 5. PR을 올리고 CI `database` job이 통과하는지 확인합니다: 빈 DB 전체 체인 → pending 없음 → 최신 revert/재적용 → drift → e2e
 6. Local에 적용합니다: `npm run db:check` → `npm run db:setup`. 기존 데이터 위에서 적용되는지 확인합니다.
 7. Prod에 적용합니다: 5.3 순서대로 진행하고, 백업 없이 migration을 실행하지 않습니다.
+
+migration을 작성할 때의 규칙(이름 명시, entity와 같은 타입, `down()`, expand → contract)은 [DB 개선 가이드 3장](../learning/database-improvement-guide.kr.md#3-migration-작성-규칙-체크리스트)에 체크리스트로 있습니다. 운영 계정을 migration용과 런타임용으로 나누는 방법은 [DB-18](../learning/database-improvement-guide.kr.md#db-18-migration-계정과-런타임-계정-분리)을 봅니다.
 
 ## 7. 자주 나는 오류
 

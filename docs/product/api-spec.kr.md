@@ -8,7 +8,7 @@
 - `public`: 인증 불필요
 - `jwt`: `Authorization: Bearer <token>` 필요
 - `admin`: JWT 필요, `role = admin`이어야 하며 아니면 403
-- `public*`: SNS 라우트. `AUTH_<PROVIDER>_ENABLED=true`가 아니면 503 — **현재 5종 모두 비활성**
+- `public*`: SNS 라우트. `AUTH_<PROVIDER>_ENABLED=true`가 아니면 503 — **현재 5종 모두 비활성**. 라우팅은 대소문자를 구분하지 않지만(`/auth/GOOGLE/login`도 같은 라우트), 비활성 판정은 컨트롤러 메타데이터로 하므로 철자와 관계없이 503입니다
 
 ## 시스템
 
@@ -21,10 +21,10 @@
 
 | Method | Path | 권한 | 요청 | 비고 |
 | --- | --- | --- | --- | --- |
-| POST | `/users/register` | public | `CreateUserDto {username, password, email?, name?}` | 201 PublicUser, 409 중복, 400 예약 username |
+| POST | `/users/register` | public | `CreateUserDto {username(4–50), password(8자 이상·72바이트 이하), email?(255), name?(100)}` | 201 PublicUser, 409 중복, 400 예약 username·정책 위반 |
 | GET | `/users/profile` | jwt | — | PublicUser(`role`, `providers` 포함) |
-| PATCH | `/users/profile` | jwt | `UpdateUserDto {email?, name?, password?, currentPassword?}` | 비밀번호 변경 시 `currentPassword` 필요(400/403), email 중복 409 |
-| POST | `/auth/login` | public | `LoginDto {identifierType, identifier, password}` | 201 `{access_token, user}`, 401, 분당 5회 |
+| PATCH | `/users/profile` | jwt | `UpdateUserDto {email?, name?, password?, currentPassword?}` | 비밀번호 변경 시 `currentPassword` 필요(400/403), email 중복 409. **비밀번호를 바꾸면 기존 토큰 전부(현재 토큰 포함) 401** |
+| POST | `/auth/login` | public | `LoginDto {identifierType, identifier(255), password(1024)}` | 201 `{access_token, user}`, 401, IP당 분당 5회, 계정당 실패 10회/15분이면 429 + `Retry-After` |
 
 ## SNS 로그인
 
@@ -55,7 +55,7 @@
 | PATCH | `/music/tracks/:id` | admin | 부분 수정 | |
 | DELETE | `/music/tracks/:id` | admin | — | 플레이리스트에 포함되어 있으면 409 |
 | GET | `/music/tracks/:trackId/audio-assets` | admin | — | 내부 저장소 정보 포함 |
-| POST | `/music/tracks/:trackId/audio-assets` | admin | `{url?, duration?, bpm?}` | |
+| POST | `/music/tracks/:trackId/audio-assets` | admin | `{url?, duration?, bpm?}` | `url`은 http(s) 절대 URL, 2000자 이하 |
 | PATCH | `/music/audio-assets/:id` | admin | 부분 수정 | |
 | DELETE | `/music/audio-assets/:id` | admin | — | |
 | GET | `/music/public/playlists` | public | `?page=1&limit=20`(최대 100) | `published`만 |
@@ -74,7 +74,7 @@
 | POST | `/music/legacy/artists` | admin | `{name, description?}` | |
 | PATCH | `/music/legacy/artists/:id` | admin | 부분 수정 | |
 | DELETE | `/music/legacy/artists/:id` | admin | — | 연결된 track이 있으면 409 `FOREIGN_KEY_CONSTRAINT` |
-| GET | `/music/legacy/tracks` | public | `?search&artistId&artistName&title&minBpm&maxBpm&page=1&limit=20(최대 100)&sortBy&sortOrder` | 공개 필드, 페이지네이션 |
+| GET | `/music/legacy/tracks` | public | `?search&artistId&artistName&title&minBpm&maxBpm&page=1&limit=20(최대 100)&sortBy&sortOrder` | 공개 필드, 페이지네이션. 검색어는 100자 이하이며 `%`, `_`는 문자 그대로 검색 |
 | GET | `/music/legacy/tracks/full` | jwt | 위와 같음 | 생성·수정 시각 포함 |
 | GET | `/music/legacy/tracks/:id` | public | — | |
 | GET | `/music/legacy/tracks/:id/full` | jwt | — | |
@@ -101,12 +101,12 @@
 | HTTP | errorCode(기본) | 대표 상황 |
 | --- | --- | --- |
 | 400 | `BAD_REQUEST` | DTO 검증 실패(메시지는 쉼표로 이어 붙임), 예약 username, `currentPassword` 누락 |
-| 401 | `UNAUTHORIZED` | 토큰 없음·만료·변조, 로그인 실패 |
+| 401 | `UNAUTHORIZED` | 토큰 없음·만료·변조, 비밀번호 변경 전에 발급된 토큰, 로그인 실패 |
 | 403 | `FORBIDDEN` | admin 아님, `currentPassword` 불일치 |
 | 404 | `NOT_FOUND` | 리소스 없음 |
 | 409 | `CONFLICT` / `FOREIGN_KEY_CONSTRAINT` | 중복, 참조 중인 리소스 삭제 |
-| 429 | `RATE_LIMITED` | 요청 제한 초과 |
-| 503 | `SERVICE_UNAVAILABLE` / `AUTH_<PROVIDER>_DISABLED` | 비활성 provider |
+| 429 | `RATE_LIMITED` | 요청 제한 초과, 계정 단위 로그인 실패 제한(`Retry-After`) |
+| 503 | `SERVICE_UNAVAILABLE` / `AUTH_<PROVIDER>_DISABLED` / `AUTH_<PROVIDER>_CONFIG_MISSING` | 비활성 provider, 검증 설정 누락 |
 | 5xx | `INTERNAL_SERVER_ERROR` | 메시지는 `Internal server error`로 고정 |
 
 SNS 라우트는 `AUTH_<PROVIDER>_<REASON>` 코드를 씁니다([기능 명세 2장](features.kr.md#2-sns-로그인)).
