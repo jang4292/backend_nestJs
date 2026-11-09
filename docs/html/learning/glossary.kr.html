@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/learning/glossary.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>용어집 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section" open><summary>시작하기</summary><ul class="nav-list"><li><a href="README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="glossary.kr.html" data-page-id="docs/learning/glossary.kr" aria-current="page">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">시작하기</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="용어집">용어집</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code>
+학습 자료에 나오는 용어를 이 프로젝트 기준으로 짧게 설명합니다. 자세한 내용은 각 항목의 링크를 따라갑니다.</p>
+</blockquote>
+<h2 id="인증인가"><a class="heading-anchor" href="#%EC%9D%B8%EC%A6%9D%EC%9D%B8%EA%B0%80" aria-hidden="true" tabindex="-1">#</a>인증·인가</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>용어</th>
+<th>뜻</th>
+<th>이 프로젝트에서</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>인증(Authentication)</td>
+<td>누구인지 확인</td>
+<td>로컬 로그인, SNS 로그인, JWT 검증</td>
+</tr>
+<tr>
+<td>인가(Authorization)</td>
+<td>무엇을 할 수 있는지 확인</td>
+<td><code>@AdminOnly()</code>, <code>RolesGuard</code></td>
+</tr>
+<tr>
+<td>RBAC</td>
+<td>역할 기반 접근 제어</td>
+<td><code>users.role</code>(user/admin). <a href="nestjs-operational-stability-guide.kr.html#8-%EC%9D%B8%EC%A6%9D%EA%B3%BC-%EC%9D%B8%EA%B0%80">아키텍처 가이드 8장</a></td>
+</tr>
+<tr>
+<td>JWT</td>
+<td>서명된 JSON 토큰. 서버가 세션을 저장하지 않음</td>
+<td>HS256 고정, 기본 만료 1시간</td>
+</tr>
+<tr>
+<td>claim</td>
+<td>JWT 안의 필드</td>
+<td><code>sub</code>(사용자 id), <code>username</code>, <code>sv</code>(세션 버전), <code>exp</code></td>
+</tr>
+<tr>
+<td><code>sessionVersion</code> / <code>sv</code></td>
+<td>토큰 무효화용 버전. DB 값과 토큰 값이 다르면 거부</td>
+<td>비밀번호 변경 시 1 증가. <a href="api-security-guide.kr.html#5-%EC%84%B8%EC%85%98-jwt%EC%99%80-%EC%B7%A8%EC%86%8C">API 보안 가이드 5장</a></td>
+</tr>
+<tr>
+<td>refresh token</td>
+<td>access token을 다시 발급받는 긴 수명 토큰</td>
+<td>아직 없음(P1). <a href="database-improvement-guide.kr.html#refresh-token-%ED%85%8C%EC%9D%B4%EB%B8%94-%EC%84%A4%EA%B3%84">DB 개선 가이드</a></td>
+</tr>
+<tr>
+<td>bcrypt</td>
+<td>느린 비밀번호 해시 함수</td>
+<td>cost 10. 입력의 앞 72바이트만 사용</td>
+</tr>
+<tr>
+<td>타이밍 공격</td>
+<td>응답 시간 차이로 정보를 알아내는 공격</td>
+<td>계정이 없어도 bcrypt 비교를 1회 수행(SEC-9)</td>
+</tr>
+<tr>
+<td>무차별 대입(brute force)</td>
+<td>비밀번호를 계속 바꿔 시도</td>
+<td>IP 단위 + 계정 단위 제한(SEC-19)</td>
+</tr>
+<tr>
+<td>credential stuffing</td>
+<td>다른 사이트에서 유출된 계정·비밀번호 목록으로 시도</td>
+<td>계정 단위 제한만으로는 부족. 유출 목록 대조, CAPTCHA가 필요</td>
+</tr>
+<tr>
+<td>계정 열거(enumeration)</td>
+<td>응답 차이로 계정 존재를 알아냄</td>
+<td>로그인은 같은 메시지와 시간. 가입은 중복을 알려 줌(SEC-25)</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="oauthoidc-sns-로그인"><a class="heading-anchor" href="#oauthoidc-sns-%EB%A1%9C%EA%B7%B8%EC%9D%B8" aria-hidden="true" tabindex="-1">#</a>OAuth·OIDC (SNS 로그인)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>용어</th>
+<th>뜻</th>
+<th>이 프로젝트에서</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IdP</td>
+<td>신원 제공자</td>
+<td>Google, Apple, Kakao, Naver, Facebook</td>
+</tr>
+<tr>
+<td>OAuth 2.0</td>
+<td>권한 위임 프로토콜</td>
+<td>code flow, access token</td>
+</tr>
+<tr>
+<td>OIDC</td>
+<td>OAuth 위에 신원(ID Token)을 더한 표준</td>
+<td>Google, Apple</td>
+</tr>
+<tr>
+<td>ID Token</td>
+<td>사용자 신원이 담긴 JWT</td>
+<td><code>aud</code>, <code>iss</code>, <code>exp</code>, <code>nonce</code> 검증</td>
+</tr>
+<tr>
+<td><code>aud</code> (audience)</td>
+<td>토큰을 받을 대상 앱</td>
+<td><code>GOOGLE_ALLOWED_AUDIENCES</code>, <code>APPLE_ALLOWED_AUDIENCES</code></td>
+</tr>
+<tr>
+<td><code>iss</code> (issuer)</td>
+<td>토큰 발급자</td>
+<td><code>accounts.google.com</code>, <code>appleid.apple.com</code></td>
+</tr>
+<tr>
+<td><code>nonce</code></td>
+<td>로그인 시도마다 만드는 일회용 값. 재전송 방지</td>
+<td>선택 입력</td>
+</tr>
+<tr>
+<td><code>state</code></td>
+<td>redirect 왕복을 묶는 값. CSRF 방지</td>
+<td>클라이언트가 검증해야 함(SEC-5)</td>
+</tr>
+<tr>
+<td>PKCE</td>
+<td>code 가로채기를 막는 확장(<code>code_verifier</code>)</td>
+<td>Google <code>codeVerifier</code></td>
+</tr>
+<tr>
+<td>토큰 치환(token substitution)</td>
+<td>다른 앱이 받은 사용자 토큰으로 이 서비스에 로그인</td>
+<td>Kakao <code>app_id</code>, Facebook <code>debug_token</code> 검증. Naver accessToken 로그인 기본 차단</td>
+</tr>
+<tr>
+<td>redirect URI 허용 목록</td>
+<td>code를 교환할 수 있는 콜백 주소 목록</td>
+<td>비어 있으면 code flow 거부(SEC-16)</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="보안-설계-원칙"><a class="heading-anchor" href="#%EB%B3%B4%EC%95%88-%EC%84%A4%EA%B3%84-%EC%9B%90%EC%B9%99" aria-hidden="true" tabindex="-1">#</a>보안 설계 원칙</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>용어</th>
+<th>뜻</th>
+<th>예</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>fail-closed</td>
+<td>설정이나 판단이 불확실하면 <strong>거부</strong></td>
+<td>audience가 비면 503 <code>CONFIG_MISSING</code>(SEC-17)</td>
+</tr>
+<tr>
+<td>fail-open</td>
+<td>불확실하면 <strong>통과</strong>(위험)</td>
+<td>수정 전 &quot;audience가 없으면 검사 생략&quot;</td>
+</tr>
+<tr>
+<td>심층 방어(defense in depth)</td>
+<td>방어를 여러 겹으로</td>
+<td>가드 + 검증기 + 테스트</td>
+</tr>
+<tr>
+<td>최소 권한</td>
+<td>필요한 권한만 부여</td>
+<td>앱 DB 단위 GRANT, runtime 계정 분리(DB-18)</td>
+</tr>
+<tr>
+<td>위협 모델</td>
+<td>자산, 공격자, 진입점을 정리한 것</td>
+<td><a href="api-security-guide.kr.html#2-%EC%9C%84%ED%98%91-%EB%AA%A8%EB%8D%B8">API 보안 가이드 2장</a></td>
+</tr>
+<tr>
+<td>라우트 메타데이터</td>
+<td>데코레이터로 핸들러에 붙인 정보</td>
+<td><code>@SocialProviderRoute</code>, <code>@Roles</code></td>
+</tr>
+<tr>
+<td>대량 할당(mass assignment)</td>
+<td>요청에 끼워 넣은 필드가 그대로 저장됨</td>
+<td><code>whitelist</code>, <code>forbidNonWhitelisted</code>로 차단</td>
+</tr>
+<tr>
+<td>redaction</td>
+<td>로그·응답에서 비밀값을 가림</td>
+<td><code>redactSensitiveText</code></td>
+</tr>
+<tr>
+<td>OWASP API Top 10</td>
+<td>API 보안 위험 상위 10개 목록</td>
+<td><a href="../audit/2026-11-09-security-audit.kr.html#owasp-api-security-top-10-2023-%EB%8C%80%EC%9D%91">보안 감사 1장</a></td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="운영네트워크"><a class="heading-anchor" href="#%EC%9A%B4%EC%98%81%EB%84%A4%ED%8A%B8%EC%9B%8C%ED%81%AC" aria-hidden="true" tabindex="-1">#</a>운영·네트워크</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>용어</th>
+<th>뜻</th>
+<th>이 프로젝트에서</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>trust proxy</td>
+<td>proxy가 보낸 <code>X-Forwarded-For</code>를 믿을지</td>
+<td><code>TRUST_PROXY=loopback</code></td>
+</tr>
+<tr>
+<td>rate limit / throttling</td>
+<td>요청 횟수 제한</td>
+<td><code>ThrottlerGuard</code>, 로그인 5회/분</td>
+</tr>
+<tr>
+<td><code>Retry-After</code></td>
+<td>다시 시도할 수 있는 시간(초) 헤더</td>
+<td>계정 단위 제한 429에 포함</td>
+</tr>
+<tr>
+<td>request id</td>
+<td>요청 하나를 추적하는 id</td>
+<td><code>x-request-id</code>. 형식이 안전할 때만 받음(SEC-14)</td>
+</tr>
+<tr>
+<td>graceful shutdown</td>
+<td>진행 중인 요청을 마치고 종료</td>
+<td><code>enableShutdownHooks</code>, PM2 <code>kill_timeout</code></td>
+</tr>
+<tr>
+<td>CORS</td>
+<td>브라우저의 다른 origin 요청 허용 규칙</td>
+<td>origin 목록, <code>*</code> 금지</td>
+</tr>
+<tr>
+<td>공급망(supply chain)</td>
+<td>의존성, CI Action 등 외부 코드</td>
+<td>Dependabot, <code>npm audit</code></td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="db스키마"><a class="heading-anchor" href="#db%EC%8A%A4%ED%82%A4%EB%A7%88" aria-hidden="true" tabindex="-1">#</a>DB·스키마</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>용어</th>
+<th>뜻</th>
+<th>이 프로젝트에서</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>migration</td>
+<td>스키마 변경을 담은 순서 있는 코드</td>
+<td><code>src/database/migrations/</code>, 10개</td>
+</tr>
+<tr>
+<td>pending</td>
+<td>아직 적용하지 않은 migration</td>
+<td><code>db:check</code>가 표시</td>
+</tr>
+<tr>
+<td>drift</td>
+<td>entity가 기대하는 스키마와 실제 DB의 차이</td>
+<td>DB-12, dry-run 49문</td>
+</tr>
+<tr>
+<td>dry-run</td>
+<td>실제로 바꾸지 않고 바꿀 내용만 보기</td>
+<td><code>migration:check:test</code></td>
+</tr>
+<tr>
+<td><code>synchronize</code></td>
+<td>entity에 맞춰 DB를 자동 변경하는 TypeORM 기능</td>
+<td>모든 환경에서 금지</td>
+</tr>
+<tr>
+<td>expand → contract</td>
+<td>추가 → 배포 → 제거로 나누는 하위 호환 변경</td>
+<td><a href="database-schema-management.kr.html#6-%ED%95%98%EC%9C%84-%ED%98%B8%ED%99%98-%EB%B3%80%EA%B2%BD-expand--contract">DB 가이드 6장</a></td>
+</tr>
+<tr>
+<td>DDL / DML</td>
+<td>구조 변경(CREATE, ALTER, DROP) / 데이터 변경(INSERT, UPDATE, DELETE)</td>
+<td>runtime 계정은 DML만(DB-18)</td>
+</tr>
+<tr>
+<td>소유 판정(ownership)</td>
+<td>대상 DB에 앱이 관리하지 않는 객체가 있는지 확인</td>
+<td><code>APP_TABLES</code>, <code>inspectOwnership</code></td>
+</tr>
+<tr>
+<td>collation</td>
+<td>문자열 비교·정렬 규칙</td>
+<td><code>utf8mb4_unicode_ci</code>(대소문자 구분 안 함)</td>
+</tr>
+<tr>
+<td>LIKE 와일드카드</td>
+<td><code>%</code>(여러 글자), <code>_</code>(한 글자)</td>
+<td><code>escapeLike</code>로 이스케이프</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="환경"><a class="heading-anchor" href="#%ED%99%98%EA%B2%BD" aria-hidden="true" tabindex="-1">#</a>환경</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>용어</th>
+<th>뜻</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Local</td>
+<td>개발 PC + 개발 서버의 <code>app_db_dev</code>(<code>.env</code>)</td>
+</tr>
+<tr>
+<td>Test</td>
+<td>Local 안의 e2e(<code>.env.test.local</code>, <code>app_db_test</code>)</td>
+</tr>
+<tr>
+<td>Prod</td>
+<td>EC2 + PM2 + localhost MariaDB(<code>.env.production</code>)</td>
+</tr>
+</tbody></table>
+</div>
+<p>자세한 내용: <a href="../deployment/database-environments.kr.html">환경별 DB·설정 가이드</a></p>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="README.html"><span>이전</span>학습 로드맵</a><a class="pager-next" href="../product/overview.kr.html"><span>다음</span>서비스 개요 (기획)</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/learning/glossary.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/learning/glossary.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#%EC%9D%B8%EC%A6%9D%EC%9D%B8%EA%B0%80">인증·인가</a></li><li class="toc-2"><a href="#oauthoidc-sns-%EB%A1%9C%EA%B7%B8%EC%9D%B8">OAuth·OIDC (SNS 로그인)</a></li><li class="toc-2"><a href="#%EB%B3%B4%EC%95%88-%EC%84%A4%EA%B3%84-%EC%9B%90%EC%B9%99">보안 설계 원칙</a></li><li class="toc-2"><a href="#%EC%9A%B4%EC%98%81%EB%84%A4%ED%8A%B8%EC%9B%8C%ED%81%AC">운영·네트워크</a></li><li class="toc-2"><a href="#db%EC%8A%A4%ED%82%A4%EB%A7%88">DB·스키마</a></li><li class="toc-2"><a href="#%ED%99%98%EA%B2%BD">환경</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

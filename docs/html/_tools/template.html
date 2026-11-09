@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="{{lang}}" data-root="{{root}}" data-page-id="{{pageId}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>{{pageTitle}} · {{siteTitle}}</title>
+  <meta name="description" content="{{description}}">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="{{root}}assets/site.css">
+</head>
+<body class="{{bodyClass}}">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="{{root}}index.html">{{siteTitle}}</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      {{nav}}
+      <p class="sidebar-meta">스냅샷 {{snapshotDate}} · <code>{{snapshotCommit}}</code></p>
+    </nav>
+    <main id="content" class="content">
+      {{pageMeta}}
+      <article class="markdown">
+        {{content}}
+      </article>
+      {{prevNext}}
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="{{sourceUrl}}" target="_blank" rel="noopener noreferrer"><code>{{sourcePath}}</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="{{root}}site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 {{snapshotDate}} · {{snapshotBranch}} <code>{{snapshotCommit}}</code>{{snapshotDirty}}</p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      {{toc}}
+    </aside>
+  </div>
+  <script src="{{root}}assets/search-index.js"></script>
+  <script src="{{root}}assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/auth/sns-reenable-checklist.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>SNS 로그인 재활성화 체크리스트 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section" open><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr" aria-current="page">SNS 로그인 재활성화 체크리스트</a></li><li><a href="google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">인증·SNS 로그인</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="sns-로그인-재활성화-체크리스트">SNS 로그인 재활성화 체크리스트</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code></p>
+</blockquote>
+<h2 id="현재-상태"><a class="heading-anchor" href="#%ED%98%84%EC%9E%AC-%EC%83%81%ED%83%9C" aria-hidden="true" tabindex="-1">#</a>현재 상태</h2>
+<p><strong>모든 SNS 로그인이 꺼져 있습니다. 운영은 로컬 로그인(<code>POST /auth/login</code>)만 사용합니다.</strong></p>
+<ul>
+<li>SNS provider는 <strong>명시적 opt-in</strong>입니다. <code>AUTH_&lt;PROVIDER&gt;_ENABLED=true</code>일 때만 켜집니다.<ul>
+<li>credential 키가 env에 있어도 플래그가 없으면 꺼진 상태입니다(<code>src/config/app-env.ts</code>).</li>
+</ul>
+</li>
+<li>꺼진 provider의 라우트(<code>/auth/&lt;provider&gt;/*</code>)는 유지되지만, 외부 호출 없이 503 <code>AUTH_&lt;PROVIDER&gt;_DISABLED</code>를 반환합니다(<code>ProviderReadinessGuard</code>).<ul>
+<li>가드는 요청 경로가 아니라 컨트롤러의 <code>@SocialProviderRoute(&#39;&lt;provider&gt;&#39;)</code> 메타데이터로 판정합니다. 그래서 <code>/auth/GOOGLE/login</code>처럼 대소문자를 바꾼 경로도 막힙니다(SEC-17). <strong>SNS 컨트롤러를 새로 만들면 이 데코레이터를 반드시 붙입니다</strong>(빠지면 spec 실패).</li>
+</ul>
+</li>
+<li>켜진 provider도 검증에 필요한 설정이 비어 있으면 검증을 생략하지 않고 503 <code>AUTH_&lt;PROVIDER&gt;_CONFIG_MISSING</code>으로 거부합니다(fail-closed).</li>
+<li>꺼진 provider는 관련 설정 키가 하나도 없어도 빌드와 기동에 영향이 없습니다.</li>
+<li>Naver는 켜더라도 클라이언트 accessToken 로그인이 기본 차단됩니다(<code>AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=false</code>). code flow만 허용합니다.</li>
+</ul>
+<p>provider를 다시 켜기 전에 아래 체크리스트를 <strong>해당 환경에서</strong> 모두 완료하세요. 진행 순서는 dev → test → prod입니다.</p>
+<h2 id="1-공통-체크리스트-모든-provider"><a class="heading-anchor" href="#1-%EA%B3%B5%ED%86%B5-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EB%AA%A8%EB%93%A0-provider" aria-hidden="true" tabindex="-1">#</a>1. 공통 체크리스트 (모든 provider)</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>클라이언트 state 검증</strong>: OAuth <code>state</code>는 redirect를 받는 클라이언트(앱·웹)가 생성하고 검증합니다.<ul>
+<li>서버의 <code>state</code>/<code>expectedState</code> 비교는 둘 다 클라이언트 값이라 CSRF 방어가 되지 않습니다(감사 SEC-5).</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> <strong>redirect URI 허용 목록</strong>: <code>&lt;PROVIDER&gt;_REDIRECT_URIS</code>에 실제 콜백만 넣습니다.<ul>
+<li>목록이 비어 있으면 code flow가 503 <code>CONFIG_MISSING</code>으로 거부됩니다(SEC-16, 2026-11-09부터). code flow를 쓰면 반드시 채웁니다.</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> <strong><code>exchange-code</code>·<code>verify-id-token</code> 공개 여부 결정</strong>: 이 엔드포인트들은 provider access/refresh token이나 검증된 identity를 호출자에게 그대로 반환합니다(SEC-6).<ul>
+<li>클라이언트가 쓰지 않는다면 제거나 제한을 먼저 검토합니다.</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> <strong>계정 정책 확인</strong><ul>
+<li>같은 email의 로컬 계정과 자동 병합하지 않습니다.</li>
+<li>미검증이거나 다른 계정이 쓰는 email은 <code>users.email</code>에 쓰지 않습니다(<a href="sns-login-overview.kr.html#%EA%B3%84%EC%A0%95-%EC%97%B0%EA%B2%B0%EA%B3%BC-%EB%B3%B4%EC%95%88-%EC%A0%95%EC%B1%85">SNS 개요</a>).</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> <strong>세션 한계 인지</strong>: refresh token과 기기별 로그아웃이 없습니다. 비밀번호를 바꾸면 기존 토큰은 무효가 되지만(<code>sessionVersion</code>, AUTH-3), SNS 전용 계정은 비밀번호가 없으므로 이 방법으로 취소할 수 없습니다. JWT 만료(<code>JWT_EXPIRES_IN</code>)를 짧게 유지합니다.</li>
+<li><input disabled="" type="checkbox"> <strong>응답 형식</strong>: SNS는 <code>{ok, requestId, data:{accessToken,…}}</code>, 로컬은 <code>{access_token, user}</code>입니다(AUTH-5). 클라이언트가 두 형식을 모두 처리하는지 확인합니다.</li>
+<li><input disabled="" type="checkbox"> <strong>기동 검증</strong><ul>
+<li>운영에서 플래그를 켜면 필수 설정이 빠진 경우 기동이 실패합니다(의도된 안전장치).</li>
+<li>반드시 Local(<code>npm run start:dev</code>)이나 staging에서 먼저 확인합니다.</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> <strong>동작 검증</strong><ul>
+<li>테스트 계정으로 최초 로그인과 재로그인을 해 봅니다.</li>
+<li><code>GET /users/profile</code>의 <code>providers</code>에 연결된 provider가 표시되는지 확인합니다.</li>
+<li>잘못된 토큰이면 401이 오는지 확인합니다.</li>
+</ul>
+</li>
+</ul>
+<h2 id="2-provider별-체크리스트"><a class="heading-anchor" href="#2-provider%EB%B3%84-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>2. provider별 체크리스트</h2>
+<h3 id="google"><a class="heading-anchor" href="#google" aria-hidden="true" tabindex="-1">#</a>Google</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <code>AUTH_GOOGLE_ENABLED=true</code></li>
+<li><input disabled="" type="checkbox"> <code>GOOGLE_ALLOWED_AUDIENCES</code>: 클라이언트가 쓰는 OAuth Client ID 전부(쉼표 구분). 필수입니다. 비어 있으면 기동이 실패하고, 런타임에서도 ID Token을 거부합니다.</li>
+<li><input disabled="" type="checkbox"> code flow를 쓸 때는 <code>GOOGLE_OAUTH_CLIENT_ID</code>·<code>CLIENT_SECRET</code>·<code>REDIRECT_URIS</code> 세 개를 모두 넣습니다. 일부만 넣으면 운영 기동이 실패합니다.</li>
+<li><input disabled="" type="checkbox"> 웹(GIS)이면 nonce를 사용하고, PKCE(<code>codeVerifier</code>)를 권장합니다.</li>
+</ul>
+<h3 id="apple"><a class="heading-anchor" href="#apple" aria-hidden="true" tabindex="-1">#</a>Apple</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <code>AUTH_APPLE_ENABLED=true</code></li>
+<li><input disabled="" type="checkbox"> <code>APPLE_ALLOWED_AUDIENCES</code>: Bundle ID 또는 Service ID. <strong>모든 환경에서 필수</strong>입니다(aud 미검증 방지).</li>
+<li><input disabled="" type="checkbox"> code flow는 <code>APPLE_SERVICE_ID</code>, <code>APPLE_TEAM_ID</code>, <code>APPLE_KEY_ID</code>, <code>APPLE_PRIVATE_KEY</code>(.p8, <code>\n</code> 이스케이프), <code>APPLE_REDIRECT_URIS</code>가 필요합니다.</li>
+<li><input disabled="" type="checkbox"> 최초 인증의 <code>user.email</code>은 서명되지 않은 값입니다. 서버는 ID Token의 email이 없을 때만 미검증으로 사용합니다.</li>
+</ul>
+<h3 id="kakao"><a class="heading-anchor" href="#kakao" aria-hidden="true" tabindex="-1">#</a>Kakao</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <code>AUTH_KAKAO_ENABLED=true</code></li>
+<li><input disabled="" type="checkbox"> <code>KAKAO_APP_ID</code>(숫자 앱 ID)는 <strong>모든 환경에서 필수</strong>입니다(2026-11-09부터. 이전에는 운영만). 클라이언트 accessToken의 발급 앱을 <code>/v1/user/access_token_info</code>의 <code>app_id</code>로 검증하며, 값이 없으면 검증을 건너뛰지 않고 거부합니다.</li>
+<li><input disabled="" type="checkbox"> <code>KAKAO_REST_API_KEY</code>, <code>KAKAO_REDIRECT_URIS</code>(운영 필수), 선택 <code>KAKAO_CLIENT_SECRET</code></li>
+<li><input disabled="" type="checkbox"> <strong>staging에서 확인</strong>: 다른 Kakao 앱에서 받은 토큰으로 로그인하면 401 <code>AUTH_KAKAO_INVALID_TOKEN</code>이 나와야 합니다.<ul>
+<li>실제 <code>access_token_info</code> 응답 필드는 아직 실연동으로 확인하지 않았습니다.</li>
+</ul>
+</li>
+</ul>
+<h3 id="naver"><a class="heading-anchor" href="#naver" aria-hidden="true" tabindex="-1">#</a>Naver</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <code>AUTH_NAVER_ENABLED=true</code></li>
+<li><input disabled="" type="checkbox"> <code>NAVER_CLIENT_ID</code>, <code>NAVER_CLIENT_SECRET</code>, <code>NAVER_REDIRECT_URIS</code>(code flow 필수)</li>
+<li><input disabled="" type="checkbox"> ⚠ <strong>accessToken 로그인은 켜지 않습니다.</strong> <code>AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=false</code>(기본)를 유지합니다.<ul>
+<li>Naver는 토큰의 발급 앱(client_id)을 검증할 공식 API를 확인하지 못했습니다. 다른 앱에서 받은 토큰으로 로그인하는 토큰 치환을 막을 수 없습니다(SEC-3).</li>
+<li>클라이언트는 <code>code</code> + <code>redirectUri</code> + <code>state</code>로 로그인합니다.</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> accessToken 로그인을 꼭 써야 한다면, 앱 바인딩 검증 방법을 먼저 확인하고 구현합니다. 그 전에는 플래그를 켜지 않습니다.</li>
+</ul>
+<h3 id="facebook"><a class="heading-anchor" href="#facebook" aria-hidden="true" tabindex="-1">#</a>Facebook</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <code>AUTH_FACEBOOK_ENABLED=true</code></li>
+<li><input disabled="" type="checkbox"> <code>FACEBOOK_APP_ID</code>, <code>FACEBOOK_APP_SECRET</code>, <code>FACEBOOK_REDIRECT_URIS</code>(운영 필수), 선택 <code>FACEBOOK_GRAPH_API_VERSION</code></li>
+<li><input disabled="" type="checkbox"> accessToken은 <code>debug_token</code>으로 <code>app_id</code>를 검증합니다. <code>appsecret_proof</code> 미적용(SEC-15)을 감수할지 결정합니다.</li>
+</ul>
+<h2 id="3-켜는-절차"><a class="heading-anchor" href="#3-%EC%BC%9C%EB%8A%94-%EC%A0%88%EC%B0%A8" aria-hidden="true" tabindex="-1">#</a>3. 켜는 절차</h2>
+<ol>
+<li>위 체크리스트를 완료합니다.</li>
+<li>dev <code>.env</code>에서 켜고 검증합니다.</li>
+<li>운영 <code>.env.production</code>에 키를 넣고 플래그를 <code>true</code>로 바꿉니다.</li>
+<li><strong>재기동 전에 <code>npm run env:check:prod</code>로 설정을 검증합니다.</strong> 서버나 DB에 접속하지 않고 같은 검증 규칙만 실행하며, 비밀번호·secret 값은 출력하지 않습니다. <code>FAIL</code>이 나오면 재기동하지 않습니다.<ul>
+<li>PM2 fork 모드의 reload는 새 프로세스가 실패해도 이전 프로세스를 유지하지 않고 재시작을 반복합니다.</li>
+</ul>
+</li>
+<li><code>npm run pm2:reload</code>로 재기동하고 <code>pm2 logs</code>로 확인합니다.</li>
+<li>해당 provider의 로그인 스모크 테스트를 하고, 결과를 <a href="../audit/2026-11-08-project-audit.kr.html#6-%EB%A1%9C%EB%93%9C%EB%A7%B5">감사 리포트 로드맵</a>에 기록합니다.</li>
+</ol>
+<p>다시 끌 때는 플래그를 <code>false</code>로 바꾸고 <code>pm2:reload</code>합니다. 데이터(<code>social_accounts</code>)는 유지됩니다.</p>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../learning/sns-login-operational-guide.kr.html"><span>이전</span>SNS 로그인 빌드·동작·운영·학습 가이드</a><a class="pager-next" href="google-login.kr.html"><span>다음</span>Google SNS 로그인 – 구현 가이드</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/auth/sns-reenable-checklist.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/auth/sns-reenable-checklist.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#%ED%98%84%EC%9E%AC-%EC%83%81%ED%83%9C">현재 상태</a></li><li class="toc-2"><a href="#1-%EA%B3%B5%ED%86%B5-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EB%AA%A8%EB%93%A0-provider">1. 공통 체크리스트 (모든 provider)</a></li><li class="toc-2"><a href="#2-provider%EB%B3%84-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8">2. provider별 체크리스트</a></li><li class="toc-3"><a href="#google">Google</a></li><li class="toc-3"><a href="#apple">Apple</a></li><li class="toc-3"><a href="#kakao">Kakao</a></li><li class="toc-3"><a href="#naver">Naver</a></li><li class="toc-3"><a href="#facebook">Facebook</a></li><li class="toc-2"><a href="#3-%EC%BC%9C%EB%8A%94-%EC%A0%88%EC%B0%A8">3. 켜는 절차</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

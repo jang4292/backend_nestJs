@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/learning/security-guide.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>시크릿 관리와 GitHub Push 보안 학습 가이드 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section" open><summary>보안</summary><ul class="nav-list"><li><a href="api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="security-guide.kr.html" data-page-id="docs/learning/security-guide.kr" aria-current="page">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">보안</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="시크릿-관리와-github-push-보안-학습-가이드">시크릿 관리와 GitHub Push 보안 학습 가이드</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code></p>
+</blockquote>
+<blockquote>
+<p>인증·인가·입력 검증·외부 IdP 검증 같은 API 보안 전반은 <a href="api-security-guide.kr.html">API 보안 학습 가이드</a>에, 최신 점검 결과는 <a href="../audit/2026-11-09-security-audit.kr.html">2026-11-09 보안 감사</a>에 있습니다.</p>
+</blockquote>
+<p>이 문서는 이 프로젝트에서 시크릿(비밀번호, JWT 시크릿, OAuth 클라이언트 시크릿 등)이 어디서 시작해 어디로 흘러가는지, 그리고 이미 코드에 들어 있는 방어 장치가 왜 그렇게 짜여 있는지 이해하기 위한 가이드입니다. 이어서 GitHub에 push하기 전 재사용 가능한 점검 절차와, 만약 시크릿이 실수로 커밋됐을 때의 대응 원칙을 다룹니다.</p>
+<h2 id="1-큰-흐름-먼저-보기"><a class="heading-anchor" href="#1-%ED%81%B0-%ED%9D%90%EB%A6%84-%EB%A8%BC%EC%A0%80-%EB%B3%B4%EA%B8%B0" aria-hidden="true" tabindex="-1">#</a>1. 큰 흐름 먼저 보기</h2>
+<p>이 프로젝트의 시크릿 흐름은 다음 순서로 읽으면 가장 이해하기 쉽습니다.</p>
+<pre><code class="language-text">.env 또는 .env.test.local (로컬, git 추적 안 됨)
+  -&gt; ConfigModule.forRoot
+  -&gt; validateAppEnv (src/config/app-env.ts)
+  -&gt; ConfigService
+  -&gt; AppModule / DatabaseOptions / JwtModule / GoogleAuth
+</code></pre>
+<ul>
+<li><code>.env</code>: 로컬 개발 환경의 실제 값을 담는 파일입니다. <code>.env.test.local</code>에는 E2E 전용 계정과 <code>*_test</code> DB(예: <code>app_db_test</code>)만 기록합니다. 운영 서버의 실제 값은 <code>.env.production</code>(chmod 600)에만 둡니다. <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/.gitignore" target="_blank" rel="noopener noreferrer" class="source-link">.gitignore</a>에서 실제 <code>.env</code>와 <code>.env.*</code>를 제외하고 <code>*.example</code> 템플릿만 허용하므로, 실제 값은 절대 커밋되지 않습니다.</li>
+<li><code>ConfigModule.forRoot</code>: 앱 시작 시 <code>.env</code>와 배포 환경변수를 읽습니다.</li>
+<li><code>validateAppEnv</code>: 값을 사용하기 전에 형식과 최소한의 안전 규칙을 강제로 검증합니다.</li>
+<li><code>ConfigService</code>: 검증을 통과한 값만 앱 코드(DB 연결, JWT 발급, Google OAuth 검증)로 전달됩니다.</li>
+</ul>
+<p>즉 이 프로젝트는 &quot;시크릿은 항상 환경변수로만 들어온다 → 코드에는 절대 실제 값을 쓰지 않는다&quot;는 원칙을 기본으로 깔고 있습니다.</p>
+<h2 id="2-이-프로젝트에-이미-있는-방어-장치"><a class="heading-anchor" href="#2-%EC%9D%B4-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%EC%97%90-%EC%9D%B4%EB%AF%B8-%EC%9E%88%EB%8A%94-%EB%B0%A9%EC%96%B4-%EC%9E%A5%EC%B9%98" aria-hidden="true" tabindex="-1">#</a>2. 이 프로젝트에 이미 있는 방어 장치</h2>
+<h3 id="21-프로덕션에서-placeholder-시크릿-차단"><a class="heading-anchor" href="#21-%ED%94%84%EB%A1%9C%EB%8D%95%EC%85%98%EC%97%90%EC%84%9C-placeholder-%EC%8B%9C%ED%81%AC%EB%A6%BF-%EC%B0%A8%EB%8B%A8" aria-hidden="true" tabindex="-1">#</a>2.1 프로덕션에서 placeholder 시크릿 차단</h3>
+<p><a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/src/config/app-env.ts" target="_blank" rel="noopener noreferrer" class="source-link">src/config/app-env.ts</a>에는 아래와 같은 검증 로직이 있습니다.</p>
+<pre><code class="language-ts">if (nodeEnv === &#39;production&#39; &amp;&amp; isPlaceholderSecret(jwtSecret)) {
+  throw new Error(&#39;JWT_SECRET must be a strong production secret.&#39;);
+}
+
+if (nodeEnv === &#39;production&#39; &amp;&amp; jwtSecret.length &lt; MIN_PRODUCTION_JWT_SECRET_LENGTH) {
+  throw new Error(&#39;JWT_SECRET must be at least 32 characters in production.&#39;);
+}
+
+const PLACEHOLDER_SECRET_MARKERS = [&#39;change-this&#39;, &#39;your-&#39;, &#39;replace-with&#39;];
+</code></pre>
+<p>예제 env 파일에 쓰인 placeholder(<code>replace-with-…</code>, <code>your-…</code>, <code>…change-this…</code>)가 운영에 그대로 들어가면 기동이 실패합니다. 2026-11-08 이전에는 <code>replace-with</code>가 탐지 목록에 없어 당시 운영 env 예제(현재 <code>.env.production.example</code>로 대체)의 placeholder가 운영 검증을 통과했습니다. 운영 서버에서는 <code>npm run env:check:prod</code>로 기동 전에 확인합니다.</p>
+<p><code>.env.example</code>이나 README에 적힌 예시 값(<code>your-secret-key-change-this-in-production</code> 같은 문자열)을 프로덕션에 그대로 배포하면, 앱이 아예 시작하지 않고 즉시 에러를 던집니다. &quot;예시 값을 실수로 그대로 쓰는&quot; 흔한 사고를 코드 레벨에서 원천 차단하는 장치입니다.</p>
+<p>같은 함수에서 <code>DB_SYNCHRONIZE</code>도 검증합니다.</p>
+<pre><code class="language-ts">if (nodeEnv === &#39;production&#39; &amp;&amp; dbSynchronize) {
+  throw new Error(&#39;DB_SYNCHRONIZE must be false in production.&#39;);
+}
+</code></pre>
+<p><code>DB_SYNCHRONIZE=true</code>는 TypeORM이 엔티티 변경사항을 운영 DB 스키마에 자동으로 반영하게 만드는 개발 편의 옵션입니다. 운영에서 켜져 있으면 의도치 않은 스키마 변경(컬럼 삭제 등)이 배포 한 번에 일어날 수 있어, 이 프로젝트는 프로덕션에서 이 값이 켜져 있으면 앱을 아예 띄우지 않습니다. 보안 이슈는 아니지만 &quot;설정 실수가 곧 장애/데이터 손실로 이어지는&quot; 항목이라 같은 방식으로 방어하고 있습니다.</p>
+<h3 id="22-cors_origin-google_allowed_audiences-필수화"><a class="heading-anchor" href="#22-cors_origin-google_allowed_audiences-%ED%95%84%EC%88%98%ED%99%94" aria-hidden="true" tabindex="-1">#</a>2.2 CORS_ORIGIN, GOOGLE_ALLOWED_AUDIENCES 필수화</h3>
+<pre><code class="language-ts">if (nodeEnv === &#39;production&#39; &amp;&amp; !corsOrigin) {
+  throw new Error(&#39;CORS_ORIGIN is required when NODE_ENV=production.&#39;);
+}
+</code></pre>
+<p><code>GOOGLE_ALLOWED_AUDIENCES</code>도 <code>requiredString</code>으로 필수 처리됩니다. 즉 &quot;누가 이 API를 호출할 수 있는지(CORS)&quot;, &quot;어떤 Google 클라이언트에서 발급된 토큰만 신뢰할지(audience)&quot;를 프로덕션에서는 명시적으로 설정하지 않으면 앱이 뜨지 않도록 강제합니다. 기본값으로 느슨하게 열어두는 대신, &quot;설정을 빼먹으면 실패하게&quot; 만드는 fail-closed 방식입니다.</p>
+<h3 id="23-gitignore-의-env-제외-규칙"><a class="heading-anchor" href="#23-gitignore-%EC%9D%98-env-%EC%A0%9C%EC%99%B8-%EA%B7%9C%EC%B9%99" aria-hidden="true" tabindex="-1">#</a>2.3 <code>.gitignore</code>의 <code>.env</code> 제외 규칙</h3>
+<pre><code class="language-gitignore"># dotenv environment variable files
+.env
+.env.*
+!.env.example
+!.env.*.example
+</code></pre>
+<p><code>.env.*</code> 패턴으로 <code>.env.test.local</code>, <code>.env.production</code> 등 변형까지 전부 막고, <code>.env.example</code>만 느낌표(<code>!</code>)로 다시 허용합니다. 이 프로젝트에서 이번 검토로 아래 패턴을 추가로 더했습니다.</p>
+<pre><code class="language-gitignore"># Keys, certificates, credentials
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+*.jks
+id_rsa
+id_rsa.pub
+*serviceAccountKey.json
+*service-account*.json
+*firebase-adminsdk*.json
+</code></pre>
+<p>현재는 이런 파일이 프로젝트에 없지만, 나중에 Firebase나 다른 서비스 계정 키를 다루게 될 때 실수로 커밋하는 걸 미리 막아두는 defense-in-depth입니다.</p>
+<h2 id="3-github-push-전-체크리스트-재사용-가능한-절차"><a class="heading-anchor" href="#3-github-push-%EC%A0%84-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%9E%AC%EC%82%AC%EC%9A%A9-%EA%B0%80%EB%8A%A5%ED%95%9C-%EC%A0%88%EC%B0%A8" aria-hidden="true" tabindex="-1">#</a>3. GitHub push 전 체크리스트 (재사용 가능한 절차)</h2>
+<p>새 기능을 추가하거나 새 저장소를 만들 때마다 아래 순서로 점검하면 됩니다.</p>
+<ol>
+<li><p><strong>추적 파일 확인</strong> — 민감한 이름의 파일이 실수로 추적되고 있지 않은지 확인합니다.</p>
+<pre><code class="language-bash">git ls-files | grep -iE &#39;\.env($|\.)|\.pem$|\.key$|serviceaccount|credentials&#39;
+</code></pre>
+<p><code>.env.example</code>처럼 의도한 파일 외에는 아무것도 나오면 안 됩니다.</p>
+</li>
+<li><p><strong><code>.gitignore</code> 적용 여부 확인</strong> — 로컬에 있는 파일이 실제로 무시되고 있는지 확인합니다.</p>
+<pre><code class="language-bash">git check-ignore -v .env
+</code></pre>
+</li>
+<li><p><strong>커밋 히스토리 전체 스윕</strong> — 과거에 커밋됐다가 나중에 지운 경우까지 확인합니다(단순 삭제 커밋으로는 히스토리에 남아 있기 때문).</p>
+<pre><code class="language-bash">git log --all --full-history -- .env
+git log --all -p | grep -iE &#39;AKIA[0-9A-Z]{16}|BEGIN (RSA|EC|OPENSSH) PRIVATE KEY|xox[baprs]-&#39;
+</code></pre>
+</li>
+<li><p><strong>소스/설정 파일 하드코딩 여부 확인</strong> — <code>src/</code>, 설정 파일, <code>README</code>/<code>docs</code>에서 실제 값처럼 보이는 문자열을 검색합니다. 이 프로젝트처럼 <code>process.env</code>/<code>ConfigService</code>를 통해서만 시크릿을 읽는 패턴을 유지하면 이 단계가 항상 깨끗하게 나옵니다.</p>
+</li>
+<li><p><strong>자동화 도구 도입 고려</strong> — 매번 수동으로 하는 대신 pre-commit 단계에서 자동 검사하는 도구를 붙일 수 있습니다.</p>
+<ul>
+<li><a href="https://github.com/gitleaks/gitleaks" target="_blank" rel="noopener noreferrer">gitleaks</a>: 커밋 전/CI에서 시크릿 패턴을 스캔.</li>
+<li><a href="https://github.com/awslabs/git-secrets" target="_blank" rel="noopener noreferrer">git-secrets</a>: AWS 자격증명 패턴 등을 커밋 훅에서 차단.</li>
+</ul>
+</li>
+</ol>
+<h2 id="4-시크릿이-이미-커밋됐다면"><a class="heading-anchor" href="#4-%EC%8B%9C%ED%81%AC%EB%A6%BF%EC%9D%B4-%EC%9D%B4%EB%AF%B8-%EC%BB%A4%EB%B0%8B%EB%90%90%EB%8B%A4%EB%A9%B4" aria-hidden="true" tabindex="-1">#</a>4. 시크릿이 이미 커밋됐다면</h2>
+<p>만약 어느 시점에 실제 시크릿이 커밋된 걸 발견했다면, 원칙은 두 가지입니다.</p>
+<ol>
+<li><strong>삭제 커밋만으로는 부족합니다.</strong> <code>git rm .env &amp;&amp; git commit</code>을 해도 이전 커밋에는 값이 그대로 남아 있고, 저장소를 clone/fork한 사람은 여전히 히스토리에서 값을 꺼낼 수 있습니다. 히스토리 자체를 재작성해야 합니다(<code>git filter-repo</code> 또는 BFG Repo-Cleaner).</li>
+<li><strong>히스토리 재작성보다 더 중요한 건 rotate입니다.</strong> 이미 GitHub에 push된 적이 있다면(특히 public repo였거나 누군가 clone했을 가능성이 있다면) 그 값은 유출된 것으로 간주하고, 히스토리를 지우는 것과 별개로 해당 비밀번호/키/시크릿을 반드시 새 값으로 교체해야 합니다. 히스토리 재작성은 &quot;앞으로의 유출을 막는 것&quot;이지 &quot;이미 본 사람의 기억을 지우는 것&quot;이 아닙니다.</li>
+</ol>
+<h2 id="5-일반-원칙-요약"><a class="heading-anchor" href="#5-%EC%9D%BC%EB%B0%98-%EC%9B%90%EC%B9%99-%EC%9A%94%EC%95%BD" aria-hidden="true" tabindex="-1">#</a>5. 일반 원칙 요약</h2>
+<ul>
+<li>시크릿은 코드가 아니라 환경변수(또는 운영에서는 AWS Secrets Manager/Parameter Store 같은 외부 저장소)로만 주입합니다. EC2 systemd 방식은 <a href="../deployment/mariadb-systemd.kr.html">MariaDB EC2 배포 가이드</a>를 따릅니다.</li>
+<li><code>.env.example</code> 및 <code>.env.test.example</code>에는 항상 placeholder만 남기고, 실제 값이 담긴 <code>.env</code>와 <code>.env.test.local</code>은 <code>.gitignore</code>로 반드시 제외합니다.</li>
+<li>&quot;프로덕션에서 실수로 잘못된 설정이 들어가면 조용히 동작하는 것&quot;보다 &quot;즉시 앱이 죽는 것&quot;이 낫습니다. 이 프로젝트의 <code>validateAppEnv</code>처럼 fail-closed 검증을 앱 시작 지점에 둡니다.</li>
+<li>시크릿은 주기적으로, 그리고 유출 의심 시 즉시 rotate합니다. 로컬 개발용 값이라도 오래 방치하지 않는 것이 좋습니다.</li>
+</ul>
+<h2 id="6-현재-코드-기준-운영-보안-체크포인트"><a class="heading-anchor" href="#6-%ED%98%84%EC%9E%AC-%EC%BD%94%EB%93%9C-%EA%B8%B0%EC%A4%80-%EC%9A%B4%EC%98%81-%EB%B3%B4%EC%95%88-%EC%B2%B4%ED%81%AC%ED%8F%AC%EC%9D%B8%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>6. 현재 코드 기준 운영 보안 체크포인트</h2>
+<ul>
+<li>모든 요청은 <code>x-request-id</code>를 헤더로 반환해야 합니다. 문제가 생겼을 때 애플리케이션 로그, ALB/Nginx 로그, 클라이언트 오류 리포트를 같은 request id로 합칠 수 있어야 합니다.</li>
+<li>전역 예외 필터가 내부 에러를 <code>Internal server error</code> 형태로 반환하는지 확인합니다. stack trace, SQL 구문, 비밀값이 응답 본문에 포함되면 안 됩니다.</li>
+<li><code>POST/PATCH/DELETE /music/**</code> 엔드포인트는 admin만 쓸 수 있습니다(최소 RBAC). 토큰 없음은 401, 일반 사용자 토큰은 403이 나오는지 배포 전 점검합니다.</li>
+<li><code>/auth/login</code>은 route-level throttling이 적용되어야 합니다. 같은 IP에서 짧은 시간에 반복 시도 시 429 응답이 발생하는지 확인합니다.</li>
+<li>같은 계정에 서로 다른 IP로 10회 실패하면 11번째는 429 <code>RATE_LIMITED</code>와 <code>Retry-After</code>가 와야 합니다(계정 단위 제한, SEC-19).</li>
+<li>비활성 SNS provider는 경로 대소문자와 무관하게 503이어야 합니다(<code>/auth/GOOGLE/login</code>, SEC-17).</li>
+<li>비밀번호를 바꾸면 이전 토큰은 401이어야 합니다(<code>sessionVersion</code>, AUTH-3).</li>
+<li>공개 저장소이므로 GitHub secret scanning과 push protection을 켭니다(<a href="../audit/2026-11-09-security-audit.kr.html#9-%EC%82%AC%EC%9A%A9%EC%9E%90%EA%B0%80-%ED%95%A0-%EC%9D%BC">보안 감사 9장</a>).</li>
+<li>운영 점검 시 <code>JWT_SECRET</code>, <code>DB_PASSWORD</code>, <code>DATABASE_URL</code>, Google OAuth secret이 로그에 출력되지 않는지 샘플 트래픽으로 검증합니다.</li>
+</ul>
+<h2 id="7-db-권한과-파괴적-명령-가드"><a class="heading-anchor" href="#7-db-%EA%B6%8C%ED%95%9C%EA%B3%BC-%ED%8C%8C%EA%B4%B4%EC%A0%81-%EB%AA%85%EB%A0%B9-%EA%B0%80%EB%93%9C" aria-hidden="true" tabindex="-1">#</a>7. DB 권한과 파괴적 명령 가드</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>원칙</th>
+<th>이 프로젝트에서</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>최소 권한</strong></td>
+<td>앱 계정에는 앱 전용 DB 단위로만 8개 권한(<code>SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX</code>)을 줍니다. <code>ON *.*</code>(전역)나 다른 DB 권한은 주지 않습니다. 운영 계정은 <code>&#39;&lt;app&gt;&#39;@&#39;localhost&#39;</code>만 허용합니다</td>
+</tr>
+<tr>
+<td><strong>운영에서 DB 생성·삭제 금지</strong></td>
+<td><code>db:ensure</code>·<code>db:reset</code>은 production에서 거부됩니다. 운영 DB는 관리자가 만듭니다</td>
+</tr>
+<tr>
+<td><strong>이름이 아니라 내용으로 확인</strong></td>
+<td><code>db:setup</code>·<code>db:reset:test</code>는 대상 DB에 앱이 관리하지 않는 객체가 있으면 아무것도 바꾸지 않습니다(<code>APP_TABLES</code>, <code>inspectOwnership</code>)</td>
+</tr>
+<tr>
+<td><strong>자동 스키마 변경 금지</strong></td>
+<td><code>DB_SYNCHRONIZE=true</code>는 모든 환경에서 기동이 거부됩니다(컬럼·데이터 자동 삭제 위험)</td>
+</tr>
+<tr>
+<td><strong>평문 구간 줄이기</strong></td>
+<td>개발 서버 MariaDB는 TLS를 지원하지 않습니다. DB 포트를 개발자 IP로 제한하거나 SSH 터널을 씁니다(<a href="database-improvement-guide.kr.html#db-19-%EC%A0%84%EC%86%A1-%EA%B5%AC%EA%B0%84-%EB%B3%B4%ED%98%B8">DB-19</a>)</td>
+</tr>
+<tr>
+<td><strong>런타임과 migration 계정 분리</strong></td>
+<td>런타임 앱 계정에는 DML만 주고, DDL은 migration 계정으로만 실행합니다(📌 <a href="database-improvement-guide.kr.html#db-18-migration-%EA%B3%84%EC%A0%95%EA%B3%BC-%EB%9F%B0%ED%83%80%EC%9E%84-%EA%B3%84%EC%A0%95-%EB%B6%84%EB%A6%AC">DB-18</a>)</td>
+</tr>
+<tr>
+<td><strong>덤프 파일 보호</strong></td>
+<td>백업은 저장소 밖에 <code>umask 077</code>로 만들고, <code>*.sql</code>·<code>*.sql.gz</code>·<code>*.dump</code>는 <code>.gitignore</code>에 있습니다</td>
+</tr>
+<tr>
+<td><strong>비밀 미출력</strong></td>
+<td><code>db:check</code>와 오류 Hint는 비밀번호를 출력하지 않습니다. <code>SHOW GRANTS</code>의 해시도 가립니다</td>
+</tr>
+</tbody></table>
+</div>
+<p>자세한 내용: <a href="../deployment/database-environments.kr.html#2-db-%EC%82%AD%EC%A0%9C-%EC%95%88%EC%A0%84-%EC%9B%90%EC%B9%99">환경별 가이드 2장 DB 삭제 안전 원칙</a></p>
+<h2 id="8-운영-체크리스트-문서"><a class="heading-anchor" href="#8-%EC%9A%B4%EC%98%81-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EB%AC%B8%EC%84%9C" aria-hidden="true" tabindex="-1">#</a>8. 운영 체크리스트 문서</h2>
+<p>배포 전 점검, Secrets Manager 주입, 비밀번호 회전 절차는 아래 체크리스트 문서를 함께 사용하세요.</p>
+<ul>
+<li><code>docs/learning/deployment-secrets-checklist.kr.md</code></li>
+</ul>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="api-security-guide.kr.html"><span>이전</span>API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a><a class="pager-next" href="../audit/2026-11-09-security-audit.kr.html"><span>다음</span>보안 전수 감사 리포트 (2026-11-09)</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/learning/security-guide.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/learning/security-guide.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-%ED%81%B0-%ED%9D%90%EB%A6%84-%EB%A8%BC%EC%A0%80-%EB%B3%B4%EA%B8%B0">1. 큰 흐름 먼저 보기</a></li><li class="toc-2"><a href="#2-%EC%9D%B4-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%EC%97%90-%EC%9D%B4%EB%AF%B8-%EC%9E%88%EB%8A%94-%EB%B0%A9%EC%96%B4-%EC%9E%A5%EC%B9%98">2. 이 프로젝트에 이미 있는 방어 장치</a></li><li class="toc-3"><a href="#21-%ED%94%84%EB%A1%9C%EB%8D%95%EC%85%98%EC%97%90%EC%84%9C-placeholder-%EC%8B%9C%ED%81%AC%EB%A6%BF-%EC%B0%A8%EB%8B%A8">2.1 프로덕션에서 placeholder 시크릿 차단</a></li><li class="toc-3"><a href="#22-cors_origin-google_allowed_audiences-%ED%95%84%EC%88%98%ED%99%94">2.2 CORS_ORIGIN, GOOGLE_ALLOWED_AUDIENCES 필수화</a></li><li class="toc-3"><a href="#23-gitignore-%EC%9D%98-env-%EC%A0%9C%EC%99%B8-%EA%B7%9C%EC%B9%99">2.3 .gitignore 의 .env 제외 규칙</a></li><li class="toc-2"><a href="#3-github-push-%EC%A0%84-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%9E%AC%EC%82%AC%EC%9A%A9-%EA%B0%80%EB%8A%A5%ED%95%9C-%EC%A0%88%EC%B0%A8">3. GitHub push 전 체크리스트 (재사용 가능한 절차)</a></li><li class="toc-2"><a href="#4-%EC%8B%9C%ED%81%AC%EB%A6%BF%EC%9D%B4-%EC%9D%B4%EB%AF%B8-%EC%BB%A4%EB%B0%8B%EB%90%90%EB%8B%A4%EB%A9%B4">4. 시크릿이 이미 커밋됐다면</a></li><li class="toc-2"><a href="#5-%EC%9D%BC%EB%B0%98-%EC%9B%90%EC%B9%99-%EC%9A%94%EC%95%BD">5. 일반 원칙 요약</a></li><li class="toc-2"><a href="#6-%ED%98%84%EC%9E%AC-%EC%BD%94%EB%93%9C-%EA%B8%B0%EC%A4%80-%EC%9A%B4%EC%98%81-%EB%B3%B4%EC%95%88-%EC%B2%B4%ED%81%AC%ED%8F%AC%EC%9D%B8%ED%8A%B8">6. 현재 코드 기준 운영 보안 체크포인트</a></li><li class="toc-2"><a href="#7-db-%EA%B6%8C%ED%95%9C%EA%B3%BC-%ED%8C%8C%EA%B4%B4%EC%A0%81-%EB%AA%85%EB%A0%B9-%EA%B0%80%EB%93%9C">7. DB 권한과 파괴적 명령 가드</a></li><li class="toc-2"><a href="#8-%EC%9A%B4%EC%98%81-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EB%AC%B8%EC%84%9C">8. 운영 체크리스트 문서</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

@@ -46,6 +46,10 @@ jobs:
       - name: Build
         run: npm run build
 
+      # md 문서의 내부 링크·앵커 검사(docs/html/README.md). 파일을 쓰지 않으며, HTML 스냅샷 갱신은 강제하지 않습니다.
+      - name: Docs links and anchors
+        run: npm run docs:html:verify
+
       - name: Audit production dependencies (critical)
         run: npm audit --omit=dev --audit-level=critical
 

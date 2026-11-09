@@ -1,0 +1,87 @@
+{
+  "title": "Backend NestJS 학습 사이트",
+  "description": "NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.",
+  "home": "docs/README.md",
+  "lang": "ko",
+  "sections": [
+    {
+      "title": "시작하기",
+      "pages": [
+        { "src": "docs/learning/README.md", "desc": "읽는 순서, 주제별 찾아보기, 자가 점검·실습 모음" },
+        { "src": "docs/learning/glossary.kr.md", "desc": "aud, iss, PKCE, fail-closed, drift 같은 용어" },
+        { "src": "docs/product/overview.kr.md", "desc": "이 서버가 하는 일과 범위" }
+      ]
+    },
+    {
+      "title": "제품과 API",
+      "pages": [
+        { "src": "docs/product/features.kr.md", "desc": "계정, SNS, 음악 기능 규칙과 정책" },
+        { "src": "docs/product/api-spec.kr.md", "desc": "전체 라우트, 권한, 오류 envelope" },
+        { "src": "API_EXAMPLES.md", "desc": "curl 예시(영문)" }
+      ]
+    },
+    {
+      "title": "아키텍처",
+      "pages": [
+        { "src": "docs/learning/nestjs-operational-stability-guide.kr.md", "desc": "모듈 구조, 계층, 오류 처리, 인증·인가, 품질 게이트" },
+        { "src": "docs/music/README.md", "desc": "음악 모듈 문서 안내" },
+        { "src": "docs/music/learning-guide.kr.md", "desc": "Artist·Track·Playlist 도메인과 요청 흐름" },
+        { "src": "docs/music/architecture.kr.md" },
+        { "src": "docs/music/decisions.md" },
+        { "src": "docs/music/api-reorganization-review.kr.md" },
+        { "src": "docs/music/checklists.kr.md" },
+        { "src": "docs/music/troubleshooting.kr.md" }
+      ]
+    },
+    {
+      "title": "데이터베이스",
+      "pages": [
+        { "src": "docs/learning/database-schema-management.kr.md", "desc": "DB·테이블 생성, migration 적용·검증·롤백, 다른 DB 보호" },
+        { "src": "docs/learning/database-improvement-guide.kr.md", "desc": "남은 DB 과제의 우선순위와 단계" },
+        { "src": "docs/deployment/database-environments.kr.md", "desc": "Local / Test / Prod 설정과 명령" },
+        { "src": "docs/music/database/mariadb-operations.md" }
+      ]
+    },
+    {
+      "title": "보안",
+      "pages": [
+        { "src": "docs/learning/api-security-guide.kr.md", "desc": "위협 모델, 인증·인가, 외부 IdP 검증, 직접 점검하는 방법" },
+        { "src": "docs/learning/security-guide.kr.md", "desc": "시크릿 흐름, push 전 점검, DB 권한" },
+        { "src": "docs/audit/2026-11-09-security-audit.kr.md", "desc": "2026-11-09 보안 전수 감사 결과" }
+      ]
+    },
+    {
+      "title": "인증·SNS 로그인",
+      "pages": [
+        { "src": "docs/auth/sns-login-overview.kr.md" },
+        { "src": "docs/learning/sns-login-operational-guide.kr.md" },
+        { "src": "docs/auth/sns-reenable-checklist.kr.md", "desc": "SNS를 다시 켜기 전 점검" },
+        { "src": "docs/auth/google-login.kr.md" },
+        { "src": "docs/auth/login-api-reassessment.kr.md" }
+      ]
+    },
+    {
+      "title": "배포·운영",
+      "pages": [
+        { "src": "docs/deployment/mariadb-systemd.kr.md", "desc": "EC2 + PM2 배포, 스모크 테스트, 롤백" },
+        { "src": "docs/learning/deployment-secrets-checklist.kr.md" },
+        { "src": "README.md", "desc": "저장소 README(영문): 설치, 실행, 검증" }
+      ]
+    },
+    {
+      "title": "작업 기록과 감사",
+      "pages": [
+        { "src": "docs/learning/work-history-2026-11.kr.md", "desc": "2026-11 감사와 후속 작업 전체: 문제, 원인, 조치, 배운 점" },
+        { "src": "docs/audit/2026-11-08-project-audit.kr.md", "desc": "프로젝트 감사, 로드맵, 릴리스 체크리스트" },
+        { "src": "docs/audit/2026-09-02-project-audit.kr.md" },
+        { "src": "docs/learning/runtime-troubleshooting-history.kr.md" }
+      ]
+    },
+    {
+      "title": "사이트 관리",
+      "pages": [
+        { "src": "docs/html/README.md", "desc": "이 사이트의 구조와 갱신 방법" }
+      ]
+    }
+  ]
+}

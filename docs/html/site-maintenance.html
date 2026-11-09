@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="ko" data-root="" data-page-id="docs/html/README">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>학습 사이트 관리 가이드 (docs/html) · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section" open><summary>사이트 관리</summary><ul class="nav-list"><li><a href="site-maintenance.html" data-page-id="docs/html/README" aria-current="page">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">사이트 관리</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="학습-사이트-관리-가이드-docshtml">학습 사이트 관리 가이드 (docs/html)</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code>
+이 폴더는 <code>docs/</code>의 md 문서로 만든 <strong>학습용 웹사이트 스냅샷</strong>입니다. 내용을 고칠 때는 원본 md만 수정합니다. 이 폴더의 <code>.html</code>은 직접 고치지 않습니다.</p>
+</blockquote>
+<h2 id="1-원칙"><a class="heading-anchor" href="#1-%EC%9B%90%EC%B9%99" aria-hidden="true" tabindex="-1">#</a>1. 원칙</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>원칙</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>md가 원본</strong></td>
+<td>문서 내용은 언제나 <code>docs/**/*.md</code>(그리고 루트의 <code>README.md</code>, <code>API_EXAMPLES.md</code>)에서 고칩니다</td>
+</tr>
+<tr>
+<td><strong>HTML은 스냅샷</strong></td>
+<td>평소에는 md만 수정합니다. 원하는 시점에 <code>npm run docs:html</code>을 실행하면 <strong>그때의 md 전체</strong>로 사이트를 새로 만듭니다</td>
+</tr>
+<tr>
+<td><strong>독립 실행</strong></td>
+<td>서버나 인터넷 없이 <code>docs/html/index.html</code>을 브라우저로 열면 동작합니다(검색 포함)</td>
+</tr>
+<tr>
+<td><strong>사이트 관련 파일은 모두 이 폴더에</strong></td>
+<td>생성기, 설정, 템플릿, 스타일, 이 문서, 생성 결과가 <code>docs/html/</code> 아래에 있습니다</td>
+</tr>
+<tr>
+<td><strong>깨진 링크는 만들지 않음</strong></td>
+<td>내부 링크나 앵커가 틀리면 생성이 실패하고 기존 스냅샷은 그대로 남습니다</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="2-여는-방법"><a class="heading-anchor" href="#2-%EC%97%AC%EB%8A%94-%EB%B0%A9%EB%B2%95" aria-hidden="true" tabindex="-1">#</a>2. 여는 방법</h2>
+<pre><code class="language-bash">open docs/html/index.html                    # macOS (Windows: start, Linux: xdg-open)
+# 또는 로컬 서버로
+python3 -m http.server 8080 -d docs/html     # http://localhost:8080
+</code></pre>
+<ul>
+<li>왼쪽: 섹션별 문서 목록(학습 순서). 읽은 문서에는 ✓가 붙습니다.</li>
+<li>위: 검색(<code>/</code> 키). 제목, 소제목, 본문을 모두 찾습니다.</li>
+<li>오른쪽: 이 페이지 목차(넓은 화면)</li>
+<li>페이지 위 <code>읽음</code> 체크와 홈의 진도 막대는 <strong>이 브라우저에만</strong> 저장됩니다(localStorage). 다른 PC나 브라우저와 공유되지 않습니다.</li>
+<li>◐ 버튼: 라이트/다크 테마</li>
+</ul>
+<h2 id="3-폴더-구조"><a class="heading-anchor" href="#3-%ED%8F%B4%EB%8D%94-%EA%B5%AC%EC%A1%B0" aria-hidden="true" tabindex="-1">#</a>3. 폴더 구조</h2>
+<pre><code class="language-text">docs/html/
+├─ README.md                ← 이 문서(원본). 사이트의 &quot;사이트 관리&quot; 페이지가 됨
+├─ _tools/                  ← 원본: 여기만 고칩니다
+│  ├─ build.mjs             ← 생성기(Node 24, ESM). 의존성은 devDependency marked 하나
+│  ├─ site.config.json      ← 사이트 제목, 섹션과 페이지 순서
+│  ├─ template.html         ← 모든 페이지의 공통 레이아웃
+│  └─ assets/
+│     ├─ site.css           ← 스타일(라이트/다크 토큰)
+│     └─ site.js            ← 검색, 테마, 읽음 표시, 코드 복사, 목차 강조
+│
+│  ─ 아래는 모두 생성물(npm run docs:html이 지우고 다시 만듦) ─
+├─ index.html               ← docs/README.md + 학습 경로 카드
+├─ site-maintenance.html    ← 이 문서
+├─ learning/ audit/ auth/ deployment/ product/ music/   ← docs/와 같은 상대 경로의 .html
+├─ repo/README.html, repo/API_EXAMPLES.html             ← 저장소 루트 문서
+├─ assets/                  ← _tools/assets 복사본 + search-index.js(검색 색인)
+└─ build-info.json          ← 스냅샷 정보: 시각, 브랜치, 커밋, 원본 md별 sha256
+</code></pre>
+<p>원본 경로와 출력 경로의 대응:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>원본</th>
+<th>출력</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>docs/README.md</code></td>
+<td><code>index.html</code></td>
+</tr>
+<tr>
+<td><code>docs/html/README.md</code></td>
+<td><code>site-maintenance.html</code></td>
+</tr>
+<tr>
+<td><code>docs/&lt;경로&gt;.md</code></td>
+<td><code>&lt;경로&gt;.html</code></td>
+</tr>
+<tr>
+<td>저장소 루트 <code>&lt;파일&gt;.md</code></td>
+<td><code>repo/&lt;파일&gt;.html</code></td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="4-명령"><a class="heading-anchor" href="#4-%EB%AA%85%EB%A0%B9" aria-hidden="true" tabindex="-1">#</a>4. 명령</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>명령</th>
+<th>하는 일</th>
+<th>파일 변경</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>npm run docs:html:status</code></td>
+<td>마지막 스냅샷 이후 <strong>수정·추가·삭제된 md</strong> 목록. 실패하지 않음</td>
+<td>없음</td>
+</tr>
+<tr>
+<td><code>npm run docs:html:verify</code></td>
+<td>모든 md를 변환해 보고 링크·앵커·설정을 검사. 오류가 있으면 실패</td>
+<td>없음</td>
+</tr>
+<tr>
+<td><code>npm run docs:html</code></td>
+<td>verify를 통과하면 생성물을 지우고 스냅샷을 새로 만듦</td>
+<td><code>docs/html/</code>의 생성물</td>
+</tr>
+</tbody></table>
+</div>
+<p>CI(<code>verify</code> job)는 <code>docs:html:verify</code>만 실행합니다. <strong>md의 링크 무결성은 매 PR 검사하지만, HTML 스냅샷 갱신은 강제하지 않습니다.</strong></p>
+<h2 id="5-언제-어떻게-갱신하나"><a class="heading-anchor" href="#5-%EC%96%B8%EC%A0%9C-%EC%96%B4%EB%96%BB%EA%B2%8C-%EA%B0%B1%EC%8B%A0%ED%95%98%EB%82%98" aria-hidden="true" tabindex="-1">#</a>5. 언제, 어떻게 갱신하나</h2>
+<p><strong>갱신 시점 예시</strong></p>
+<ul>
+<li>릴리스(develop → main) 직전</li>
+<li>감사, 학습 가이드처럼 큰 문서 작업을 마친 뒤</li>
+<li>공부하기 전에 최신 상태로 보고 싶을 때</li>
+</ul>
+<p><strong>절차</strong></p>
+<ol>
+<li>md를 수정하고 커밋합니다. 스냅샷은 커밋 기준으로 기록되므로 커밋 후 생성하는 것이 좋습니다. 미커밋 변경이 있으면 사이트에 &quot;커밋되지 않은 변경 포함&quot;이 표시됩니다.</li>
+<li>무엇이 바뀌었는지 확인합니다.<pre><code class="language-bash">npm run docs:html:status
+</code></pre>
+</li>
+<li>스냅샷을 만듭니다.<pre><code class="language-bash">npm run docs:html
+</code></pre>
+<code>ERROR</code>가 나오면 생성물은 바뀌지 않습니다. 메시지에 적힌 md를 고친 뒤 다시 실행합니다(<a href="#8-문제-해결">8장</a>).</li>
+<li>브라우저로 열어 확인합니다(홈, 바뀐 페이지, 검색).</li>
+<li>생성물만 따로 커밋합니다.<pre><code class="language-bash">git add docs/html
+git commit -m &quot;docs(html): snapshot $(date +%F)&quot;
+</code></pre>
+</li>
+<li><code>npm run docs:html:status</code>가 &quot;변경 없음&quot;인지 확인합니다.</li>
+</ol>
+<h2 id="6-문서를-추가이동삭제할-때"><a class="heading-anchor" href="#6-%EB%AC%B8%EC%84%9C%EB%A5%BC-%EC%B6%94%EA%B0%80%EC%9D%B4%EB%8F%99%EC%82%AD%EC%A0%9C%ED%95%A0-%EB%95%8C" aria-hidden="true" tabindex="-1">#</a>6. 문서를 추가·이동·삭제할 때</h2>
+<p><strong>새 문서 추가</strong></p>
+<ol>
+<li>md를 씁니다. 상단에 <code>&gt; 최신화 기준: YYYY-MM-DD · &lt;branch&gt; &lt;commit&gt;</code>을 적습니다(사이트에 배지로 표시됨). 고정된 기록이면 <code>&gt; 이력 문서 — 기준 시점 YYYY-MM-DD</code>로 시작합니다.</li>
+<li><code>_tools/site.config.json</code>의 알맞은 섹션 <code>pages</code>에 추가합니다. 배열 순서가 사이드바와 이전/다음 순서입니다.<pre><code class="language-json">{ &quot;src&quot;: &quot;docs/learning/new-guide.kr.md&quot;, &quot;desc&quot;: &quot;홈 카드에 표시할 한 줄 설명(선택)&quot; }
+</code></pre>
+<ul>
+<li>config에 넣지 않은 <code>docs/*.md</code>도 사이트에 들어가지만 &quot;기타 문서&quot;로 분류되고 <code>WARN</code>이 출력됩니다.</li>
+</ul>
+</li>
+<li>관련 문서(학습 로드맵, docs 인덱스)에서 새 문서로 링크합니다.</li>
+<li><code>npm run docs:html:verify</code> → 필요하면 <code>npm run docs:html</code></li>
+</ol>
+<p><strong>이동·이름 변경·삭제</strong></p>
+<ul>
+<li>md의 링크를 함께 고칩니다. 깨진 링크는 verify가 파일과 위치를 알려 줍니다.</li>
+<li><code>site.config.json</code>의 <code>src</code>도 고칩니다. 없는 파일을 가리키면 오류입니다.</li>
+<li>스냅샷을 다시 만들면 옛 페이지는 자동으로 지워집니다(생성물 전체를 다시 만들기 때문).</li>
+</ul>
+<h2 id="7-링크-규칙"><a class="heading-anchor" href="#7-%EB%A7%81%ED%81%AC-%EA%B7%9C%EC%B9%99" aria-hidden="true" tabindex="-1">#</a>7. 링크 규칙</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>md에 쓴 링크</th>
+<th>사이트에서</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>다른 md (<code>../learning/x.kr.md#앵커</code>)</td>
+<td>해당 <code>.html</code>로 바뀜. 앵커가 그 문서에 없으면 <strong>오류</strong></td>
+</tr>
+<tr>
+<td>같은 문서 앵커 (<code>#3-명령</code>)</td>
+<td>그대로. 없으면 <strong>오류</strong></td>
+</tr>
+<tr>
+<td>저장소의 코드·설정 파일 (<code>../../src/main.ts</code>)</td>
+<td>스냅샷 커밋의 GitHub 링크(↗ 표시). 파일이 없으면 <strong>오류</strong></td>
+</tr>
+<tr>
+<td>외부 URL (<code>https://…</code>)</td>
+<td>새 탭으로 열림. 검사하지 않음</td>
+</tr>
+<tr>
+<td>저장소 밖 경로</td>
+<td><strong>오류</strong></td>
+</tr>
+</tbody></table>
+</div>
+<ul>
+<li>앵커는 GitHub과 같은 규칙으로 만듭니다: 소문자로 바꾸고, 문자·숫자·<code>-</code>·<code>_</code>·공백만 남긴 뒤 공백을 <code>-</code>로 바꿉니다. 같은 제목이 반복되면 <code>-1</code>, <code>-2</code>가 붙습니다.<ul>
+<li>예: <code>## 4. 적용 방식 비교: 직접 SQL / 명령 / 기동 시 자동</code> → <code>#4-적용-방식-비교-직접-sql--명령--기동-시-자동</code></li>
+</ul>
+</li>
+<li>그래서 GitHub에서 md로 볼 때와 사이트에서 볼 때 같은 링크가 모두 동작합니다.</li>
+</ul>
+<h2 id="8-문제-해결"><a class="heading-anchor" href="#8-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0" aria-hidden="true" tabindex="-1">#</a>8. 문제 해결</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>메시지</th>
+<th>원인</th>
+<th>조치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ERROR &lt;md&gt;: #&lt;앵커&gt; 앵커가 &lt;대상&gt;에 없습니다</code></td>
+<td>제목을 바꿨거나 앵커 철자가 다름</td>
+<td>대상 문서의 제목을 보고 7장 규칙으로 앵커를 고침</td>
+</tr>
+<tr>
+<td><code>ERROR &lt;md&gt;: &lt;링크&gt; 링크의 대상(&lt;경로&gt;)이 없습니다</code></td>
+<td>파일 이동·삭제, 상대 경로 오류</td>
+<td>경로를 고침</td>
+</tr>
+<tr>
+<td><code>ERROR site.config.json: &lt;src&gt; 파일이 없습니다</code></td>
+<td>config의 경로가 틀림</td>
+<td><code>src</code>를 고침</td>
+</tr>
+<tr>
+<td><code>ERROR template.html: {{x}} 값이 없습니다</code></td>
+<td>템플릿에 생성기가 모르는 자리표시자가 있음</td>
+<td>템플릿이나 <code>build.mjs</code>의 <code>values</code>를 맞춤</td>
+</tr>
+<tr>
+<td><code>WARN &lt;md&gt;가 site.config.json에 없어…</code></td>
+<td>새 md를 config에 넣지 않음</td>
+<td>6장대로 config에 추가</td>
+</tr>
+<tr>
+<td>사이트에 &quot;커밋되지 않은 변경 포함&quot;</td>
+<td>미커밋 md로 생성</td>
+<td>커밋 후 다시 생성</td>
+</tr>
+<tr>
+<td>검색 결과가 오래됨</td>
+<td>스냅샷을 다시 만들지 않음</td>
+<td><code>npm run docs:html</code></td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="9-디자인-수정"><a class="heading-anchor" href="#9-%EB%94%94%EC%9E%90%EC%9D%B8-%EC%88%98%EC%A0%95" aria-hidden="true" tabindex="-1">#</a>9. 디자인 수정</h2>
+<ul>
+<li>레이아웃: <code>_tools/template.html</code>. 자리표시자는 <code>{{이름}}</code> 형식이며, 값은 <code>build.mjs</code>의 <code>writeSite()</code>에서 채웁니다.<ul>
+<li>주요 값: <code>{{content}}</code>(본문), <code>{{nav}}</code>(사이드바), <code>{{toc}}</code>(목차), <code>{{pageMeta}}</code>(배지·읽음 체크), <code>{{prevNext}}</code>, <code>{{root}}</code>(사이트 루트까지의 상대 경로), <code>{{snapshotDate}}</code>·<code>{{snapshotCommit}}</code></li>
+</ul>
+</li>
+<li>색과 글꼴: <code>_tools/assets/site.css</code> 상단의 변수(<code>--bg</code>, <code>--text</code>, <code>--accent</code> …). 다크 테마는 같은 변수를 다시 정의합니다.</li>
+<li>동작: <code>_tools/assets/site.js</code>. 외부 요청(fetch)을 쓰지 않아야 <code>file://</code>에서도 동작합니다.</li>
+<li>수정한 뒤에는 <code>npm run docs:html</code>로 다시 만들어 확인합니다.</li>
+</ul>
+<h2 id="10-주의"><a class="heading-anchor" href="#10-%EC%A3%BC%EC%9D%98" aria-hidden="true" tabindex="-1">#</a>10. 주의</h2>
+<ul>
+<li><strong>공개 저장소입니다.</strong> 생성물도 공개되므로 원본 md와 같은 규칙을 따릅니다. 실제 서버 주소, 포트, 계정, 비밀번호는 쓰지 않고 <code>&lt;dev-db-host&gt;</code> 같은 자리표시자를 씁니다.</li>
+<li>생성물(<code>.html</code>, <code>assets/</code>, <code>build-info.json</code>)을 손으로 고치면 다음 스냅샷에서 사라집니다.</li>
+<li>GitHub 웹에서는 <code>.html</code>이 렌더링되지 않습니다. GitHub에서 읽을 때는 md를, 학습할 때는 이 사이트를 씁니다. GitHub Pages로 공개하려면 별도 workflow가 필요하며, 지금은 설정하지 않았습니다.</li>
+</ul>
+<h2 id="11-결정-기록-2026-11-09"><a class="heading-anchor" href="#11-%EA%B2%B0%EC%A0%95-%EA%B8%B0%EB%A1%9D-2026-11-09" aria-hidden="true" tabindex="-1">#</a>11. 결정 기록 (2026-11-09)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>결정</th>
+<th>이유</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>md를 원본으로 두고 HTML은 원할 때 스냅샷으로 생성</td>
+<td>사용자 요청. 내용이 한곳에만 있어 두 벌을 맞출 필요가 없음</td>
+</tr>
+<tr>
+<td>사이트 관련 파일을 모두 <code>docs/html/</code> 아래에</td>
+<td>사용자 요청. 사이트를 지우거나 옮길 때 폴더 하나만 다루면 됨</td>
+</tr>
+<tr>
+<td>CI는 링크 검사만, 스냅샷 동기화는 강제하지 않음</td>
+<td>스냅샷 시점은 사람이 정함. 대신 md 링크가 깨지는 것은 매 PR 막음</td>
+</tr>
+<tr>
+<td>marked(devDependency) + 자체 앵커 규칙</td>
+<td>표, 체크박스 같은 GFM 지원. 앵커를 GitHub과 같게 만들어 기존 md 링크를 그대로 사용</td>
+</tr>
+<tr>
+<td>검색 색인을 JS 파일로 생성</td>
+<td><code>file://</code>에서는 fetch가 막히므로 스크립트로 불러옴</td>
+</tr>
+<tr>
+<td>읽음 표시는 localStorage</td>
+<td>개인 학습용 편의 기능. 저장이 막혀도 사이트는 정상 동작</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="12-갱신-체크리스트"><a class="heading-anchor" href="#12-%EA%B0%B1%EC%8B%A0-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>12. 갱신 체크리스트</h2>
+<ul>
+<li><input disabled="" type="checkbox"> md 수정과 커밋을 마쳤다</li>
+<li><input disabled="" type="checkbox"> <code>npm run docs:html:status</code>로 바뀐 문서를 확인했다</li>
+<li><input disabled="" type="checkbox"> 새 문서는 <code>site.config.json</code>에 넣었다</li>
+<li><input disabled="" type="checkbox"> <code>npm run docs:html</code>이 <code>OK</code>로 끝났다</li>
+<li><input disabled="" type="checkbox"> 홈, 바뀐 페이지, 검색, 다크 테마를 브라우저로 확인했다</li>
+<li><input disabled="" type="checkbox"> <code>docs(html): snapshot YYYY-MM-DD</code>로 생성물만 커밋했다</li>
+</ul>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="learning/runtime-troubleshooting-history.kr.html"><span>이전</span>NestJS 로컬 실행 오류 및 수정 이력</a><span></span></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/html/README.md" target="_blank" rel="noopener noreferrer"><code>docs/html/README.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-%EC%9B%90%EC%B9%99">1. 원칙</a></li><li class="toc-2"><a href="#2-%EC%97%AC%EB%8A%94-%EB%B0%A9%EB%B2%95">2. 여는 방법</a></li><li class="toc-2"><a href="#3-%ED%8F%B4%EB%8D%94-%EA%B5%AC%EC%A1%B0">3. 폴더 구조</a></li><li class="toc-2"><a href="#4-%EB%AA%85%EB%A0%B9">4. 명령</a></li><li class="toc-2"><a href="#5-%EC%96%B8%EC%A0%9C-%EC%96%B4%EB%96%BB%EA%B2%8C-%EA%B0%B1%EC%8B%A0%ED%95%98%EB%82%98">5. 언제, 어떻게 갱신하나</a></li><li class="toc-2"><a href="#6-%EB%AC%B8%EC%84%9C%EB%A5%BC-%EC%B6%94%EA%B0%80%EC%9D%B4%EB%8F%99%EC%82%AD%EC%A0%9C%ED%95%A0-%EB%95%8C">6. 문서를 추가·이동·삭제할 때</a></li><li class="toc-2"><a href="#7-%EB%A7%81%ED%81%AC-%EA%B7%9C%EC%B9%99">7. 링크 규칙</a></li><li class="toc-2"><a href="#8-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0">8. 문제 해결</a></li><li class="toc-2"><a href="#9-%EB%94%94%EC%9E%90%EC%9D%B8-%EC%88%98%EC%A0%95">9. 디자인 수정</a></li><li class="toc-2"><a href="#10-%EC%A3%BC%EC%9D%98">10. 주의</a></li><li class="toc-2"><a href="#11-%EA%B2%B0%EC%A0%95-%EA%B8%B0%EB%A1%9D-2026-11-09">11. 결정 기록 (2026-11-09)</a></li><li class="toc-2"><a href="#12-%EA%B0%B1%EC%8B%A0-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8">12. 갱신 체크리스트</a></li></ul>
+    </aside>
+  </div>
+  <script src="assets/search-index.js"></script>
+  <script src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/auth/google-login.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>Google SNS 로그인 – 구현 가이드 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section" open><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="google-login.kr.html" data-page-id="docs/auth/google-login.kr" aria-current="page">Google SNS 로그인 – 구현 가이드</a></li><li><a href="login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">인증·SNS 로그인</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="google-sns-로그인--구현-가이드">Google SNS 로그인 – 구현 가이드</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code></p>
+</blockquote>
+<h2 id="개요"><a class="heading-anchor" href="#%EA%B0%9C%EC%9A%94" aria-hidden="true" tabindex="-1">#</a>개요</h2>
+<p>이 문서는 NestJS 백엔드에 추가된 Google 소셜 로그인(서버 측 검증) 기능을 설명합니다.</p>
+<hr>
+<h2 id="채널--플로우-매트릭스"><a class="heading-anchor" href="#%EC%B1%84%EB%84%90--%ED%94%8C%EB%A1%9C%EC%9A%B0-%EB%A7%A4%ED%8A%B8%EB%A6%AD%EC%8A%A4" aria-hidden="true" tabindex="-1">#</a>채널 × 플로우 매트릭스</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>채널</th>
+<th>플로우</th>
+<th>엔드포인트</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>웹 (GIS <code>credential</code>)</td>
+<td>ID 토큰</td>
+<td><code>POST /auth/google/verify-id-token</code> 또는 <code>POST /auth/google/login</code> (idToken)</td>
+<td>Google Identity Services가 JWT 반환</td>
+</tr>
+<tr>
+<td>네이티브 (Android / iOS)</td>
+<td>인증 코드 + PKCE</td>
+<td><code>POST /auth/google/exchange-code</code> 후 <code>POST /auth/google/login</code> (code)</td>
+<td>서버에서 코드 교환; PKCE codeVerifier 권장</td>
+</tr>
+<tr>
+<td>QA / 테스트</td>
+<td>ID 토큰 전용</td>
+<td><code>POST /auth/google/verify-id-token</code></td>
+<td>aud/iss 규칙 완화 없음</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="정책"><a class="heading-anchor" href="#%EC%A0%95%EC%B1%85" aria-hidden="true" tabindex="-1">#</a>정책</h3>
+<ul>
+<li><code>/auth/google/login</code>은 <code>idToken</code> 또는 <code>code</code> 중 <strong>정확히 하나</strong>만 허용합니다.</li>
+<li>둘 다 없거나 둘 다 있으면 → <code>400 AUTH_GOOGLE_BAD_REQUEST</code>.</li>
+</ul>
+<hr>
+<h2 id="엔드포인트"><a class="heading-anchor" href="#%EC%97%94%EB%93%9C%ED%8F%AC%EC%9D%B8%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>엔드포인트</h2>
+<h3 id="post-authgoogleverify-id-token"><a class="heading-anchor" href="#post-authgoogleverify-id-token" aria-hidden="true" tabindex="-1">#</a><code>POST /auth/google/verify-id-token</code></h3>
+<p>Google ID 토큰을 검증하고 디코딩된 소셜 신원을 반환합니다.</p>
+<p><strong>요청 본문</strong></p>
+<pre><code class="language-json">{
+  &quot;idToken&quot;: &quot;&lt;Google ID 토큰&gt;&quot;,
+  &quot;nonce&quot;: &quot;&lt;선택적 nonce&gt;&quot;
+}
+</code></pre>
+<p><strong>성공 응답 (200)</strong></p>
+<pre><code class="language-json">{
+  &quot;ok&quot;: true,
+  &quot;requestId&quot;: &quot;request-id&quot;,
+  &quot;data&quot;: {
+    &quot;provider&quot;: &quot;google&quot;,
+    &quot;sub&quot;: &quot;117123456789012345678&quot;,
+    &quot;email&quot;: &quot;user@example.com&quot;,
+    &quot;emailVerified&quot;: true,
+    &quot;name&quot;: &quot;홍길동&quot;,
+    &quot;picture&quot;: &quot;https://...&quot;
+  }
+}
+</code></pre>
+<hr>
+<h3 id="post-authgoogleexchange-code"><a class="heading-anchor" href="#post-authgoogleexchange-code" aria-hidden="true" tabindex="-1">#</a><code>POST /auth/google/exchange-code</code></h3>
+<p>Google 인증 코드를 토큰으로 교환합니다 (네이티브 / 인증 코드 플로우).</p>
+<p><strong>요청 본문</strong></p>
+<pre><code class="language-json">{
+  &quot;code&quot;: &quot;&lt;인증 코드&gt;&quot;,
+  &quot;redirectUri&quot;: &quot;https://your-app.example.com/callback&quot;,
+  &quot;codeVerifier&quot;: &quot;&lt;PKCE code_verifier – 권장&gt;&quot;,
+  &quot;state&quot;: &quot;&lt;수신된 state&gt;&quot;,
+  &quot;expectedState&quot;: &quot;&lt;클라이언트가 저장한 원본 state&gt;&quot;
+}
+</code></pre>
+<p><strong>성공 응답 (200)</strong></p>
+<pre><code class="language-json">{
+  &quot;ok&quot;: true,
+  &quot;requestId&quot;: &quot;request-id&quot;,
+  &quot;data&quot;: {
+    &quot;idToken&quot;: &quot;&lt;Google ID 토큰&gt;&quot;,
+    &quot;accessToken&quot;: &quot;&lt;액세스 토큰&gt;&quot;,
+    &quot;refreshToken&quot;: &quot;&lt;리프레시 토큰&gt;&quot;,
+    &quot;expiresIn&quot;: 3600
+  }
+}
+</code></pre>
+<hr>
+<h3 id="post-authgooglelogin"><a class="heading-anchor" href="#post-authgooglelogin" aria-hidden="true" tabindex="-1">#</a><code>POST /auth/google/login</code></h3>
+<p>전체 로그인 플로우: 신원 검증 → 사용자 upsert → JWT 세션 발급.</p>
+<p><strong>요청 본문 (idToken 플로우)</strong></p>
+<pre><code class="language-json">{
+  &quot;idToken&quot;: &quot;&lt;Google ID 토큰&gt;&quot;,
+  &quot;nonce&quot;: &quot;&lt;선택적 nonce&gt;&quot;
+}
+</code></pre>
+<p><strong>요청 본문 (인증 코드 플로우)</strong></p>
+<pre><code class="language-json">{
+  &quot;code&quot;: &quot;&lt;인증 코드&gt;&quot;,
+  &quot;redirectUri&quot;: &quot;https://your-app.example.com/callback&quot;,
+  &quot;codeVerifier&quot;: &quot;&lt;PKCE code_verifier&gt;&quot;,
+  &quot;state&quot;: &quot;&lt;수신된 state&gt;&quot;,
+  &quot;expectedState&quot;: &quot;&lt;원본 state&gt;&quot;
+}
+</code></pre>
+<p><strong>성공 응답 (200)</strong></p>
+<pre><code class="language-json">{
+  &quot;ok&quot;: true,
+  &quot;requestId&quot;: &quot;request-id&quot;,
+  &quot;data&quot;: {
+    &quot;accessToken&quot;: &quot;&lt;JWT&gt;&quot;,
+    &quot;expiresIn&quot;: 3600,
+    &quot;user&quot;: {
+      &quot;id&quot;: 1,
+      &quot;username&quot;: &quot;google_117123456789012345678&quot;,
+      &quot;email&quot;: &quot;user@example.com&quot;
+    }
+  }
+}
+</code></pre>
+<hr>
+<h2 id="에러-응답-형식"><a class="heading-anchor" href="#%EC%97%90%EB%9F%AC-%EC%9D%91%EB%8B%B5-%ED%98%95%EC%8B%9D" aria-hidden="true" tabindex="-1">#</a>에러 응답 형식</h2>
+<pre><code class="language-json">{
+  &quot;ok&quot;: false,
+  &quot;requestId&quot;: &quot;request-id&quot;,
+  &quot;errorCode&quot;: &quot;AUTH_GOOGLE_TOKEN_EXPIRED&quot;,
+  &quot;message&quot;: &quot;Token has expired.&quot;,
+  &quot;details&quot;: { /* 선택적 */ }
+}
+</code></pre>
+<h3 id="에러-코드"><a class="heading-anchor" href="#%EC%97%90%EB%9F%AC-%EC%BD%94%EB%93%9C" aria-hidden="true" tabindex="-1">#</a>에러 코드</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>코드</th>
+<th>HTTP</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>AUTH_GOOGLE_BAD_REQUEST</code></td>
+<td>400</td>
+<td>잘못된 입력 (예: idToken과 code를 동시에 전송)</td>
+</tr>
+<tr>
+<td><code>AUTH_GOOGLE_INVALID_AUDIENCE</code></td>
+<td>401</td>
+<td>토큰 <code>aud</code>가 허용된 audience 목록에 없음</td>
+</tr>
+<tr>
+<td><code>AUTH_GOOGLE_INVALID_ISSUER</code></td>
+<td>401</td>
+<td>토큰 <code>iss</code>가 허용된 발급자 목록에 없음</td>
+</tr>
+<tr>
+<td><code>AUTH_GOOGLE_TOKEN_EXPIRED</code></td>
+<td>401</td>
+<td>토큰 만료 (<code>exp</code> 검사 실패)</td>
+</tr>
+<tr>
+<td><code>AUTH_GOOGLE_MISSING_SUB</code></td>
+<td>401</td>
+<td>토큰에 <code>sub</code> 클레임이 없음</td>
+</tr>
+<tr>
+<td><code>AUTH_GOOGLE_NONCE_MISMATCH</code></td>
+<td>401</td>
+<td>토큰의 nonce가 제공된 nonce와 불일치</td>
+</tr>
+<tr>
+<td><code>AUTH_GOOGLE_STATE_MISMATCH</code></td>
+<td>401</td>
+<td>state 파라미터 불일치 (CSRF 가능성)</td>
+</tr>
+<tr>
+<td><code>AUTH_GOOGLE_EXCHANGE_FAILED</code></td>
+<td>401</td>
+<td>Google 인증 코드 교환 실패</td>
+</tr>
+<tr>
+<td><code>AUTH_GOOGLE_INTERNAL_ERROR</code></td>
+<td>500</td>
+<td>예기치 않은 서버 오류. 응답 메시지는 <code>Internal server error</code>로 고정되고 원인은 서버 로그에만 남습니다</td>
+</tr>
+<tr>
+<td><code>AUTH_GOOGLE_DISABLED</code></td>
+<td>503</td>
+<td><code>AUTH_GOOGLE_ENABLED=false</code> (외부 호출 없음)</td>
+</tr>
+</tbody></table>
+</div>
+<hr>
+<h2 id="환경-변수"><a class="heading-anchor" href="#%ED%99%98%EA%B2%BD-%EB%B3%80%EC%88%98" aria-hidden="true" tabindex="-1">#</a>환경 변수</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>변수명</th>
+<th>필수</th>
+<th>기본값</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>AUTH_GOOGLE_ENABLED</code></td>
+<td>❌</td>
+<td><code>true</code></td>
+<td><code>false</code>이면 모든 Google 라우트가 503 <code>AUTH_GOOGLE_DISABLED</code></td>
+</tr>
+<tr>
+<td><code>GOOGLE_ALLOWED_AUDIENCES</code></td>
+<td>✅ (활성 시)</td>
+<td>—</td>
+<td>허용된 <code>aud</code> 값 목록 (쉼표 구분, OAuth 클라이언트 ID)</td>
+</tr>
+<tr>
+<td><code>GOOGLE_ALLOWED_ISSUERS</code></td>
+<td>❌</td>
+<td><code>accounts.google.com,https://accounts.google.com</code></td>
+<td>허용된 발급자 목록 (쉼표 구분)</td>
+</tr>
+<tr>
+<td><code>GOOGLE_OAUTH_CLIENT_ID</code></td>
+<td>✅ (코드 플로우)</td>
+<td>—</td>
+<td>OAuth 2.0 클라이언트 ID</td>
+</tr>
+<tr>
+<td><code>GOOGLE_OAUTH_CLIENT_SECRET</code></td>
+<td>✅ (코드 플로우)</td>
+<td>—</td>
+<td>OAuth 2.0 클라이언트 시크릿</td>
+</tr>
+<tr>
+<td><code>GOOGLE_OAUTH_REDIRECT_URIS</code></td>
+<td>✅ (코드 플로우)</td>
+<td>—</td>
+<td>허용된 리다이렉트 URI 목록 (쉼표 구분)</td>
+</tr>
+</tbody></table>
+</div>
+<hr>
+<h2 id="아키텍처-클린--헥사고날"><a class="heading-anchor" href="#%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-%ED%81%B4%EB%A6%B0--%ED%97%A5%EC%82%AC%EA%B3%A0%EB%82%A0" aria-hidden="true" tabindex="-1">#</a>아키텍처 (클린 / 헥사고날)</h2>
+<pre><code>인터페이스 레이어   src/auth/google/interface/
+  AuthGoogleController        ← HTTP 어댑터; DTO → use-case 입력, 예상 못한 오류는 toSocialAuthError로 감쌈
+  dto/                        ← VerifyIdTokenDto, ExchangeCodeDto, GoogleLoginDto
+  (공용) src/auth/shared/interface/SocialAuthExceptionFilter ← SocialAuthError → HTTP envelope
+
+애플리케이션 레이어 src/auth/google/application/
+  use-cases/                  ← 오케스트레이션; Port에만 의존
+    VerifyGoogleIdTokenUseCase
+    ExchangeGoogleAuthCodeUseCase
+    GoogleLoginUseCase
+  ports/
+    GoogleTokenVerifierPort
+    GoogleAuthCodeExchangerPort
+  (공용) src/users/application/ports/SocialAccountLinkerPort  ← SNS 계정 생성·연결
+  (공용) src/auth/session/application/ports/SessionIssuerPort ← JWT 발급
+
+도메인 레이어       src/auth/google/domain/
+  GoogleAuthError / GoogleAuthErrorCode ← SocialAuthError 상속, 안정적인 오류 코드
+  (공용) src/users/domain/SocialIdentity ← 순수 타입
+
+인프라스트럭처 레이어 src/auth/google/infrastructure/
+  GoogleOAuthClientAdapter    ← google-auth-library로 TokenVerifier + CodeExchanger 구현
+  (공용) src/users/infrastructure/SocialAccountLinkerTypeOrmAdapter
+  (공용) src/auth/session/infrastructure/SessionIssuerJwtAdapter
+
+공통 레이어         src/common/
+  RequestIdInterceptor        ← 전역 등록, 모든 응답의 x-request-id 생성/반영
+  RequestIdService            ← crypto.randomUUID()로 request id 생성
+</code></pre>
+<hr>
+<h2 id="보안-주의사항"><a class="heading-anchor" href="#%EB%B3%B4%EC%95%88-%EC%A3%BC%EC%9D%98%EC%82%AC%ED%95%AD" aria-hidden="true" tabindex="-1">#</a>보안 주의사항</h2>
+<ol>
+<li><strong>하드코딩된 시크릿 없음</strong> – 모든 설정은 환경 변수를 통해 관리합니다.</li>
+<li><strong>토큰 로깅 금지</strong> – 원본 토큰은 절대 로그에 기록하지 않습니다.</li>
+<li><strong>요청 ID 추적</strong> – <code>x-request-id</code> 헤더가 모든 응답에 포함됩니다.</li>
+<li><strong>Audience 검증</strong> – <code>GOOGLE_ALLOWED_AUDIENCES</code>를 통해 강제 적용됩니다.</li>
+<li><strong>발급자 검증</strong> – Google의 공식 발급자만 허용됩니다.</li>
+<li><strong>Nonce</strong> – GIS와 함께 사용 시 재전송 공격 방지를 위해 검증합니다.</li>
+<li><strong>State + PKCE</strong> – 인증 코드 플로우에서 권장; state 불일치 시 <code>AUTH_GOOGLE_STATE_MISMATCH</code> 오류 발생.</li>
+</ol>
+<hr>
+<h2 id="테스트-실행"><a class="heading-anchor" href="#%ED%85%8C%EC%8A%A4%ED%8A%B8-%EC%8B%A4%ED%96%89" aria-hidden="true" tabindex="-1">#</a>테스트 실행</h2>
+<pre><code class="language-bash"># Google 관련 유닛 테스트만 실행
+npx jest src/auth/google
+
+# 전체 테스트
+npm test
+</code></pre>
+<hr>
+<h2 id="데이터-모델"><a class="heading-anchor" href="#%EB%8D%B0%EC%9D%B4%ED%84%B0-%EB%AA%A8%EB%8D%B8" aria-hidden="true" tabindex="-1">#</a>데이터 모델</h2>
+<p>Google 계정 연결은 <code>social_accounts(provider=&#39;google&#39;, providerUserId=&lt;sub&gt;)</code>에 저장되고 <code>users.id</code>를 FK로 참조합니다.</p>
+<ul>
+<li>과거 <code>users.provider</code>·<code>users.googleId</code> 컬럼은 <code>1762000000000-CreateSocialAccounts</code> migration이 <code>social_accounts</code>로 이관한 뒤 삭제했습니다.</li>
+<li>스키마 변경은 <code>DB_SYNCHRONIZE=false</code>를 유지한 채 migration으로만 합니다.</li>
+<li>email 정책과 계정 병합 금지 규칙은 <a href="sns-login-overview.kr.html#%EA%B3%84%EC%A0%95-%EC%97%B0%EA%B2%B0%EA%B3%BC-%EB%B3%B4%EC%95%88-%EC%A0%95%EC%B1%85">SNS 로그인 개요</a>를 참고하세요.</li>
+</ul>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="sns-reenable-checklist.kr.html"><span>이전</span>SNS 로그인 재활성화 체크리스트</a><a class="pager-next" href="login-api-reassessment.kr.html"><span>다음</span>로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/auth/google-login.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/auth/google-login.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#%EA%B0%9C%EC%9A%94">개요</a></li><li class="toc-2"><a href="#%EC%B1%84%EB%84%90--%ED%94%8C%EB%A1%9C%EC%9A%B0-%EB%A7%A4%ED%8A%B8%EB%A6%AD%EC%8A%A4">채널 × 플로우 매트릭스</a></li><li class="toc-3"><a href="#%EC%A0%95%EC%B1%85">정책</a></li><li class="toc-2"><a href="#%EC%97%94%EB%93%9C%ED%8F%AC%EC%9D%B8%ED%8A%B8">엔드포인트</a></li><li class="toc-3"><a href="#post-authgoogleverify-id-token">POST /auth/google/verify-id-token</a></li><li class="toc-3"><a href="#post-authgoogleexchange-code">POST /auth/google/exchange-code</a></li><li class="toc-3"><a href="#post-authgooglelogin">POST /auth/google/login</a></li><li class="toc-2"><a href="#%EC%97%90%EB%9F%AC-%EC%9D%91%EB%8B%B5-%ED%98%95%EC%8B%9D">에러 응답 형식</a></li><li class="toc-3"><a href="#%EC%97%90%EB%9F%AC-%EC%BD%94%EB%93%9C">에러 코드</a></li><li class="toc-2"><a href="#%ED%99%98%EA%B2%BD-%EB%B3%80%EC%88%98">환경 변수</a></li><li class="toc-2"><a href="#%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-%ED%81%B4%EB%A6%B0--%ED%97%A5%EC%82%AC%EA%B3%A0%EB%82%A0">아키텍처 (클린 / 헥사고날)</a></li><li class="toc-2"><a href="#%EB%B3%B4%EC%95%88-%EC%A3%BC%EC%9D%98%EC%82%AC%ED%95%AD">보안 주의사항</a></li><li class="toc-2"><a href="#%ED%85%8C%EC%8A%A4%ED%8A%B8-%EC%8B%A4%ED%96%89">테스트 실행</a></li><li class="toc-2"><a href="#%EB%8D%B0%EC%9D%B4%ED%84%B0-%EB%AA%A8%EB%8D%B8">데이터 모델</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

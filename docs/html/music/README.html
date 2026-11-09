@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/music/README">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>Music API 운영 개선 문서 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section" open><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="README.html" data-page-id="docs/music/README" aria-current="page">Music API 운영 개선 문서</a></li><li><a href="learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">아키텍처</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="music-api-운영-개선-문서">Music API 운영 개선 문서</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code></p>
+</blockquote>
+<p>NestJS Music API와 EC2 내부 MariaDB 운영 개선 문서 모음입니다.</p>
+<h2 id="문서-구조"><a class="heading-anchor" href="#%EB%AC%B8%EC%84%9C-%EA%B5%AC%EC%A1%B0" aria-hidden="true" tabindex="-1">#</a>문서 구조</h2>
+<ul>
+<li><a href="database/mariadb-operations.html">MariaDB 운영 가이드</a>: DB 생성, migration, backup, 배포, 보안</li>
+<li><a href="decisions.html">결정 및 보류 항목</a>: 현재 코드와 제품 정책에서 확정되지 않은 사항</li>
+<li><a href="api-reorganization-review.kr.html">Music API 구조 검토</a>: 구조 문제와 단계적 개선 방향(2026-09 검토, 이후 상태 표기)</li>
+<li>남은 요구사항과 우선순위: <a href="../audit/2026-11-08-project-audit.kr.html#6-%EB%A1%9C%EB%93%9C%EB%A7%B5">최신 감사 리포트 로드맵</a></li>
+<li><a href="learning-guide.kr.html">학습 가이드</a>: 도메인, 요청 흐름, TypeORM, 공개/보호 API를 따라가는 입문 문서</li>
+<li><a href="architecture.kr.html">설계 및 아키텍처</a>: Legacy/Catalog 구조, 데이터 관계, API 경계와 향후 방향</li>
+<li><a href="troubleshooting.kr.html">원인 분석 및 트러블슈팅</a>: route, migration, relation, 공개 URL 문제 분석</li>
+<li><a href="checklists.kr.html">체크리스트</a>: 학습, 기능 개발, DB, 음원 보안, 배포, 장애 대응 점검표</li>
+</ul>
+<h2 id="현재-구현-원칙"><a class="heading-anchor" href="#%ED%98%84%EC%9E%AC-%EA%B5%AC%ED%98%84-%EC%9B%90%EC%B9%99" aria-hidden="true" tabindex="-1">#</a>현재 구현 원칙</h2>
+<ul>
+<li><code>synchronize=true</code>는 어떤 환경에서도 사용하지 않습니다(기동 거부). 스키마는 Migration으로만 바꿉니다.</li>
+<li>애플리케이션 시작 시 DB 생성이나 migration을 자동 실행하지 않습니다.</li>
+<li>기존 migration 파일은 수정하지 않고, 새로운 schema 변경은 새 migration으로 추가합니다.</li>
+<li>Playlist 날짜 중복과 Playlist 내 Track 중복 정책은 확정 전까지 DB 제약으로 강제하지 않습니다.</li>
+<li>Active catalog는 <code>Track 1:N AudioAsset</code> 관계이며, 실제 S3 업로드 구현은 별도 작업입니다.</li>
+<li><code>Track.bpm</code>은 카탈로그 BPM, <code>AudioAsset.bpm</code>은 파일/분석 BPM으로 분리하며 자동 동기화하지 않습니다.</li>
+<li>기존 Artist/Track/Playlist API는 <code>/music/legacy</code>에 보관하고, 새 catalog API는 <code>/music</code>을 사용합니다.</li>
+<li>Catalog Playlist는 <code>draft</code>/<code>published</code>/<code>archived</code> 상태를 사용하며 공개 API는 <code>published</code>만 반환합니다.</li>
+<li>Catalog Playlist item은 <code>position</code>으로 정렬하고 <code>(playlistId, position)</code> unique 제약을 사용합니다.</li>
+<li>공개 응답에는 음원 URL과 내부 storage 정보가 포함되지 않습니다. playback/presigned URL은 후속 작업입니다.</li>
+<li>Catalog와 Legacy의 모든 <strong>쓰기 API는 admin 전용</strong>(<code>@AdminOnly()</code>)입니다. 공개 조회(<code>/music/tracks</code>, <code>/music/public/*</code>, <code>/music/legacy/tracks</code>)는 인증이 필요 없고, 나머지 조회는 로그인이 필요합니다.</li>
+<li>삭제하려는 리소스를 다른 데이터가 참조하면(FK) 409 <code>FOREIGN_KEY_CONSTRAINT</code>를 반환합니다.</li>
+<li>2026-09-13 기준 개발 DB에는 Legacy archive, Catalog music, Catalog playlist Migration이 적용되어 있었습니다. <code>1765000000000-AddRoleToUsers</code>를 포함한 환경별 상태는 <code>migration:show</code>로 확인합니다.</li>
+</ul>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../learning/nestjs-operational-stability-guide.kr.html"><span>이전</span>NestJS 아키텍처·운영 안정성 학습 가이드</a><a class="pager-next" href="learning-guide.kr.html"><span>다음</span>Music 학습 가이드</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/music/README.md" target="_blank" rel="noopener noreferrer"><code>docs/music/README.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#%EB%AC%B8%EC%84%9C-%EA%B5%AC%EC%A1%B0">문서 구조</a></li><li class="toc-2"><a href="#%ED%98%84%EC%9E%AC-%EA%B5%AC%ED%98%84-%EC%9B%90%EC%B9%99">현재 구현 원칙</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

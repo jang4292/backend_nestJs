@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/learning/database-improvement-guide.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>DB 개선 가이드: 남은 과제와 진행 방법 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section" open><summary>데이터베이스</summary><ul class="nav-list"><li><a href="database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr" aria-current="page">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">데이터베이스</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="db-개선-가이드-남은-과제와-진행-방법">DB 개선 가이드: 남은 과제와 진행 방법</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code>
+개념(생성, migration, 검증, 롤백)은 <a href="database-schema-management.kr.html">DB·스키마 관리 학습 가이드</a>에, 환경별 명령은 <a href="../deployment/database-environments.kr.html">환경별 DB·설정 가이드</a>에 있습니다. 이 문서는 <strong>앞으로 무엇을 어떤 순서로 고칠지</strong>를 다룹니다.</p>
+</blockquote>
+<h2 id="1-현재-상태"><a class="heading-anchor" href="#1-%ED%98%84%EC%9E%AC-%EC%83%81%ED%83%9C" aria-hidden="true" tabindex="-1">#</a>1. 현재 상태</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>영역</th>
+<th>갖춰진 것</th>
+<th>비어 있는 것</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>스키마 변경</td>
+<td>migration 10개, 명령으로만 적용, <code>synchronize</code> 금지</td>
+<td>entity와 migration 결과가 다름(DB-12)</td>
+</tr>
+<tr>
+<td>검증</td>
+<td>CI <code>database</code> job(빈 DB 전체 체인, pending 없음, 최신 revert/재적용, e2e)</td>
+<td>drift 단계가 보고만 함</td>
+</tr>
+<tr>
+<td>안전장치</td>
+<td>권한 사전 점검, 소유 판정(<code>inspectOwnership</code>), 운영 DB 생성 금지</td>
+<td>런타임 계정이 DDL 권한을 가짐(DB-18)</td>
+</tr>
+<tr>
+<td>전송</td>
+<td>운영은 localhost</td>
+<td>개발 서버 TLS 없음(DB-19)</td>
+</tr>
+<tr>
+<td>백업</td>
+<td>배포 전 수동 <code>mysqldump</code></td>
+<td>자동화, 암호화, 복원 훈련</td>
+</tr>
+<tr>
+<td>쿼리</td>
+<td>페이지네이션 상한, FK·중복 오류 매핑, LIKE 이스케이프</td>
+<td>재정렬 트랜잭션(DB-8), 검색 구조(DB-9), count(DB-10)</td>
+</tr>
+<tr>
+<td>세션</td>
+<td><code>users.sessionVersion</code>(2026-11-09)</td>
+<td>refresh token 테이블</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="2-우선순위"><a class="heading-anchor" href="#2-%EC%9A%B0%EC%84%A0%EC%88%9C%EC%9C%84" aria-hidden="true" tabindex="-1">#</a>2. 우선순위</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>순위</th>
+<th>ID</th>
+<th>과제</th>
+<th>DB 변경</th>
+<th>작업량</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>P1</td>
+<td><a href="#db-12-entity와-migration-drift-해소">DB-12</a></td>
+<td>entity와 migration drift 해소</td>
+<td>없음(entity만)</td>
+<td>중</td>
+</tr>
+<tr>
+<td>P1</td>
+<td><a href="#db-18-migration-계정과-런타임-계정-분리">DB-18</a></td>
+<td>migration 계정과 런타임 계정 분리</td>
+<td>계정·GRANT</td>
+<td>소</td>
+</tr>
+<tr>
+<td>P1</td>
+<td><a href="#백업-자동화와-복원-훈련">백업</a></td>
+<td>백업 자동화, 암호화, 복원 훈련</td>
+<td>없음</td>
+<td>소</td>
+</tr>
+<tr>
+<td>P1</td>
+<td><a href="#db-19-전송-구간-보호">DB-19</a></td>
+<td>개발 서버 전송 구간 보호</td>
+<td>서버 설정</td>
+<td>소</td>
+</tr>
+<tr>
+<td>P1</td>
+<td><a href="#db-8-플레이리스트-재정렬-트랜잭션">DB-8</a></td>
+<td>플레이리스트 재정렬 트랜잭션</td>
+<td>없음</td>
+<td>소</td>
+</tr>
+<tr>
+<td>P1</td>
+<td><a href="#refresh-token-테이블-설계">refresh token</a></td>
+<td>refresh token 테이블</td>
+<td>새 테이블</td>
+<td>중</td>
+</tr>
+<tr>
+<td>P2</td>
+<td><a href="#db-9-검색-쿼리">DB-9</a></td>
+<td>검색 쿼리 구조</td>
+<td>인덱스</td>
+<td>중</td>
+</tr>
+<tr>
+<td>P2</td>
+<td><a href="#db-10-db-11-count-쿼리와-풀-설정">DB-10, DB-11</a></td>
+<td>count 쿼리, <code>DB_POOL_MIN</code></td>
+<td>없음</td>
+<td>소</td>
+</tr>
+<tr>
+<td>P2</td>
+<td><a href="#legacy-스키마-폐기와-postgresql-데이터-이전">legacy·데이터 이전</a></td>
+<td>legacy 폐기, PostgreSQL → MariaDB 데이터 이전 결정</td>
+<td>테이블 삭제</td>
+<td>대</td>
+</tr>
+<tr>
+<td>P2</td>
+<td><a href="#모니터링">모니터링</a></td>
+<td>slow query, 연결 수</td>
+<td>서버 설정</td>
+<td>소</td>
+</tr>
+</tbody></table>
+</div>
+<p>각 과제는 <strong>현상 → 위험 → 실무 방식 → 권장 → 단계 → 검증 → 롤백</strong> 순서로 적었습니다.</p>
+<hr>
+<h2 id="db-12-entity와-migration-drift-해소"><a class="heading-anchor" href="#db-12-entity%EC%99%80-migration-drift-%ED%95%B4%EC%86%8C" aria-hidden="true" tabindex="-1">#</a>DB-12: entity와 migration drift 해소</h2>
+<p><strong>현상:</strong> <code>npm run migration:check:test</code>(실제 DB와 entity를 비교하는 dry-run)가 2026-11-09 기준으로 <strong>49개 문장</strong>을 제안합니다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>종류</th>
+<th>개수</th>
+<th>예</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>시간 컬럼 정밀도</td>
+<td>20</td>
+<td>DB는 <code>datetime</code>(초), entity 기본값은 <code>datetime(6)</code></td>
+</tr>
+<tr>
+<td>인덱스 이름·유무</td>
+<td>삭제 10, 생성 3</td>
+<td>DB의 <code>UQ_users_email</code>을 지우고 <code>IDX_97672…</code>를 만들려 함. <code>IDX_playlist_track_trackId</code> 같은 DB 인덱스가 entity에 없음</td>
+</tr>
+<tr>
+<td>FK 이름</td>
+<td>삭제·생성 7쌍</td>
+<td>DB의 <code>FK_track_artist</code>를 지우고 <code>FK_2014e…</code>(해시 이름)를 만들려 함</td>
+</tr>
+<tr>
+<td>타입·collation</td>
+<td>2</td>
+<td><code>legacy_artist.name</code> collation, <code>playlist.anonymousPlayable</code> <code>tinyint</code> 표기</td>
+</tr>
+</tbody></table>
+</div>
+<p><code>sessionVersion</code>(1766)은 entity와 migration을 같게 작성해 <strong>새 drift가 없음</strong>을 확인했습니다.</p>
+<p><strong>위험</strong></p>
+<ul>
+<li>지금 <code>migration:generate</code>를 하면 의도한 변경 외에 FK 재생성, 인덱스 삭제가 섞인 초안이 만들어집니다. 검토하다 놓치면 운영 DDL이 됩니다.</li>
+<li>CI drift 단계가 <code>continue-on-error</code>라 새 drift가 생겨도 막지 못합니다.</li>
+</ul>
+<p><strong>실무 방식</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>방향</th>
+<th>방법</th>
+<th>장단점</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>코드를 DB에 맞춤</strong></td>
+<td>entity에 실제 이름·정밀도를 선언</td>
+<td>DB 변경 없음. 운영 위험 0. entity가 조금 장황해짐</td>
+</tr>
+<tr>
+<td>DB를 코드에 맞춤</td>
+<td>보정 migration으로 이름·정밀도 변경</td>
+<td>entity가 단순. 운영 DDL(FK 재생성은 테이블 잠금)이 필요</td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>권장:</strong> 코드를 DB에 맞춥니다. 운영 데이터가 있는 테이블에 이름만 바꾸는 DDL을 실행할 이유가 없습니다.</p>
+<p><strong>단계</strong></p>
+<ol>
+<li>dry-run 결과를 파일로 저장합니다(DB 변경 없음).<pre><code class="language-bash">npm run migration:check:test 2&gt;&amp;1 | grep -v &#39;^query&#39; &gt; drift-before.txt
+</code></pre>
+</li>
+<li><strong>시간 컬럼:</strong> DB의 실제 정밀도(초)를 선언합니다.<pre><code class="language-ts">@CreateDateColumn({ type: &#39;datetime&#39;, precision: 0, default: () =&gt; &#39;CURRENT_TIMESTAMP&#39; })
+createdAt: Date;
+
+@UpdateDateColumn({
+  type: &#39;datetime&#39;, precision: 0,
+  default: () =&gt; &#39;CURRENT_TIMESTAMP&#39;, onUpdate: &#39;CURRENT_TIMESTAMP&#39;,
+})
+updatedAt: Date;
+</code></pre>
+</li>
+<li><strong>unique·인덱스:</strong> <code>@Column({ unique: true })</code> 대신 DB의 실제 이름으로 선언합니다.<pre><code class="language-ts">@Entity(&#39;users&#39;)
+@Index(&#39;UQ_users_email&#39;, [&#39;email&#39;], { unique: true })
+export class User { … }
+</code></pre>
+DB에만 있는 인덱스(<code>IDX_playlist_track_trackId</code> 등)도 <code>@Index(&#39;이름&#39;, [&#39;컬럼&#39;])</code>으로 선언합니다.</li>
+<li><strong>FK:</strong> <code>@JoinColumn</code>에 실제 제약 이름을 적습니다.<pre><code class="language-ts">@ManyToOne(() =&gt; Artist, { onDelete: &#39;RESTRICT&#39; })
+@JoinColumn({ name: &#39;artistId&#39;, foreignKeyConstraintName: &#39;FK_track_artist&#39; })
+artist: Artist;
+</code></pre>
+<code>ON UPDATE</code> 동작(<code>RESTRICT</code>와 <code>NO ACTION</code>)도 dry-run 결과와 맞춥니다.</li>
+<li>2~4를 테이블 하나씩 반복하고, 매번 dry-run 문장 수가 줄어드는지 확인합니다.</li>
+<li>dry-run이 <code>No changes in database schema were found</code>가 되면 <code>.github/workflows/ci.yml</code>의 drift 단계에서 <code>continue-on-error: true</code>를 지웁니다.</li>
+</ol>
+<p><strong>검증:</strong> 로컬 dry-run 0문, CI drift 단계 필수 통과, 유닛·e2e 통과</p>
+<p><strong>롤백:</strong> entity만 바뀌므로 커밋을 되돌리면 됩니다. DB는 처음부터 바뀌지 않습니다.</p>
+<hr>
+<h2 id="db-18-migration-계정과-런타임-계정-분리"><a class="heading-anchor" href="#db-18-migration-%EA%B3%84%EC%A0%95%EA%B3%BC-%EB%9F%B0%ED%83%80%EC%9E%84-%EA%B3%84%EC%A0%95-%EB%B6%84%EB%A6%AC" aria-hidden="true" tabindex="-1">#</a>DB-18: migration 계정과 런타임 계정 분리</h2>
+<p><strong>현상:</strong> 운영 앱 계정이 <code>SELECT, INSERT, UPDATE, DELETE</code>뿐 아니라 <code>CREATE, ALTER, DROP, INDEX</code>까지 갖고 있습니다. migration을 같은 계정으로 실행하기 때문입니다.</p>
+<p><strong>위험:</strong> 앱이 탈취되거나 SQL 주입이 생기면 공격자가 테이블을 지우거나 바꿀 수 있습니다. 런타임에는 DDL이 필요 없습니다.</p>
+<p><strong>실무 방식:</strong> 계정을 둘로 나눕니다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>계정</th>
+<th>권한</th>
+<th>쓰는 곳</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt;app&gt;_migrator</code></td>
+<td>8개 권한(DDL 포함), 앱 DB 단위</td>
+<td><code>migration:run:prod</code>를 실행할 때만. 비밀번호는 서버 파일에 두지 않음</td>
+</tr>
+<tr>
+<td><code>&lt;app&gt;_runtime</code></td>
+<td><code>SELECT, INSERT, UPDATE, DELETE</code>만, 앱 DB 단위</td>
+<td><code>.env.production</code>(PM2로 실행되는 앱)</td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>권장 단계</strong> (운영 MariaDB에서 관리자로)</p>
+<ol>
+<li>계정을 만듭니다. 두 계정 모두 <code>localhost</code>에서만 접속하게 합니다.<pre><code class="language-sql">CREATE USER &#39;&lt;app&gt;_runtime&#39;@&#39;localhost&#39; IDENTIFIED BY &#39;&lt;runtime-password&gt;&#39;;
+GRANT SELECT, INSERT, UPDATE, DELETE ON `&lt;prod_db&gt;`.* TO &#39;&lt;app&gt;_runtime&#39;@&#39;localhost&#39;;
+
+CREATE USER &#39;&lt;app&gt;_migrator&#39;@&#39;localhost&#39; IDENTIFIED BY &#39;&lt;migrator-password&gt;&#39;;
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX
+  ON `&lt;prod_db&gt;`.* TO &#39;&lt;app&gt;_migrator&#39;@&#39;localhost&#39;;
+</code></pre>
+</li>
+<li><code>.env.production</code>의 <code>DB_USERNAME</code>·<code>DB_PASSWORD</code>를 runtime 계정으로 바꾸고 <code>npm run pm2:reload</code> 후 <code>/health</code>를 확인합니다.</li>
+<li>migration은 migrator 계정을 <strong>셸 환경변수로 잠깐만</strong> 넘겨 실행합니다. 셸 값이 env 파일보다 우선하므로 코드 변경이 필요 없습니다.<pre><code class="language-bash">read -rp &#39;migrator user: &#39; MIG_USER; read -rsp &#39;migrator password: &#39; MIG_PASS; echo
+DB_USERNAME=&quot;$MIG_USER&quot; DB_PASSWORD=&quot;$MIG_PASS&quot; npm run db:check:prod
+DB_USERNAME=&quot;$MIG_USER&quot; DB_PASSWORD=&quot;$MIG_PASS&quot; npm run migration:run:prod
+unset MIG_USER MIG_PASS
+</code></pre>
+</li>
+<li>기존 계정의 DDL 권한을 회수하거나 계정을 지웁니다.<pre><code class="language-sql">REVOKE CREATE, ALTER, DROP, INDEX ON `&lt;prod_db&gt;`.* FROM &#39;&lt;app&gt;&#39;@&#39;localhost&#39;;
+</code></pre>
+</li>
+</ol>
+<p><strong>주의</strong></p>
+<ul>
+<li>runtime 계정으로 <code>db:check:prod</code>를 실행하면 DDL 권한이 없다고 표시됩니다. migration을 실행할 계정이 아니므로 정상입니다. 배포 전 점검은 migrator 계정으로 합니다.</li>
+<li>앱 기동 시 pending 확인(<code>MigrationStatusService</code>)은 <code>migrations</code> 테이블을 읽기만 하므로 runtime 계정으로 동작합니다.</li>
+</ul>
+<p><strong>검증:</strong> 앱 정상 동작(<code>/health</code> 200, 로그인), runtime 계정으로 <code>DROP TABLE</code> 시도 시 1142 오류, migrator 계정으로 migration 성공</p>
+<p><strong>롤백:</strong> <code>.env.production</code>을 이전 계정으로 되돌리고 <code>pm2:reload</code></p>
+<hr>
+<h2 id="백업-자동화와-복원-훈련"><a class="heading-anchor" href="#%EB%B0%B1%EC%97%85-%EC%9E%90%EB%8F%99%ED%99%94%EC%99%80-%EB%B3%B5%EC%9B%90-%ED%9B%88%EB%A0%A8" aria-hidden="true" tabindex="-1">#</a>백업 자동화와 복원 훈련</h2>
+<p><strong>현상:</strong> 배포 전에 손으로 <code>mysqldump</code>를 실행합니다. 덤프에는 사용자 데이터와 비밀번호 해시가 들어 있는데, 문서 예시가 프로젝트 루트에 기본 권한으로 파일을 만들었습니다(DB-20, 2026-11-09 수정).</p>
+<p><strong>위험:</strong> 백업을 잊거나, 복원해 본 적 없는 백업에 의존하거나, 덤프 파일이 유출됩니다.</p>
+<p><strong>실무 방식:</strong> 정기 백업 + 보관 기간 + 암호화 + 다른 위치 보관 + <strong>복원 훈련</strong>. &quot;복원해 본 적 없는 백업은 백업이 아니다&quot;라고 봅니다.</p>
+<p><strong>권장 단계</strong></p>
+<ol>
+<li>저장소 밖의 전용 디렉터리를 만들고 권한을 막습니다.<pre><code class="language-bash">sudo install -d -m 700 -o &lt;deploy-user&gt; /var/backups/backend-nestjs
+</code></pre>
+</li>
+<li>백업 명령을 정합니다. <code>umask 077</code>로 파일을 본인만 읽게 만듭니다.<pre><code class="language-bash">umask 077
+mysqldump --single-transaction --routines --triggers &lt;prod_db&gt; \
+  | gzip &gt; /var/backups/backend-nestjs/&lt;prod_db&gt;-$(date +%Y%m%d%H%M).sql.gz
+</code></pre>
+<ul>
+<li>비밀번호는 명령줄에 쓰지 않습니다. <code>~/.my.cnf</code>(chmod 600)의 <code>[mysqldump]</code> 절에 둡니다.</li>
+</ul>
+</li>
+<li>cron이나 systemd timer로 매일 실행하고, 14일이 지난 파일은 지웁니다.<pre><code class="language-bash">find /var/backups/backend-nestjs -name &#39;*.sql.gz&#39; -mtime +14 -delete
+</code></pre>
+</li>
+<li>다른 위치에 보관합니다. 예: S3 버킷(서버 측 암호화, 버전 관리, 수명 주기 규칙)</li>
+<li><strong>복원 훈련(월 1회):</strong> 운영 서버가 아닌 곳에서 합니다. 예를 들어 Test 서버의 새 DB에 복원하고 <code>db:check</code>로 테이블 수와 migration 상태를 확인합니다. <strong>같은 서버의 다른 DB에 복원하지 않습니다.</strong></li>
+</ol>
+<p><strong>검증:</strong> 백업 파일 권한(<code>-rw-------</code>), 최근 백업 시각, 복원 훈련 기록</p>
+<hr>
+<h2 id="db-19-전송-구간-보호"><a class="heading-anchor" href="#db-19-%EC%A0%84%EC%86%A1-%EA%B5%AC%EA%B0%84-%EB%B3%B4%ED%98%B8" aria-hidden="true" tabindex="-1">#</a>DB-19: 전송 구간 보호</h2>
+<p><strong>현상:</strong> 개발 DB 서버(MariaDB 10.11)가 TLS를 지원하지 않습니다. <code>db:check</code>가 <code>tls: off (credentials and data are sent in plaintext)</code>를 표시합니다.</p>
+<p><strong>위험:</strong> 같은 네트워크에 있는 사람이 DB 계정과 데이터를 볼 수 있습니다.</p>
+<p><strong>권장(둘 중 하나)</strong></p>
+<ul>
+<li><strong>SSH 터널(설정 변경 최소):</strong> DB 포트를 외부에 열지 않고 SSH로만 접속합니다.<pre><code class="language-bash">ssh -N -L 13306:127.0.0.1:3306 &lt;ssh-user&gt;@&lt;dev-db-host&gt;
+# .env / .env.test.local
+DB_HOST=127.0.0.1
+DB_PORT=13306
+</code></pre>
+</li>
+<li><strong>서버 TLS:</strong> MariaDB에 인증서(<code>ssl_cert</code>, <code>ssl_key</code>, <code>ssl_ca</code>)를 설정하고 <code>require_secure_transport=ON</code>으로 둡니다. 앱은 <code>DB_SSL=true</code>, <code>DB_SSL_CA=&lt;CA 경로&gt;</code>를 씁니다.</li>
+</ul>
+<p><strong>검증:</strong> <code>db:check</code>의 <code>tls</code> 항목이 <code>on</code>이 되거나, 서버 포트가 외부에서 닫힌 것을 확인합니다.</p>
+<hr>
+<h2 id="db-8-플레이리스트-재정렬-트랜잭션"><a class="heading-anchor" href="#db-8-%ED%94%8C%EB%A0%88%EC%9D%B4%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%9E%AC%EC%A0%95%EB%A0%AC-%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98" aria-hidden="true" tabindex="-1">#</a>DB-8: 플레이리스트 재정렬 트랜잭션</h2>
+<p><strong>현상:</strong> 재정렬이 트랜잭션 밖에서 항목을 읽고, 항목마다 UPDATE를 2번씩(임시 위치 → 최종 위치) 실행합니다. 항목 수 상한이 없습니다.</p>
+<p><strong>위험:</strong> 두 관리자가 동시에 재정렬하면 서로의 결과가 섞이거나 <code>(playlistId, position)</code> UNIQUE 위반으로 500이 납니다. 항목이 많으면 요청 하나가 오래 걸립니다.</p>
+<p><strong>권장</strong></p>
+<ol>
+<li>트랜잭션 안에서 플레이리스트 행을 먼저 잠급니다(<code>SELECT … FOR UPDATE</code>). 같은 플레이리스트의 재정렬이 순서대로 실행됩니다.</li>
+<li>잠근 뒤에 항목을 읽고, 요청이 기존 항목 전체와 일치하는지 검사합니다.</li>
+<li>UPDATE를 <code>CASE</code> 한 문장으로 줄입니다. UNIQUE 충돌은 &quot;모두 음수로 옮긴 뒤 최종 위치로&quot; 2문장으로 피합니다.</li>
+<li>항목 수 상한(예: 500)을 DTO(<code>@ArrayMaxSize</code>)에 둡니다.</li>
+</ol>
+<p><strong>검증:</strong> 동시 재정렬 2건을 보내는 e2e. 둘 다 성공하거나 하나가 409여야 하고, 500은 없어야 합니다.</p>
+<hr>
+<h2 id="refresh-token-테이블-설계"><a class="heading-anchor" href="#refresh-token-%ED%85%8C%EC%9D%B4%EB%B8%94-%EC%84%A4%EA%B3%84" aria-hidden="true" tabindex="-1">#</a>refresh token 테이블 설계</h2>
+<p>지금은 access token(JWT) 하나만 있습니다. 2026-11-09에 <code>sessionVersion</code>을 넣어 <strong>사용자 단위 취소</strong>는 가능해졌지만, 기기별 로그아웃과 짧은 access token 운영은 아직 할 수 없습니다.</p>
+<p><strong>권장 스키마(초안)</strong></p>
+<pre><code class="language-sql">CREATE TABLE refresh_tokens (
+  id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  userId      INT NOT NULL,
+  tokenHash   CHAR(64) NOT NULL,          -- SHA-256(원문). 원문은 저장하지 않음
+  familyId    CHAR(36) NOT NULL,          -- 같은 로그인에서 rotation으로 이어진 토큰 묶음
+  expiresAt   DATETIME NOT NULL,
+  revokedAt   DATETIME NULL,
+  createdAt   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY UQ_refresh_tokens_tokenHash (tokenHash),
+  KEY IDX_refresh_tokens_userId (userId),
+  CONSTRAINT FK_refresh_tokens_user FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE
+);
+</code></pre>
+<ul>
+<li><strong>rotation:</strong> refresh할 때마다 새 토큰을 발급하고 이전 토큰을 폐기합니다.</li>
+<li><strong>재사용 탐지:</strong> 이미 폐기된 토큰이 다시 오면 탈취로 보고 같은 <code>familyId</code> 전체를 폐기합니다.</li>
+<li><strong>access token:</strong> 5~15분으로 줄입니다.</li>
+<li><strong>정리:</strong> 만료된 행은 주기적으로 지웁니다.</li>
+<li>테이블을 추가하면 <code>APP_TABLES</code>(<code>src/database/database-admin.ts</code>)에도 넣어야 합니다. 빠지면 소유 판정 spec이 실패합니다.</li>
+</ul>
+<hr>
+<h2 id="db-9-검색-쿼리"><a class="heading-anchor" href="#db-9-%EA%B2%80%EC%83%89-%EC%BF%BC%EB%A6%AC" aria-hidden="true" tabindex="-1">#</a>DB-9: 검색 쿼리</h2>
+<p><strong>현상:</strong> legacy 트랙 검색이 <code>LOWER(title) LIKE &#39;%term%&#39;</code>입니다. 2026-11-09에 100자 상한과 와일드카드 이스케이프를 넣었지만, 쿼리 구조는 그대로입니다.</p>
+<p><strong>위험:</strong> 앞에 <code>%</code>가 있는 LIKE와 컬럼에 함수(<code>LOWER</code>)를 씌운 비교는 인덱스를 쓰지 못합니다. 데이터가 늘면 공개 API 하나로 전체 테이블을 매번 읽습니다.</p>
+<p><strong>선택지</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>방법</th>
+<th>장점</th>
+<th>한계</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>LOWER()</code> 제거</td>
+<td>collation(<code>utf8mb4_unicode_ci</code>)이 이미 대소문자를 구분하지 않음. 바로 적용 가능</td>
+<td><code>%term%</code>이면 여전히 인덱스 불가</td>
+</tr>
+<tr>
+<td>접두사 검색 <code>term%</code> + 인덱스</td>
+<td>B-tree 인덱스 사용</td>
+<td>중간 일치 불가</td>
+</tr>
+<tr>
+<td>InnoDB FULLTEXT</td>
+<td>단어 검색이 빠름</td>
+<td>MariaDB에는 MySQL의 ngram 파서가 없어 한국어 부분 일치에 약함</td>
+</tr>
+<tr>
+<td>별도 검색 엔진(OpenSearch 등)</td>
+<td>형태소 분석, 오타 허용</td>
+<td>운영 부담</td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>권장:</strong> 먼저 <code>LOWER()</code>를 제거하고 <code>EXPLAIN</code>으로 실행 계획을 확인합니다. 데이터가 수만 건을 넘기 전에 제품 요구(중간 일치가 필요한가)를 정하고 방법을 고릅니다.</p>
+<hr>
+<h2 id="db-10-db-11-count-쿼리와-풀-설정"><a class="heading-anchor" href="#db-10-db-11-count-%EC%BF%BC%EB%A6%AC%EC%99%80-%ED%92%80-%EC%84%A4%EC%A0%95" aria-hidden="true" tabindex="-1">#</a>DB-10, DB-11: count 쿼리와 풀 설정</h2>
+<ul>
+<li><strong>DB-10:</strong> 공개 플레이리스트 목록이 개수를 세려고 모든 항목을 로드합니다. <code>COUNT(*)</code> 서브쿼리나 <code>loadRelationCountAndMap</code>으로 바꿉니다.</li>
+<li><strong>DB-11:</strong> <code>DB_POOL_MIN</code>을 검증만 하고 쓰지 않습니다. mysql2 풀에는 최솟값 개념이 없습니다(<code>maxIdle</code>, <code>idleTimeout</code>이 비슷한 역할). 설정을 지우거나 <code>maxIdle</code>로 매핑합니다.</li>
+</ul>
+<hr>
+<h2 id="legacy-스키마-폐기와-postgresql-데이터-이전"><a class="heading-anchor" href="#legacy-%EC%8A%A4%ED%82%A4%EB%A7%88-%ED%8F%90%EA%B8%B0%EC%99%80-postgresql-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EC%9D%B4%EC%A0%84" aria-hidden="true" tabindex="-1">#</a>legacy 스키마 폐기와 PostgreSQL 데이터 이전</h2>
+<p><strong>legacy(<code>legacy_*</code> 테이블, <code>/music/legacy</code> 라우트)</strong></p>
+<p>폐기는 expand → contract 순서로 진행합니다(<a href="database-schema-management.kr.html#6-%ED%95%98%EC%9C%84-%ED%98%B8%ED%99%98-%EB%B3%80%EA%B2%BD-expand--contract">DB·스키마 관리 가이드 6장</a>).</p>
+<ol>
+<li>쓰기를 멈춥니다(라우트를 읽기 전용으로).</li>
+<li>필요한 데이터를 catalog 테이블로 옮기는 migration을 만들고 검증합니다.</li>
+<li>클라이언트가 legacy 라우트를 쓰지 않는지 접근 로그로 확인합니다.</li>
+<li>라우트를 제거합니다.</li>
+<li>백업 후 <code>DROP TABLE</code> migration을 실행합니다. <code>APP_TABLES</code>에서도 지웁니다.</li>
+</ol>
+<p><strong>PostgreSQL → MariaDB(main 릴리스)</strong></p>
+<p>main의 운영 DB가 PostgreSQL이었다면 데이터 이전이 필요합니다(11-08 감사 P0).</p>
+<ol>
+<li>운영에 실제 사용자 데이터가 있는지 확인합니다.</li>
+<li>없으면 MariaDB에 migration만 적용하고 시작합니다.</li>
+<li>있으면 <code>users</code>를 CSV로 내보내고(<code>\copy</code>), MariaDB에 넣는 일회성 스크립트를 작성합니다. 비밀번호 해시(bcrypt)는 그대로 옮길 수 있습니다. 옮긴 뒤 건수와 표본 로그인을 확인합니다.</li>
+</ol>
+<hr>
+<h2 id="모니터링"><a class="heading-anchor" href="#%EB%AA%A8%EB%8B%88%ED%84%B0%EB%A7%81" aria-hidden="true" tabindex="-1">#</a>모니터링</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>항목</th>
+<th>방법</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>느린 쿼리</td>
+<td><code>slow_query_log=ON</code>, <code>long_query_time=1</code>. 주기적으로 상위 쿼리를 <code>EXPLAIN</code></td>
+</tr>
+<tr>
+<td>연결 수</td>
+<td><code>SHOW STATUS LIKE &#39;Threads_connected&#39;</code>와 <code>DB_POOL_MAX</code> 비교</td>
+</tr>
+<tr>
+<td>오류</td>
+<td>앱 로그의 <code>QueryFailedError</code>, 5xx 비율</td>
+</tr>
+<tr>
+<td>디스크</td>
+<td>데이터 디렉터리와 백업 디렉터리 사용량</td>
+</tr>
+</tbody></table>
+</div>
+<hr>
+<h2 id="3-migration-작성-규칙-체크리스트"><a class="heading-anchor" href="#3-migration-%EC%9E%91%EC%84%B1-%EA%B7%9C%EC%B9%99-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>3. migration 작성 규칙 (체크리스트)</h2>
+<ul>
+<li><input disabled="" type="checkbox"> 이미 적용된 migration은 고치지 않습니다. 예외는 대상 DB에서 <strong>실행 자체가 불가능한</strong> 경우뿐입니다(DB-13).</li>
+<li><input disabled="" type="checkbox"> FK·인덱스·unique에 <strong>이름을 명시</strong>하고, entity에도 같은 이름을 선언합니다(DB-12 재발 방지).</li>
+<li><input disabled="" type="checkbox"> 컬럼 타입, 길이, 정밀도, 기본값을 entity와 같게 씁니다.</li>
+<li><input disabled="" type="checkbox"> <code>down()</code>을 작성합니다. 되돌릴 수 없으면 이유를 주석으로 남기고 백업 복원을 롤백 방법으로 문서화합니다.</li>
+<li><input disabled="" type="checkbox"> 큰 변경은 expand → (배포) → contract로 나눕니다. 컬럼 삭제·이름 변경은 한 번에 하지 않습니다.</li>
+<li><input disabled="" type="checkbox"> 새 테이블은 <code>APP_TABLES</code>에 추가합니다.</li>
+<li><input disabled="" type="checkbox"> 로컬에서 <code>migration:show:test</code> → <code>db:setup:test</code> → <code>migration:revert:test</code> → <code>migration:run:test</code> → <code>migration:check:test</code>(새 drift 없음) → <code>test:e2e</code>를 실행합니다.</li>
+<li><input disabled="" type="checkbox"> 운영 적용 전에 백업하고, PR 본문에 &quot;migration 있음&quot;과 롤백 방법을 적습니다.</li>
+</ul>
+<h2 id="4-결정-기록-2026-11-09"><a class="heading-anchor" href="#4-%EA%B2%B0%EC%A0%95-%EA%B8%B0%EB%A1%9D-2026-11-09" aria-hidden="true" tabindex="-1">#</a>4. 결정 기록 (2026-11-09)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>결정</th>
+<th>이유</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>sessionVersion</code>은 <code>INT UNSIGNED NOT NULL DEFAULT 0</code></td>
+<td>기존 행을 바꾸지 않는 추가 전용(expand) 변경. entity와 같게 써서 drift 없음</td>
+</tr>
+<tr>
+<td>DB-12는 &quot;코드를 DB에 맞춤&quot; 권장</td>
+<td>운영 DDL 없이 해결 가능</td>
+</tr>
+<tr>
+<td>계정 분리는 코드 변경 없이 셸 환경변수로</td>
+<td>이미 셸 값이 파일보다 우선하는 규칙이 있음</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="5-자가-점검-질문"><a class="heading-anchor" href="#5-%EC%9E%90%EA%B0%80-%EC%A0%90%EA%B2%80-%EC%A7%88%EB%AC%B8" aria-hidden="true" tabindex="-1">#</a>5. 자가 점검 질문</h2>
+<ol>
+<li>drift가 있는 상태에서 <code>migration:generate</code>를 실행하면 어떤 위험이 있나요?</li>
+<li>DB-12를 &quot;DB를 코드에 맞추는&quot; 방식으로 해결하지 않는 이유는 무엇인가요?</li>
+<li>런타임 계정에 DDL 권한이 없으면 어떤 공격의 피해가 줄어드나요?</li>
+<li>백업을 같은 서버에만 두면 어떤 상황에서 함께 잃나요?</li>
+<li><code>LOWER(title) LIKE &#39;%term%&#39;</code>이 인덱스를 쓰지 못하는 이유 두 가지는 무엇인가요?</li>
+<li>refresh token 원문 대신 해시를 저장하는 이유는 무엇인가요?</li>
+</ol>
+<h2 id="6-실습-과제"><a class="heading-anchor" href="#6-%EC%8B%A4%EC%8A%B5-%EA%B3%BC%EC%A0%9C" aria-hidden="true" tabindex="-1">#</a>6. 실습 과제</h2>
+<ol>
+<li><strong>DB-12 한 테이블:</strong> <code>users</code> 테이블만 골라 단계 2~4를 적용하고, dry-run 문장 수가 얼마나 줄었는지 기록하세요.</li>
+<li><strong>계정 분리 리허설:</strong> Test 서버에서 runtime 계정과 migrator 계정을 만들어 DB-18 단계를 따라 해 보세요(앱 전용 테스트 DB에서만).</li>
+<li><strong>복원 훈련:</strong> <code>app_db_test</code>를 덤프하고, 새 이름의 테스트 DB에 복원한 뒤 <code>db:check</code>로 비교해 보세요. 끝나면 그 테스트 DB만 지웁니다.</li>
+<li><strong>재정렬 동시성:</strong> DB-8의 e2e 시나리오를 작성해 현재 코드에서 실패하는지 확인하세요.</li>
+</ol>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="database-schema-management.kr.html"><span>이전</span>DB·스키마 관리 학습 가이드: 생성, migration, 검증</a><a class="pager-next" href="../deployment/database-environments.kr.html"><span>다음</span>환경별 DB·설정 가이드 (Local / Test / Prod)</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/learning/database-improvement-guide.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/learning/database-improvement-guide.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-%ED%98%84%EC%9E%AC-%EC%83%81%ED%83%9C">1. 현재 상태</a></li><li class="toc-2"><a href="#2-%EC%9A%B0%EC%84%A0%EC%88%9C%EC%9C%84">2. 우선순위</a></li><li class="toc-2"><a href="#db-12-entity%EC%99%80-migration-drift-%ED%95%B4%EC%86%8C">DB-12: entity와 migration drift 해소</a></li><li class="toc-2"><a href="#db-18-migration-%EA%B3%84%EC%A0%95%EA%B3%BC-%EB%9F%B0%ED%83%80%EC%9E%84-%EA%B3%84%EC%A0%95-%EB%B6%84%EB%A6%AC">DB-18: migration 계정과 런타임 계정 분리</a></li><li class="toc-2"><a href="#%EB%B0%B1%EC%97%85-%EC%9E%90%EB%8F%99%ED%99%94%EC%99%80-%EB%B3%B5%EC%9B%90-%ED%9B%88%EB%A0%A8">백업 자동화와 복원 훈련</a></li><li class="toc-2"><a href="#db-19-%EC%A0%84%EC%86%A1-%EA%B5%AC%EA%B0%84-%EB%B3%B4%ED%98%B8">DB-19: 전송 구간 보호</a></li><li class="toc-2"><a href="#db-8-%ED%94%8C%EB%A0%88%EC%9D%B4%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%9E%AC%EC%A0%95%EB%A0%AC-%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98">DB-8: 플레이리스트 재정렬 트랜잭션</a></li><li class="toc-2"><a href="#refresh-token-%ED%85%8C%EC%9D%B4%EB%B8%94-%EC%84%A4%EA%B3%84">refresh token 테이블 설계</a></li><li class="toc-2"><a href="#db-9-%EA%B2%80%EC%83%89-%EC%BF%BC%EB%A6%AC">DB-9: 검색 쿼리</a></li><li class="toc-2"><a href="#db-10-db-11-count-%EC%BF%BC%EB%A6%AC%EC%99%80-%ED%92%80-%EC%84%A4%EC%A0%95">DB-10, DB-11: count 쿼리와 풀 설정</a></li><li class="toc-2"><a href="#legacy-%EC%8A%A4%ED%82%A4%EB%A7%88-%ED%8F%90%EA%B8%B0%EC%99%80-postgresql-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EC%9D%B4%EC%A0%84">legacy 스키마 폐기와 PostgreSQL 데이터 이전</a></li><li class="toc-2"><a href="#%EB%AA%A8%EB%8B%88%ED%84%B0%EB%A7%81">모니터링</a></li><li class="toc-2"><a href="#3-migration-%EC%9E%91%EC%84%B1-%EA%B7%9C%EC%B9%99-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8">3. migration 작성 규칙 (체크리스트)</a></li><li class="toc-2"><a href="#4-%EA%B2%B0%EC%A0%95-%EA%B8%B0%EB%A1%9D-2026-11-09">4. 결정 기록 (2026-11-09)</a></li><li class="toc-2"><a href="#5-%EC%9E%90%EA%B0%80-%EC%A0%90%EA%B2%80-%EC%A7%88%EB%AC%B8">5. 자가 점검 질문</a></li><li class="toc-2"><a href="#6-%EC%8B%A4%EC%8A%B5-%EA%B3%BC%EC%A0%9C">6. 실습 과제</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

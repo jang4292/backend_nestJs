@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/deployment/database-environments.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>환경별 DB·설정 가이드 (Local / Test / Prod) · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section" open><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr" aria-current="page">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">데이터베이스</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="환경별-db설정-가이드-local--test--prod">환경별 DB·설정 가이드 (Local / Test / Prod)</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code>
+개념과 이유(직접 SQL / 명령 / 자동 실행 비교, 검증 계층, 삭제 방지)는 <a href="../learning/database-schema-management.kr.html">DB·스키마 관리 학습 가이드</a>를 보세요. 이 문서는 실행 절차입니다.</p>
+</blockquote>
+<p>모든 환경은 <strong>env 파일 하나</strong>로 설정합니다. 다음이 모두 같은 규칙(<code>src/config/env-files.ts</code>)으로 파일을 고릅니다.</p>
+<ul>
+<li>앱(<code>npm run start*</code>)</li>
+<li>migration CLI</li>
+<li>DB 도구(<code>db:*</code>)</li>
+<li>e2e</li>
+</ul>
+<h2 id="1-환경-구분"><a class="heading-anchor" href="#1-%ED%99%98%EA%B2%BD-%EA%B5%AC%EB%B6%84" aria-hidden="true" tabindex="-1">#</a>1. 환경 구분</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>환경</th>
+<th>무엇인가</th>
+<th><code>NODE_ENV</code></th>
+<th>env 파일 (템플릿)</th>
+<th>DB</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Local</strong></td>
+<td>개발 PC에서 앱을 실행(<code>start:dev</code>)하고 NAS 개발 DB 서버에 접속</td>
+<td><code>development</code>(기본)</td>
+<td><code>.env</code> (<code>.env.example</code>)</td>
+<td>개발 서버의 <strong>앱 전용 DB</strong> <code>app_db_dev</code></td>
+</tr>
+<tr>
+<td><strong>Test</strong></td>
+<td>Local 안에서 실행하는 e2e와 migration 검증</td>
+<td><code>test</code></td>
+<td><code>.env.test.local</code> (<code>.env.test.example</code>), <strong>필수</strong></td>
+<td>개발 서버의 <strong>앱 전용 DB</strong> <code>app_db_test</code> (<strong><code>*_test</code>만 허용</strong>)</td>
+</tr>
+<tr>
+<td><strong>Prod</strong></td>
+<td>EC2에서 build 후 PM2로 실행</td>
+<td><code>production</code></td>
+<td><code>.env.production</code> (<code>.env.production.example</code>)</td>
+<td>같은 EC2의 MariaDB(<code>127.0.0.1:3306</code>) 운영 DB</td>
+</tr>
+</tbody></table>
+</div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>작업</th>
+<th>Local</th>
+<th>Test</th>
+<th>Prod (EC2, <code>npm run build</code> 후)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>설정 검증(DB 접속 없음, build 필요)</td>
+<td><code>npm run env:check</code></td>
+<td><code>npm run env:check:test</code></td>
+<td><code>npm run env:check:prod</code></td>
+</tr>
+<tr>
+<td><strong>연결·권한·소유·상태 점검(읽기 전용)</strong></td>
+<td><code>npm run db:check</code></td>
+<td><code>npm run db:check:test</code></td>
+<td><code>npm run db:check:prod</code></td>
+</tr>
+<tr>
+<td><strong>DB 생성 + 테이블 적용</strong></td>
+<td><code>npm run db:setup</code></td>
+<td><code>npm run db:setup:test</code></td>
+<td>관리자 SQL(5.1) → <code>migration:run:prod</code></td>
+</tr>
+<tr>
+<td>migration 상태 / 적용</td>
+<td><code>migration:show</code> / <code>migration:run</code></td>
+<td><code>migration:show:test</code> / <code>migration:run:test</code></td>
+<td><code>migration:show:prod</code> / <code>migration:run:prod</code></td>
+</tr>
+<tr>
+<td>빈 DB에서 전체 재검증</td>
+<td>—</td>
+<td><code>npm run db:reset:test</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>앱 실행</td>
+<td><code>npm run start:dev</code></td>
+<td><code>npm run test:e2e</code></td>
+<td><code>npm run pm2:reload</code></td>
+</tr>
+<tr>
+<td>SNS 로그인</td>
+<td>전부 off</td>
+<td>전부 off</td>
+<td>전부 off(로컬 로그인만)</td>
+</tr>
+</tbody></table>
+</div>
+<ul>
+<li><strong>Local·Test와 Prod는 다른 서버</strong>입니다. 개발·테스트 작업이 운영 데이터에 닿지 않습니다.</li>
+<li><strong>Local과 Test는 같은 개발 서버, 같은 계정을 쓰고 DB 이름으로 분리합니다.</strong><ul>
+<li><code>NODE_ENV=test</code>에서는 <code>*_test</code>가 아닌 DB를 지정하면 기동이 실패합니다(<code>src/config/app-env.ts</code>).</li>
+</ul>
+</li>
+<li><strong>개발 서버의 다른 DB는 쓰지 않습니다.</strong> 이 앱은 <code>app_db_dev</code>와 <code>app_db_test</code>만 사용합니다(2장).</li>
+<li><strong>테이블은 항상 migration으로만 만듭니다.</strong><ul>
+<li><code>DB_SYNCHRONIZE=true</code>는 모든 환경에서 기동이 거부됩니다. entity와 다른 컬럼을 자동으로 삭제할 수 있기 때문입니다.</li>
+<li>콘솔에서 직접 <code>CREATE TABLE</code>하지 않습니다.</li>
+</ul>
+</li>
+<li><strong>Prod 명령은 <code>dist</code> 기반</strong>입니다(<code>--dist</code>). ts-node와 <code>src</code>가 필요 없으며, 먼저 <code>npm run build</code>를 실행합니다.</li>
+<li>앱은 기동할 때 적용되지 않은 migration이 있으면 로그로 경고합니다(<code>Migrations</code> 로그, Prod는 error). 기동을 막지는 않습니다.</li>
+</ul>
+<h3 id="명령과-env-파일"><a class="heading-anchor" href="#%EB%AA%85%EB%A0%B9%EA%B3%BC-env-%ED%8C%8C%EC%9D%BC" aria-hidden="true" tabindex="-1">#</a>명령과 env 파일</h3>
+<p><strong>명령마다 읽는 파일이 다릅니다.</strong> 비밀번호를 넣은 파일과 실행한 명령이 맞는지 먼저 확인하세요.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>명령</th>
+<th>읽는 파일</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>db:check</code>, <code>db:setup</code>, <code>migration:show/run/revert</code>, <code>start:dev</code>, <code>env:check</code></td>
+<td><code>.env</code> (Local)</td>
+</tr>
+<tr>
+<td><code>db:check:test</code>, <code>db:setup:test</code>, <code>db:reset:test</code>, <code>migration:*:test</code>, <code>test:e2e</code>, <code>env:check:test</code></td>
+<td><code>.env.test.local</code> (Test)</td>
+</tr>
+<tr>
+<td><code>*:prod</code>, <code>pm2:reload</code></td>
+<td><code>.env.production</code> (Prod)</td>
+</tr>
+</tbody></table>
+</div>
+<p>값이 빠지면 오류가 읽은 파일을 함께 알려 줍니다. 다른 파일에 그 키가 있으면 <code>Hint:</code>도 출력합니다(값은 출력하지 않음).</p>
+<pre><code class="language-text">FAIL DB_PASSWORD is required. (env file: .env, NODE_ENV=development)
+Hint: .env.test.local has DB_PASSWORD, but that file is read only with NODE_ENV=test (npm run db:check:test, db:setup:test, test:e2e). This command read .env.
+</code></pre>
+<h3 id="우선순위와-재지정"><a class="heading-anchor" href="#%EC%9A%B0%EC%84%A0%EC%88%9C%EC%9C%84%EC%99%80-%EC%9E%AC%EC%A7%80%EC%A0%95" aria-hidden="true" tabindex="-1">#</a>우선순위와 재지정</h3>
+<ol>
+<li>이미 export된 셸 환경변수가 파일 값보다 우선합니다. PM2 <code>--update-env</code>, Secrets Manager export, CI job env가 여기에 해당합니다.</li>
+<li><code>ENV_FILE=&lt;경로&gt;</code>를 지정하면 NODE_ENV 규칙 대신 그 파일 하나만 읽습니다. 예: <code>ENV_FILE=/etc/backend-nestjs/app.env</code></li>
+<li>파일이 없을 때<ul>
+<li>Test는 기동하지 않습니다(개발 DB 오사용 방지).</li>
+<li>Local과 Prod는 환경변수만으로도 기동할 수 있습니다. 필수 값이 빠지면 검증 단계에서 어떤 키가 빠졌는지 알려 줍니다.</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>⚠ EC2 셸에 예전 <code>eval &quot;$(… secrets:export)&quot;</code>로 export한 값이 남아 있으면 <code>.env.production</code>보다 우선합니다. <code>.env.production</code> 방식으로 바꿨다면 새 셸에서 <code>pm2:reload</code>하세요. 남은 값은 키 이름만 확인합니다: <code>env | cut -d= -f1 | grep -E &#39;^(DB_|JWT_)&#39;</code></p>
+</blockquote>
+<h2 id="2-db-삭제-안전-원칙"><a class="heading-anchor" href="#2-db-%EC%82%AD%EC%A0%9C-%EC%95%88%EC%A0%84-%EC%9B%90%EC%B9%99" aria-hidden="true" tabindex="-1">#</a>2. DB 삭제 안전 원칙</h2>
+<p>DB 서버에는 다른 앱이나 예전에 쓰던 DB가 있을 수 있습니다. <strong>이 앱의 명령은 자기 전용 DB 하나만 다루고, 그 밖의 DB와 객체는 절대 지우거나 바꾸지 않습니다.</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>명령</th>
+<th>바꿀 수 있는 범위</th>
+<th>안전장치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>db:check*</code></td>
+<td>없음(읽기 전용)</td>
+<td><code>SELECT</code>·<code>SHOW</code>만 실행합니다</td>
+</tr>
+<tr>
+<td><code>db:setup</code>, <code>db:setup:test</code></td>
+<td>대상 DB(<code>DB_DATABASE</code>) 하나: 없으면 생성, 이후 migration</td>
+<td>다음 경우 <strong>아무것도 바꾸지 않고</strong> 멈춥니다<br>대상 DB에 앱이 관리하지 않는 객체(테이블, 뷰, 시퀀스, 루틴, 이벤트)가 있을 때<br>migration 권한이 부족할 때</td>
+</tr>
+<tr>
+<td><code>db:reset:test</code></td>
+<td>대상 <code>*_test</code> DB 하나: 지우고 다시 생성</td>
+<td><code>NODE_ENV=test</code>이고 이름이 <code>*_test</code>이며, <strong>앱 소유 테이블만 있을 때만</strong> 동작합니다</td>
+</tr>
+<tr>
+<td><code>migration:run*</code></td>
+<td>대상 DB 안의 앱 테이블</td>
+<td><code>CREATE</code>·<code>ALTER</code>·<code>RENAME</code>은 앱 테이블에만 실행합니다. <code>DROP TABLE</code>은 revert에만 있습니다</td>
+</tr>
+<tr>
+<td><code>migration:revert*</code></td>
+<td>대상 DB 안의 앱 테이블(마지막 1개)</td>
+<td>Prod에서는 백업 후에만 실행합니다</td>
+</tr>
+<tr>
+<td>Prod</td>
+<td>DB 생성·삭제 명령 없음</td>
+<td><code>db:ensure</code>·<code>db:reset</code>은 거부됩니다. 운영 DB는 관리자가 만듭니다</td>
+</tr>
+<tr>
+<td>앱 기동</td>
+<td>없음</td>
+<td><code>synchronize</code> 금지, migration 자동 실행 없음, pending 경고만</td>
+</tr>
+</tbody></table>
+</div>
+<ul>
+<li><strong>&quot;앱 소유&quot;의 기준:</strong> <code>APP_TABLES</code>(<code>src/database/database-admin.ts</code>)는 migration이 만들거나 이름을 바꾸는 테이블 목록입니다. 대상 DB의 모든 객체가 이 목록 안에 있어야 앱 소유입니다. spec이 entity와 migration 소스를 이 목록과 대조합니다.</li>
+<li><strong><code>db:check</code>의 <code>ownership</code> 줄</strong><ul>
+<li><code>dedicated (N app tables)</code>: 앱 전용 DB입니다.</li>
+<li><code>shared — N object(s) not managed by this app: …</code>: 다른 객체가 섞여 있습니다. <code>db:setup</code>·<code>db:reset</code>이 거부하므로 전용 DB를 쓰세요.</li>
+</ul>
+</li>
+<li><strong>GRANT는 앱 전용 DB 단위로만 줍니다.</strong> <code>ON *.*</code>(전역)나 다른 DB에는 권한을 주지 않습니다. <code>DROP</code> 권한도 그 DB 안에서만 유효합니다.</li>
+<li>다른 DB에 대한 권한은 이 앱에 필요 없습니다. 예전에 받은 권한은 회수해도 됩니다(선택).</li>
+</ul>
+<h2 id="3-local-개발-pc--개발-서버의-app_db_dev"><a class="heading-anchor" href="#3-local-%EA%B0%9C%EB%B0%9C-pc--%EA%B0%9C%EB%B0%9C-%EC%84%9C%EB%B2%84%EC%9D%98-app_db_dev" aria-hidden="true" tabindex="-1">#</a>3. Local: 개발 PC + 개발 서버의 <code>app_db_dev</code></h2>
+<h3 id="31-최초-1회-앱-전용-db-권한-서버-관리자"><a class="heading-anchor" href="#31-%EC%B5%9C%EC%B4%88-1%ED%9A%8C-%EC%95%B1-%EC%A0%84%EC%9A%A9-db-%EA%B6%8C%ED%95%9C-%EC%84%9C%EB%B2%84-%EA%B4%80%EB%A6%AC%EC%9E%90" aria-hidden="true" tabindex="-1">#</a>3.1 최초 1회: 앱 전용 DB 권한 (서버 관리자)</h3>
+<p>서버 관리자(root)로 실행합니다. Synology라면 phpMyAdmin이나 MariaDB CLI를 씁니다. <strong>다른 DB는 건드리지 않습니다.</strong> DB 단위 <code>CREATE</code> 권한이 있으면 <code>db:setup</code>이 그 이름의 DB를 직접 만들 수 있습니다.</p>
+<pre><code class="language-sql">-- &#39;%&#39;는 가능하면 개발자 IP 대역으로 좁힙니다(예: &#39;203.0.113.%&#39;).
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX
+  ON `app_db_dev`.* TO &#39;&lt;dev-user&gt;&#39;@&#39;%&#39;;
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX
+  ON `app_db_test`.* TO &#39;&lt;dev-user&gt;&#39;@&#39;%&#39;;
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>권한</th>
+<th>필요한 이유</th>
+<th>없으면</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code></td>
+<td><code>migrations</code> 기록, 데이터 보정(<code>INSERT … SELECT</code>, <code>UPDATE … JOIN</code>)</td>
+<td>첫 migration부터 실패</td>
+</tr>
+<tr>
+<td><code>CREATE</code></td>
+<td><code>CREATE TABLE</code>. DB 단위로 주면 그 이름의 <code>CREATE DATABASE</code>도 가능</td>
+<td>테이블이나 DB 생성 불가</td>
+</tr>
+<tr>
+<td><code>ALTER</code></td>
+<td>컬럼·FK·제약 변경, <code>RENAME TABLE</code></td>
+<td>컬럼 추가에서 실패</td>
+</tr>
+<tr>
+<td><code>DROP</code></td>
+<td><code>RENAME TABLE</code>의 원본(<code>ArchiveLegacyMusicSchema</code>), revert의 <code>DROP TABLE</code>, <code>db:reset:test</code></td>
+<td><strong>9개 중 6번째에서 중간 실패</strong></td>
+</tr>
+<tr>
+<td><code>INDEX</code></td>
+<td><code>CREATE/DROP INDEX</code></td>
+<td>인덱스 생성에서 실패</td>
+</tr>
+</tbody></table>
+</div>
+<ul>
+<li><code>REFERENCES</code>는 MariaDB에서 사용하지 않는 권한이라 필요 없습니다(FK 생성에도 불필요).</li>
+<li>권한은 부여 즉시 반영됩니다. <code>db:check</code>에서 <code>privilege: ok</code>를 확인합니다.</li>
+<li>일부만 있다면 <code>db:check</code>가 출력한 <strong>빠진 권한만</strong> 추가합니다.</li>
+</ul>
+<h3 id="32-연결과-생성"><a class="heading-anchor" href="#32-%EC%97%B0%EA%B2%B0%EA%B3%BC-%EC%83%9D%EC%84%B1" aria-hidden="true" tabindex="-1">#</a>3.2 연결과 생성</h3>
+<pre><code class="language-bash">cp .env.example .env      # 이미 있으면 생략
+chmod 600 .env
+vi .env                   # DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE=app_db_dev
+npm run db:check          # 읽기 전용: 접속, TLS, 권한, DB 존재, 소유, pending migration
+npm run db:setup          # app_db_dev가 없으면 utf8mb4로 생성 → migration으로 테이블 생성
+npm run start:dev
+</code></pre>
+<ul>
+<li><strong>비밀번호는 <code>DB_PASSWORD=</code> 줄에 직접 입력합니다.</strong><ul>
+<li><code>.env</code>는 Git에 올라가지 않습니다(<code>.gitignore</code>). 채팅, 문서, 커밋에는 남기지 않습니다.</li>
+<li>값에 <code>#</code>이나 공백이 있으면 큰따옴표로 감쌉니다(<code>DB_PASSWORD=&quot;a#b c&quot;</code>).</li>
+</ul>
+</li>
+<li><strong>포트:</strong> 공유기나 NAS에서 포트포워딩했다면 3306이 아닐 수 있습니다. <code>DB_PORT</code>에 외부 포트를 적습니다.</li>
+<li><strong>DB 이름</strong><ul>
+<li>앱 전용 이름(<code>app_db_dev</code>)을 씁니다. 영문, 숫자, <code>_</code>, <code>-</code>를 쓸 수 있습니다.</li>
+<li>다른 객체가 있는 DB를 지정하면 <code>db:setup</code>이 거부합니다(2장).</li>
+</ul>
+</li>
+<li><strong><code>db:setup</code>은 여러 번 실행해도 안전합니다.</strong> DB가 있으면 만들지 않고, 적용된 migration은 다시 실행하지 않습니다.</li>
+<li><strong><code>db:check</code> 출력 예</strong>(권한 부여 전)<pre><code class="language-text">db:check  NODE_ENV=development  env=.env  &lt;dev-user&gt;@&lt;dev-db-host&gt;:&lt;port&gt;/app_db_dev
+OK  connected as &lt;dev-user&gt;@%
+    server   : MariaDB 10.11.x
+    tls      : off (credentials and data are sent in plaintext)
+    privilege: missing SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX on `app_db_dev` — migrations would fail midway
+      fix (DB admin): GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX ON `app_db_dev`.* TO &#39;&lt;dev-user&gt;&#39;@&#39;%&#39;;
+    database : app_db_dev — missing (or not visible to this account)
+    visible  : &lt;other-db&gt;
+    grants   : …
+
+Next: ask a DB admin to run the GRANT above, then npm run db:setup
+</code></pre>
+</li>
+<li><strong><code>db:check</code> 출력 예</strong>(적용 후)<pre><code class="language-text">    privilege: ok for migrations on `app_db_dev`
+    database : app_db_dev (utf8mb4/utf8mb4_unicode_ci, 11 tables)
+    ownership: dedicated (11 app tables)
+    migration: 9 applied, 0 pending (9 in this build)
+</code></pre>
+</li>
+<li><strong>개발 서버 MariaDB는 TLS를 지원하지 않습니다</strong>(<code>tls: off</code>). 인터넷 구간에서 계정 정보가 평문으로 오갑니다. 다음 중 하나를 적용하세요.<ul>
+<li>서버 방화벽이나 공유기에서 DB 포트를 개발자 IP로 제한합니다.</li>
+<li>SSH 터널로만 접속합니다.<pre><code class="language-bash">ssh -N -L 13306:127.0.0.1:3306 &lt;user&gt;@&lt;dev-server&gt;   # .env: DB_HOST=127.0.0.1, DB_PORT=13306
+</code></pre>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="4-test-개발-서버의-app_db_test"><a class="heading-anchor" href="#4-test-%EA%B0%9C%EB%B0%9C-%EC%84%9C%EB%B2%84%EC%9D%98-app_db_test" aria-hidden="true" tabindex="-1">#</a>4. Test: 개발 서버의 <code>app_db_test</code></h2>
+<pre><code class="language-bash">cp .env.test.example .env.test.local   # DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD 입력(Local과 같은 계정)
+chmod 600 .env.test.local
+npm run db:setup:test                  # app_db_test가 없으면 생성 → migration 적용
+npm run db:check:test -- --strict      # 권한·소유·pending 모두 OK면 종료 코드 0
+npm run test:e2e
+</code></pre>
+<ul>
+<li><strong>계정:</strong> Local 계정을 같이 씁니다(3.1의 <code>app_db_test</code> GRANT). 테스트 전용 계정을 따로 만들어도 됩니다.</li>
+<li><strong>빈 DB에서 전체 migration 재검증:</strong> <code>npm run db:reset:test</code><ul>
+<li><code>app_db_test</code>를 지우고 다시 만든 뒤 모든 migration을 적용합니다. CI가 매번 하는 것과 같습니다.</li>
+<li>앱 소유 테이블만 있을 때만 동작하고, 다른 객체가 있으면 목록을 보여 주고 거부합니다.</li>
+</ul>
+</li>
+<li><strong>최신 migration 되돌리기 확인:</strong> <code>npm run migration:revert:test</code> 후 <code>npm run migration:run:test</code></li>
+<li><strong>entity와 migration의 차이(drift):</strong> <code>npm run migration:check:test</code>. 현재는 차이가 보고됩니다(감사 DB-12).</li>
+</ul>
+<h2 id="5-prod-ec2--pm2--localhost-mariadb"><a class="heading-anchor" href="#5-prod-ec2--pm2--localhost-mariadb" aria-hidden="true" tabindex="-1">#</a>5. Prod: EC2 + PM2 + localhost MariaDB</h2>
+<h3 id="51-최초-1회-운영-db와-계정-관리자"><a class="heading-anchor" href="#51-%EC%B5%9C%EC%B4%88-1%ED%9A%8C-%EC%9A%B4%EC%98%81-db%EC%99%80-%EA%B3%84%EC%A0%95-%EA%B4%80%EB%A6%AC%EC%9E%90" aria-hidden="true" tabindex="-1">#</a>5.1 최초 1회: 운영 DB와 계정 (관리자)</h3>
+<p>운영에서는 앱이 DB를 만들거나 지우지 않습니다(<code>db:ensure</code>·<code>db:reset</code> 거부). EC2의 MariaDB에서 관리자로 실행합니다. 운영 계정은 <code>localhost</code>에서만 접속할 수 있게 만들어, 계정 정보가 유출되어도 외부에서 쓸 수 없게 합니다.</p>
+<pre><code class="language-sql">CREATE DATABASE IF NOT EXISTS &lt;prod_db&gt;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS &#39;&lt;app&gt;&#39;@&#39;localhost&#39; IDENTIFIED BY &#39;&lt;prod-password&gt;&#39;;
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX
+  ON &lt;prod_db&gt;.* TO &#39;&lt;app&gt;&#39;@&#39;localhost&#39;;
+FLUSH PRIVILEGES;
+</code></pre>
+<p><code>bind-address=127.0.0.1</code>과 보안그룹으로 3306이 외부에 열려 있지 않은지 확인합니다.</p>
+<pre><code class="language-bash">sudo ss -ltnp | grep 3306    # 127.0.0.1:3306 이어야 함
+</code></pre>
+<h3 id="52-envproduction-작성-서버에서만"><a class="heading-anchor" href="#52-envproduction-%EC%9E%91%EC%84%B1-%EC%84%9C%EB%B2%84%EC%97%90%EC%84%9C%EB%A7%8C" aria-hidden="true" tabindex="-1">#</a>5.2 <code>.env.production</code> 작성 (서버에서만)</h3>
+<pre><code class="language-bash">cd /opt/backend-nestjs           # 프로젝트 루트(ecosystem.config.cjs가 있는 위치)
+cp .env.production.example .env.production
+chmod 600 .env.production
+vi .env.production               # DB_USERNAME/PASSWORD/DATABASE, JWT_SECRET 입력
+</code></pre>
+<ul>
+<li>**<code>JWT_SECRET</code>**은 <code>openssl rand -base64 48</code>처럼 32자 이상으로 만듭니다. placeholder를 그대로 두면 기동이 <strong>의도적으로 실패</strong>합니다.</li>
+<li><strong><code>CORS_ORIGIN</code>:</strong> 브라우저 프론트엔드가 없으면 <code>none</code>, 웹이 생기면 <code>https://app.example.com</code> 같은 origin 목록으로 바꿉니다.</li>
+<li>**<code>TRUST_PROXY=loopback</code>**은 같은 호스트의 nginx만 신뢰합니다. nginx가 없어도 안전합니다.</li>
+</ul>
+<h3 id="53-배포-스키마-변경-포함"><a class="heading-anchor" href="#53-%EB%B0%B0%ED%8F%AC-%EC%8A%A4%ED%82%A4%EB%A7%88-%EB%B3%80%EA%B2%BD-%ED%8F%AC%ED%95%A8" aria-hidden="true" tabindex="-1">#</a>5.3 배포 (스키마 변경 포함)</h3>
+<pre><code class="language-bash">git pull --ff-only
+npm ci
+npm run build
+npm run env:check:prod           # DB 접속 없이 설정만 검증. FAIL이면 중단
+npm run db:check:prod            # 읽기 전용: 접속, 권한, 소유, pending migration 확인
+umask 077; mkdir -p ~/backups  # 덤프는 저장소 밖, 본인만 읽기(사용자 데이터·비밀번호 해시 포함)
+mysqldump --single-transaction --routines --triggers &lt;prod_db&gt; | gzip &gt; ~/backups/&lt;prod_db&gt;-$(date +%Y%m%d%H%M).sql.gz   # pending이 있으면 반드시
+npm run migration:show:prod      # 적용될 목록 확인([ ] 표시)
+npm run migration:run:prod       # 실패하면 재시작하지 말고 중단(이전 버전이 계속 동작)
+npm run pm2:reload               # ecosystem.config.cjs: cwd=프로젝트 루트, NODE_ENV=production
+curl -fsS http://127.0.0.1:3000/health
+pm2 logs backend-nestjs --lines 50 | grep -i migration   # pending 경고가 없어야 함
+</code></pre>
+<p>admin 지정, 스모크 테스트, 롤백은 <a href="mariadb-systemd.kr.html">EC2 배포 가이드</a>를 따릅니다.</p>
+<h3 id="54-운영-앞단-확인-방법-nginx-유무"><a class="heading-anchor" href="#54-%EC%9A%B4%EC%98%81-%EC%95%9E%EB%8B%A8-%ED%99%95%EC%9D%B8-%EB%B0%A9%EB%B2%95-nginx-%EC%9C%A0%EB%AC%B4" aria-hidden="true" tabindex="-1">#</a>5.4 운영 앞단 확인 방법 (nginx 유무)</h3>
+<p>EC2에서 실행해 보고, 결과에 따라 <code>TRUST_PROXY</code>와 <code>CORS_ORIGIN</code>을 조정합니다.</p>
+<pre><code class="language-bash">sudo ss -ltnp | grep -E &#39;:(80|443|3000)\b&#39;                # 80/443을 nginx가 듣는지, 3000을 node가 듣는지
+ls /etc/nginx/sites-enabled/ /etc/nginx/conf.d/ 2&gt;/dev/null
+sudo nginx -T 2&gt;/dev/null | grep -E &#39;server_name|listen|proxy_pass&#39;
+pm2 ls
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>결과</th>
+<th>설정</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>nginx가 같은 서버에서 <code>proxy_pass http://127.0.0.1:3000</code></td>
+<td><code>TRUST_PROXY=loopback</code>(기본값)</td>
+</tr>
+<tr>
+<td>proxy 없음, node가 직접 노출</td>
+<td><code>loopback</code> 그대로 사용(클라이언트 헤더 무시)</td>
+</tr>
+<tr>
+<td>ALB/CloudFront 등 다른 호스트의 proxy</td>
+<td><code>TRUST_PROXY=1</code>(hop 수) 또는 proxy IP/CIDR</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="6-스키마-변경-체크리스트"><a class="heading-anchor" href="#6-%EC%8A%A4%ED%82%A4%EB%A7%88-%EB%B3%80%EA%B2%BD-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>6. 스키마 변경 체크리스트</h2>
+<p>개념과 이유는 <a href="../learning/database-schema-management.kr.html#5-test%EC%97%90%EC%84%9C-%EB%90%98%EB%8D%98-%EA%B2%83%EC%9D%B4-localprod%EC%97%90-%EC%97%86%EC%9C%BC%EB%A9%B4">학습 가이드 5~8장</a>을 보세요.</p>
+<ol>
+<li>entity를 변경하고, <code>npm run migration:generate -- src/database/migrations/&lt;Name&gt;</code>으로 초안을 만든 뒤 SQL을 리뷰합니다.</li>
+<li><strong>하위 호환을 확인합니다.</strong> 삭제와 이름 변경은 다음 릴리스로 나눕니다(expand → contract). 새 NOT NULL 컬럼에는 default를 둡니다.</li>
+<li>새 테이블을 만들었다면 <code>APP_TABLES</code>에 추가합니다. spec이 누락을 알려 줍니다.</li>
+<li>Test에서 확인합니다: <code>npm run db:reset:test</code> → <code>npm run migration:check:test</code> → <code>npm run test:e2e</code></li>
+<li>PR을 올리고 CI <code>database</code> job이 통과하는지 확인합니다: 빈 DB 전체 체인 → pending 없음 → 최신 revert/재적용 → drift → e2e</li>
+<li>Local에 적용합니다: <code>npm run db:check</code> → <code>npm run db:setup</code>. 기존 데이터 위에서 적용되는지 확인합니다.</li>
+<li>Prod에 적용합니다: 5.3 순서대로 진행하고, 백업 없이 migration을 실행하지 않습니다.</li>
+</ol>
+<p>migration을 작성할 때의 규칙(이름 명시, entity와 같은 타입, <code>down()</code>, expand → contract)은 <a href="../learning/database-improvement-guide.kr.html#3-migration-%EC%9E%91%EC%84%B1-%EA%B7%9C%EC%B9%99-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8">DB 개선 가이드 3장</a>에 체크리스트로 있습니다. 운영 계정을 migration용과 런타임용으로 나누는 방법은 <a href="../learning/database-improvement-guide.kr.html#db-18-migration-%EA%B3%84%EC%A0%95%EA%B3%BC-%EB%9F%B0%ED%83%80%EC%9E%84-%EA%B3%84%EC%A0%95-%EB%B6%84%EB%A6%AC">DB-18</a>을 봅니다.</p>
+<h2 id="7-자주-나는-오류"><a class="heading-anchor" href="#7-%EC%9E%90%EC%A3%BC-%EB%82%98%EB%8A%94-%EC%98%A4%EB%A5%98" aria-hidden="true" tabindex="-1">#</a>7. 자주 나는 오류</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>메시지</th>
+<th>원인 · 해결</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>DB_PASSWORD is required. (env file: …)</code></td>
+<td><strong>그 파일</strong>의 <code>DB_PASSWORD</code>가 비어 있습니다. <code>Hint:</code>가 나오면 다른 파일에 넣은 것입니다. 명령과 파일의 대응은 1장 표를 봅니다</td>
+</tr>
+<tr>
+<td><code>Access denied for &#39;&lt;user&gt;&#39; (1045)</code></td>
+<td>아이디나 비밀번호가 틀렸습니다. 특수문자가 있으면 큰따옴표로 감쌉니다</td>
+</tr>
+<tr>
+<td><code>does not allow &#39;&lt;user&gt;&#39; from this host (1130)</code></td>
+<td>계정의 접속 허용 host에 내 IP가 없습니다. 관리자가 <code>&#39;&lt;user&gt;&#39;@&#39;&lt;ip&gt;&#39;</code>를 허용해야 합니다</td>
+</tr>
+<tr>
+<td><code>blocked after too many failed connections (1129)</code></td>
+<td>연결 실패가 반복되어 서버가 내 IP를 차단했습니다. 관리자가 <code>FLUSH HOSTS</code>를 실행합니다</td>
+</tr>
+<tr>
+<td><code>lacks privileges on \</code><db>`` (1044/1227)</td>
+<td>DB 생성이나 변경 권한이 없습니다. 출력된 GRANT SQL을 관리자에게 요청합니다(3.1)</td>
+</tr>
+<tr>
+<td><code>privilege: missing …</code> / <code>is missing … Stopped before changing anything</code></td>
+<td>migration에 필요한 권한이 부족합니다. 아무것도 바뀌지 않았습니다. 출력된 GRANT를 실행한 뒤 다시 실행합니다(3.1)</td>
+</tr>
+<tr>
+<td><code>ownership: shared</code> / <code>contains N object(s) not managed by this app</code></td>
+<td>대상 DB에 다른 앱의 객체가 있습니다. 아무것도 바뀌지 않았습니다. <code>DB_DATABASE</code>를 앱 전용 DB로 바꿉니다(2장)</td>
+</tr>
+<tr>
+<td><code>DB_SYNCHRONIZE must be false.</code></td>
+<td>어떤 환경에서도 <code>synchronize</code>를 켤 수 없습니다. 스키마는 migration으로 바꿉니다</td>
+</tr>
+<tr>
+<td><code>Connection refused</code> / <code>Timed out</code></td>
+<td>주소, 포트, 방화벽, 포트포워딩을 확인합니다</td>
+</tr>
+<tr>
+<td><code>does not support TLS</code></td>
+<td>서버가 TLS를 지원하지 않습니다. <code>DB_SSL=false</code>로 둡니다</td>
+</tr>
+<tr>
+<td><code>Missing .env.test.local</code></td>
+<td>Test 환경 파일이 없습니다. 4장을 따라 만듭니다</td>
+</tr>
+<tr>
+<td><code>DB_DATABASE must end with _test when NODE_ENV=test.</code></td>
+<td>Test에서 다른 DB를 지정했습니다. <code>app_db_test</code>를 사용합니다</td>
+</tr>
+<tr>
+<td><code>db:ensure is disabled for NODE_ENV=production</code></td>
+<td>운영 DB는 관리자 SQL로 만듭니다(5.1)</td>
+</tr>
+<tr>
+<td><code>JWT_SECRET must be a strong production secret.</code> / <code>at least 32 characters</code></td>
+<td>운영 secret이 placeholder이거나 너무 짧습니다</td>
+</tr>
+<tr>
+<td><code>CORS_ORIGIN is required when NODE_ENV=production</code></td>
+<td>운영 파일에 <code>CORS_ORIGIN</code>(origin 목록 또는 <code>none</code>)이 없습니다</td>
+</tr>
+<tr>
+<td><code>DB_USERNAME is required.</code> (운영)</td>
+<td><code>.env.production</code>이 없거나 cwd가 다릅니다. PM2는 <code>ecosystem.config.cjs</code>로 실행합니다</td>
+</tr>
+<tr>
+<td><code>Unknown column &#39;User.role&#39;</code> / 기동 로그 <code>pending migration(s)</code></td>
+<td>새 migration이 적용되지 않았습니다. 해당 환경의 <code>db:setup*</code> 또는 <code>migration:run*</code>을 실행합니다</td>
+</tr>
+<tr>
+<td><code>MySql does not support unique constraints</code></td>
+<td>MariaDB에서 <code>createUniqueConstraint</code>를 썼습니다. migration에서는 <code>TableIndex({ isUnique: true })</code>를 씁니다</td>
+</tr>
+<tr>
+<td><code>dist/database/data-source.js not found</code></td>
+<td>Prod 명령 전에 <code>npm run build</code>가 필요합니다</td>
+</tr>
+</tbody></table>
+</div>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../learning/database-improvement-guide.kr.html"><span>이전</span>DB 개선 가이드: 남은 과제와 진행 방법</a><a class="pager-next" href="../music/database/mariadb-operations.html"><span>다음</span>MariaDB 운영 가이드</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/deployment/database-environments.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/deployment/database-environments.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-%ED%99%98%EA%B2%BD-%EA%B5%AC%EB%B6%84">1. 환경 구분</a></li><li class="toc-3"><a href="#%EB%AA%85%EB%A0%B9%EA%B3%BC-env-%ED%8C%8C%EC%9D%BC">명령과 env 파일</a></li><li class="toc-3"><a href="#%EC%9A%B0%EC%84%A0%EC%88%9C%EC%9C%84%EC%99%80-%EC%9E%AC%EC%A7%80%EC%A0%95">우선순위와 재지정</a></li><li class="toc-2"><a href="#2-db-%EC%82%AD%EC%A0%9C-%EC%95%88%EC%A0%84-%EC%9B%90%EC%B9%99">2. DB 삭제 안전 원칙</a></li><li class="toc-2"><a href="#3-local-%EA%B0%9C%EB%B0%9C-pc--%EA%B0%9C%EB%B0%9C-%EC%84%9C%EB%B2%84%EC%9D%98-app_db_dev">3. Local: 개발 PC + 개발 서버의 app_db_dev</a></li><li class="toc-3"><a href="#31-%EC%B5%9C%EC%B4%88-1%ED%9A%8C-%EC%95%B1-%EC%A0%84%EC%9A%A9-db-%EA%B6%8C%ED%95%9C-%EC%84%9C%EB%B2%84-%EA%B4%80%EB%A6%AC%EC%9E%90">3.1 최초 1회: 앱 전용 DB 권한 (서버 관리자)</a></li><li class="toc-3"><a href="#32-%EC%97%B0%EA%B2%B0%EA%B3%BC-%EC%83%9D%EC%84%B1">3.2 연결과 생성</a></li><li class="toc-2"><a href="#4-test-%EA%B0%9C%EB%B0%9C-%EC%84%9C%EB%B2%84%EC%9D%98-app_db_test">4. Test: 개발 서버의 app_db_test</a></li><li class="toc-2"><a href="#5-prod-ec2--pm2--localhost-mariadb">5. Prod: EC2 + PM2 + localhost MariaDB</a></li><li class="toc-3"><a href="#51-%EC%B5%9C%EC%B4%88-1%ED%9A%8C-%EC%9A%B4%EC%98%81-db%EC%99%80-%EA%B3%84%EC%A0%95-%EA%B4%80%EB%A6%AC%EC%9E%90">5.1 최초 1회: 운영 DB와 계정 (관리자)</a></li><li class="toc-3"><a href="#52-envproduction-%EC%9E%91%EC%84%B1-%EC%84%9C%EB%B2%84%EC%97%90%EC%84%9C%EB%A7%8C">5.2 .env.production 작성 (서버에서만)</a></li><li class="toc-3"><a href="#53-%EB%B0%B0%ED%8F%AC-%EC%8A%A4%ED%82%A4%EB%A7%88-%EB%B3%80%EA%B2%BD-%ED%8F%AC%ED%95%A8">5.3 배포 (스키마 변경 포함)</a></li><li class="toc-3"><a href="#54-%EC%9A%B4%EC%98%81-%EC%95%9E%EB%8B%A8-%ED%99%95%EC%9D%B8-%EB%B0%A9%EB%B2%95-nginx-%EC%9C%A0%EB%AC%B4">5.4 운영 앞단 확인 방법 (nginx 유무)</a></li><li class="toc-2"><a href="#6-%EC%8A%A4%ED%82%A4%EB%A7%88-%EB%B3%80%EA%B2%BD-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8">6. 스키마 변경 체크리스트</a></li><li class="toc-2"><a href="#7-%EC%9E%90%EC%A3%BC-%EB%82%98%EB%8A%94-%EC%98%A4%EB%A5%98">7. 자주 나는 오류</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

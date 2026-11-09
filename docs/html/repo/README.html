@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="README">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>NestJS Backend API · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section" open><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="README.html" data-page-id="README" aria-current="page">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">배포·운영</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="nestjs-backend-api">NestJS Backend API</h1>
+<blockquote>
+<p>Last updated: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code> ·
+Documentation index (Korean): <a href="../index.html">docs/README.md</a></p>
+</blockquote>
+<p>A NestJS 11 backend that provides local JWT authentication, user profiles, and
+music catalog and playlist APIs. It runs on MariaDB through TypeORM. Settings
+are validated at startup, and the schema changes only through versioned
+migrations.</p>
+<h2 id="features"><a class="heading-anchor" href="#features" aria-hidden="true" tabindex="-1">#</a>Features</h2>
+<ul>
+<li>Local registration and JWT login (HS256). A password change requires
+<code>currentPassword</code>.</li>
+<li>Minimal RBAC: music write APIs are admin-only (<code>users.role</code>).</li>
+<li>Music catalog (tracks, audio assets, playlists) and legacy music APIs.</li>
+<li>Social login modules for Google, Apple, Kakao, Naver and Facebook.
+<strong>They are currently all disabled; only local login is used.</strong> Each provider
+is opt-in, see <a href="#sns-login">SNS login</a>.</li>
+<li>Helmet, an explicit CORS allow-list, throttling, DTO validation and a single
+error envelope.</li>
+<li>Per-environment env files, read-only DB checks, and migrations verified on
+MariaDB in CI.</li>
+</ul>
+<h2 id="quick-start-local"><a class="heading-anchor" href="#quick-start-local" aria-hidden="true" tabindex="-1">#</a>Quick start (Local)</h2>
+<p>Requires Node.js 24 (<code>.nvmrc</code>; <code>engines</code> requires &gt;= 22.13). Local means the
+app runs on your PC and connects to the shared dev MariaDB server, using a
+database dedicated to this app (<code>app_db_dev</code>).</p>
+<pre><code class="language-bash">npm ci
+cp .env.example .env &amp;&amp; chmod 600 .env
+# edit .env: DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE=app_db_dev
+npm run db:check     # read-only: connection, TLS, privileges, ownership, pending migrations
+npm run db:setup     # create the database if missing, then apply migrations (tables)
+npm run start:dev    # http://localhost:3000, Swagger at /api-docs
+</code></pre>
+<ul>
+<li>Type the password into the <code>DB_PASSWORD=</code> line of <code>.env</code> yourself. The file
+is ignored by git; do not put the password in chats, docs or commits.</li>
+<li>Each command reads one file: <code>db:check</code>, <code>db:setup</code>, <code>migration:*</code> and
+<code>start:dev</code> read <code>.env</code>; the <code>:test</code> commands and <code>test:e2e</code> read
+<code>.env.test.local</code>; the <code>:prod</code> commands read <code>.env.production</code>. When a value
+is missing, the error names the file it read and hints if another env file
+has that key.</li>
+<li><code>db:check</code> also reports whether the account has the privileges migrations
+need (<code>SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX</code>) and prints
+the exact <code>GRANT</code> for anything missing. <code>db:setup</code> stops before changing
+anything when privileges are missing.</li>
+<li><strong>Other databases on the server are never touched.</strong> <code>db:setup</code> and
+<code>db:reset:test</code> only work on a database that contains nothing but this app&#39;s
+tables (<code>APP_TABLES</code>); otherwise they refuse and change nothing. Grant the app
+account privileges on its own databases only, never <code>ON *.*</code>.</li>
+<li>Database names may use letters, digits, <code>_</code> and <code>-</code>.</li>
+<li><code>db:setup</code> is safe to run again: it never recreates an existing database and
+never re-runs an applied migration.</li>
+<li>The dev MariaDB server has no TLS (<code>db:check</code> prints <code>tls: off</code>). Restrict its
+port to developer IPs, or connect through an SSH tunnel.</li>
+</ul>
+<h2 id="environments"><a class="heading-anchor" href="#environments" aria-hidden="true" tabindex="-1">#</a>Environments</h2>
+<p>One env file per environment, chosen by <code>NODE_ENV</code>
+(see <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/src/config/env-files.ts" target="_blank" rel="noopener noreferrer" class="source-link"><code>src/config/env-files.ts</code></a>). The app, the
+migration CLI, the <code>db:*</code> tools and e2e all use the same rule.</p>
+<ul>
+<li>Exported shell variables override file values.</li>
+<li><code>ENV_FILE=&lt;path&gt;</code> replaces the file choice.</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Environment</th>
+<th><code>NODE_ENV</code></th>
+<th>File (git-ignored)</th>
+<th>Template</th>
+<th>Database</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Local</td>
+<td><code>development</code> (default)</td>
+<td><code>.env</code></td>
+<td><code>.env.example</code></td>
+<td>dev server, dedicated <code>app_db_dev</code></td>
+</tr>
+<tr>
+<td>Test (e2e, inside Local)</td>
+<td><code>test</code></td>
+<td><code>.env.test.local</code> (required)</td>
+<td><code>.env.test.example</code></td>
+<td>dev server, dedicated <code>app_db_test</code> (<code>*_test</code> only)</td>
+</tr>
+<tr>
+<td>Prod</td>
+<td><code>production</code></td>
+<td><code>.env.production</code></td>
+<td><code>.env.production.example</code></td>
+<td>EC2 localhost MariaDB</td>
+</tr>
+</tbody></table>
+</div>
+<p>Validation rules (startup, <code>env:check</code>, <code>db:*</code>):</p>
+<ul>
+<li><strong>Always required:</strong> <code>DB_USERNAME</code>, <code>DB_PASSWORD</code>, <code>DB_DATABASE</code>, <code>JWT_SECRET</code>.
+<code>JWT_EXPIRES_IN</code> must look like <code>3600</code>, <code>30m</code>, <code>1h</code> or <code>7d</code>. <code>CORS_ORIGIN</code>
+must not be <code>*</code>.</li>
+<li><strong>Always rejected:</strong> <code>DB_SYNCHRONIZE=true</code>. Synchronize can drop columns and
+their data, so the schema changes only through migrations.</li>
+<li><strong><code>NODE_ENV=test</code>:</strong> only accepts <code>*_test</code> databases.</li>
+<li><strong><code>NODE_ENV=production</code></strong> also requires:<ul>
+<li><code>CORS_ORIGIN</code>: an origin list, or <code>none</code> to disable CORS</li>
+<li><code>JWT_SECRET</code>: at least 32 characters, with no placeholder text</li>
+</ul>
+</li>
+<li><strong>New keys:</strong> add them to <code>src/config/app-env.ts</code> and to
+<code>scripts/runtime-env-keys.cjs</code>. A spec fails when the two lists drift.</li>
+</ul>
+<p>Full guide with account SQL and common errors:
+<a href="../deployment/database-environments.kr.html">docs/deployment/database-environments.kr.md</a>.</p>
+<h2 id="scripts"><a class="heading-anchor" href="#scripts" aria-hidden="true" tabindex="-1">#</a>Scripts</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Purpose</th>
+<th>Local</th>
+<th>Test</th>
+<th>Prod (on EC2, after <code>npm run build</code>)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Validate config, no DB connection (needs a build)</td>
+<td><code>env:check</code></td>
+<td><code>env:check:test</code></td>
+<td><code>env:check:prod</code></td>
+</tr>
+<tr>
+<td>DB check, read-only (privileges, ownership, pending)</td>
+<td><code>db:check</code></td>
+<td><code>db:check:test</code></td>
+<td><code>db:check:prod</code></td>
+</tr>
+<tr>
+<td>Create DB if missing + apply migrations</td>
+<td><code>db:setup</code></td>
+<td><code>db:setup:test</code></td>
+<td>admin SQL once, then <code>migration:run:prod</code></td>
+</tr>
+<tr>
+<td>Recreate the test DB and apply every migration</td>
+<td>—</td>
+<td><code>db:reset:test</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>Migration status / apply / revert</td>
+<td><code>migration:show</code> / <code>migration:run</code> / <code>migration:revert</code></td>
+<td><code>migration:show:test</code> / <code>migration:run:test</code> / <code>migration:revert:test</code></td>
+<td><code>migration:show:prod</code> / <code>migration:run:prod</code> / <code>migration:revert:prod</code></td>
+</tr>
+<tr>
+<td>Entity vs migration drift check</td>
+<td>—</td>
+<td><code>migration:check:test</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>Run</td>
+<td><code>start:dev</code></td>
+<td><code>test:e2e</code></td>
+<td><code>pm2:reload</code></td>
+</tr>
+</tbody></table>
+</div>
+<ul>
+<li>Other scripts:<ul>
+<li><code>build</code>, <code>start</code>, <code>start:prod</code></li>
+<li><code>lint</code> / <code>lint:check</code>, <code>format</code> / <code>format:check</code>, <code>typecheck</code></li>
+<li><code>test</code>, <code>test:cov</code></li>
+<li><code>migration:generate</code>, <code>secrets:export</code></li>
+</ul>
+</li>
+<li>Each environment-specific script runs through
+<a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/scripts/typeorm-env.cjs" target="_blank" rel="noopener noreferrer" class="source-link"><code>scripts/typeorm-env.cjs</code></a>, which sets <code>NODE_ENV</code>
+and works the same on macOS, Linux and Windows.</li>
+<li>Prod commands run from <code>dist</code> with plain <code>node</code>, so the server does not need
+ts-node.</li>
+<li><code>db:ensure</code> refuses to run in production. <code>db:reset</code> only works on a <code>*_test</code>
+database that contains nothing but this app&#39;s tables.</li>
+</ul>
+<h2 id="database-and-migrations"><a class="heading-anchor" href="#database-and-migrations" aria-hidden="true" tabindex="-1">#</a>Database and migrations</h2>
+<ul>
+<li><strong>Tables come only from migrations</strong>
+(<a href="https://github.com/jang4292/backend_nestJs/tree/e603bbd/src/database/migrations" target="_blank" rel="noopener noreferrer" class="source-link"><code>src/database/migrations/</code></a>). Never use
+<code>synchronize</code> (rejected at startup) or hand-written <code>CREATE TABLE</code>.</li>
+<li><strong>The same migration files go through every environment in order:</strong> CI
+(empty DB) → Test → Local → Prod.</li>
+<li><strong>Migrations are an explicit deploy step.</strong> The app does not run them on
+startup. It logs a warning, or an error in production, when migrations are
+pending.</li>
+<li><strong>Database containers are created once per environment.</strong> Local and Test use
+<code>db:setup</code>. Prod uses admin SQL, so the app account holds privileges on its
+own database only.</li>
+<li><strong>The app only ever changes its own database.</strong> Every write checks
+privileges and ownership first and changes nothing if either fails.</li>
+<li><strong>Back up before any production migration.</strong> Some legacy migrations cannot
+be reverted.</li>
+</ul>
+<p>Why it works this way (manual SQL vs a command vs auto-run, verification
+layers, rollback):
+<a href="../learning/database-schema-management.kr.html">docs/learning/database-schema-management.kr.md</a>.</p>
+<h2 id="deploy-ec2--pm2"><a class="heading-anchor" href="#deploy-ec2--pm2" aria-hidden="true" tabindex="-1">#</a>Deploy (EC2 + PM2)</h2>
+<pre><code class="language-bash">git pull --ff-only
+npm ci
+npm run build
+npm run env:check:prod       # validate .env.production without touching the DB
+npm run db:check:prod        # read-only: connection, privileges, pending migrations
+# back up the database when migrations are pending (mysqldump --single-transaction)
+npm run migration:run:prod
+npm run pm2:reload           # ecosystem.config.cjs pins cwd and NODE_ENV=production
+curl -fsS http://127.0.0.1:${PORT:-3000}/health   # 503 when the DB is down
+</code></pre>
+<ul>
+<li><strong>After <code>1765000000000-AddRoleToUsers</code>:</strong> grant admin manually with
+<code>UPDATE users SET role = &#39;admin&#39; WHERE username = &#39;&lt;admin-username&gt;&#39;;</code>.</li>
+<li><strong><code>1766000000000-AddSessionVersionToUsers</code></strong> adds <code>users.sessionVersion</code>.
+A password change now revokes every earlier token. To roll the column back,
+redeploy the previous build first, then run <code>migration:revert:prod</code>.</li>
+<li>Keep database dumps outside the repository (<code>umask 077</code>); <code>*.sql</code> and
+<code>*.sql.gz</code> are git-ignored.</li>
+<li><strong>Optional AWS Secrets Manager:</strong> run
+<code>eval &quot;$(AWS_SECRET_ID=&lt;id&gt; AWS_REGION=ap-northeast-2 npm run -s secrets:export)&quot;</code>
+first. Exported values override <code>.env.production</code>.</li>
+<li><strong>Full checklist, rollback and TLS:</strong>
+<a href="../deployment/mariadb-systemd.kr.html">docs/deployment/mariadb-systemd.kr.md</a>.</li>
+</ul>
+<h2 id="sns-login"><a class="heading-anchor" href="#sns-login" aria-hidden="true" tabindex="-1">#</a>SNS login</h2>
+<p>All providers are off: <code>AUTH_&lt;PROVIDER&gt;_ENABLED=false</code>, where <code>&lt;PROVIDER&gt;</code> is
+<code>GOOGLE</code>, <code>APPLE</code>, <code>KAKAO</code>, <code>NAVER</code> or <code>FACEBOOK</code>.</p>
+<ul>
+<li>A disabled provider needs no settings, and its routes return 503
+<code>AUTH_&lt;PROVIDER&gt;_DISABLED</code>.</li>
+<li>Naver access-token login stays blocked even when Naver is enabled
+(<code>AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=false</code>).</li>
+</ul>
+<p>Before enabling a provider, complete
+<a href="../auth/sns-reenable-checklist.kr.html">docs/auth/sns-reenable-checklist.kr.md</a>.</p>
+<h2 id="api"><a class="heading-anchor" href="#api" aria-hidden="true" tabindex="-1">#</a>API</h2>
+<ul>
+<li>Swagger: <code>http://localhost:3000/api-docs</code> in development and test. It is
+disabled in production.</li>
+<li>Route table with access levels (55 routes):
+<a href="../product/api-spec.kr.html">docs/product/api-spec.kr.md</a>.</li>
+<li>curl examples: <a href="API_EXAMPLES.html">API_EXAMPLES.md</a>.</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Routes</th>
+<th>Access</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>System</td>
+<td><code>GET /</code>, <code>GET /health</code></td>
+<td>public</td>
+</tr>
+<tr>
+<td>Accounts</td>
+<td><code>POST /users/register</code>, <code>POST /auth/login</code></td>
+<td>public</td>
+</tr>
+<tr>
+<td>Profile</td>
+<td><code>GET/PATCH /users/profile</code></td>
+<td>JWT</td>
+</tr>
+<tr>
+<td>SNS login</td>
+<td><code>POST /auth/{google,apple,kakao,naver,facebook}/{login,exchange-code}</code>, <code>POST /auth/{google,apple}/verify-id-token</code></td>
+<td>public (503 while disabled)</td>
+</tr>
+<tr>
+<td>Catalog reads</td>
+<td><code>GET /music/tracks</code>, <code>GET /music/tracks/:id</code>, <code>GET /music/public/playlists(/:id)</code></td>
+<td>public</td>
+</tr>
+<tr>
+<td>Catalog writes</td>
+<td>tracks, audio assets, playlists (create/update/delete/publish/reorder), <code>GET /music/tracks/:trackId/audio-assets</code></td>
+<td><strong>admin</strong></td>
+</tr>
+<tr>
+<td>Legacy reads</td>
+<td><code>GET /music/legacy/tracks(/:id)</code> public; artists, playlists, <code>tracks/full</code></td>
+<td>JWT</td>
+</tr>
+<tr>
+<td>Legacy writes</td>
+<td><code>POST/PATCH/DELETE /music/legacy/**</code></td>
+<td><strong>admin</strong></td>
+</tr>
+</tbody></table>
+</div>
+<p>Public responses never include audio URLs or internal storage identifiers.</p>
+<h2 id="project-structure"><a class="heading-anchor" href="#project-structure" aria-hidden="true" tabindex="-1">#</a>Project structure</h2>
+<pre><code class="language-text">src/
+  main.ts        bootstrap: helmet, CORS, trust proxy, validation, shutdown hooks
+  app.module.ts  module wiring, global interceptor/filter/guards
+  config/        env file selection (env-files.ts) and validation (app-env.ts)
+  database/      TypeORM options, CLI data source, db-tool, pending-migration check, migrations
+  common/        DomainError, global exception filter, request id, response envelope
+  auth/          session (JWT, RBAC), local login, shared SNS kernel, 5 providers
+  users/         domain, use-cases, ports/adapters, controller, presenters
+  music/         legacy (/music/legacy) and catalog (/music) modules
+scripts/         typeorm-env.cjs, check-env.cjs, runtime-env-keys.cjs, export-secrets-env.cjs
+test/            e2e (runs against MariaDB)
+</code></pre>
+<h2 id="verification-and-ci"><a class="heading-anchor" href="#verification-and-ci" aria-hidden="true" tabindex="-1">#</a>Verification and CI</h2>
+<pre><code class="language-bash">npm run lint:check &amp;&amp; npm run format:check &amp;&amp; npm run typecheck &amp;&amp; npx jest &amp;&amp; npm run build
+npm run db:setup:test &amp;&amp; npm run test:e2e      # needs .env.test.local
+</code></pre>
+<p>GitHub Actions (<a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/.github/workflows/ci.yml" target="_blank" rel="noopener noreferrer" class="source-link"><code>.github/workflows/ci.yml</code></a>) runs
+on every pull request and on every push to <code>develop</code> and <code>main</code>:</p>
+<ul>
+<li><strong><code>verify</code>:</strong> lint, format, typecheck, unit tests, build, a critical
+production <code>npm audit</code>, and a link/anchor check of every Markdown document
+(<code>npm run docs:html:verify</code>).</li>
+<li><strong><code>database</code></strong> (MariaDB 10.11 service container):<ol>
+<li>apply every migration to an empty database</li>
+<li>assert that nothing is pending</li>
+<li>revert and re-apply the latest migration</li>
+<li>run the schema drift check (report-only for now, audit item DB-12)</li>
+<li>run e2e</li>
+</ol>
+</li>
+</ul>
+<h2 id="documentation"><a class="heading-anchor" href="#documentation" aria-hidden="true" tabindex="-1">#</a>Documentation</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Document</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Index and reading order</td>
+<td><a href="../index.html">docs/README.md</a></td>
+</tr>
+<tr>
+<td>Learning site (HTML snapshot, open <code>docs/html/index.html</code>)</td>
+<td><a href="../site-maintenance.html">docs/html/README.md</a></td>
+</tr>
+<tr>
+<td>Learning roadmap (all guides, exercises)</td>
+<td><a href="../learning/README.html">docs/learning/README.md</a></td>
+</tr>
+<tr>
+<td>Work history and lessons (2026-11)</td>
+<td><a href="../learning/work-history-2026-11.kr.html">docs/learning/work-history-2026-11.kr.md</a></td>
+</tr>
+<tr>
+<td>Product scope, features, API contract</td>
+<td><a href="https://github.com/jang4292/backend_nestJs/tree/e603bbd/docs/product" target="_blank" rel="noopener noreferrer" class="source-link">docs/product/</a></td>
+</tr>
+<tr>
+<td>Music catalog design and decisions</td>
+<td><a href="../music/README.html">docs/music/README.md</a></td>
+</tr>
+<tr>
+<td>Architecture walkthrough</td>
+<td><a href="../learning/nestjs-operational-stability-guide.kr.html">docs/learning/nestjs-operational-stability-guide.kr.md</a></td>
+</tr>
+<tr>
+<td>DB and schema management (concepts)</td>
+<td><a href="../learning/database-schema-management.kr.html">docs/learning/database-schema-management.kr.md</a></td>
+</tr>
+<tr>
+<td>Environments, DB setup, errors (procedures)</td>
+<td><a href="../deployment/database-environments.kr.html">docs/deployment/database-environments.kr.md</a></td>
+</tr>
+<tr>
+<td>EC2 deployment and rollback</td>
+<td><a href="../deployment/mariadb-systemd.kr.html">docs/deployment/mariadb-systemd.kr.md</a></td>
+</tr>
+<tr>
+<td>API security (threat model, auth, IdP tokens, self-audit)</td>
+<td><a href="../learning/api-security-guide.kr.html">docs/learning/api-security-guide.kr.md</a></td>
+</tr>
+<tr>
+<td>Secrets and push checks</td>
+<td><a href="../learning/security-guide.kr.html">docs/learning/security-guide.kr.md</a>, <a href="../learning/deployment-secrets-checklist.kr.html">docs/learning/deployment-secrets-checklist.kr.md</a></td>
+</tr>
+<tr>
+<td>DB improvement roadmap</td>
+<td><a href="../learning/database-improvement-guide.kr.html">docs/learning/database-improvement-guide.kr.md</a></td>
+</tr>
+<tr>
+<td>Latest security audit (2026-11-09)</td>
+<td><a href="../audit/2026-11-09-security-audit.kr.html">docs/audit/2026-11-09-security-audit.kr.md</a></td>
+</tr>
+<tr>
+<td>Project audit, roadmap, release checklist</td>
+<td><a href="../audit/2026-11-08-project-audit.kr.html">docs/audit/2026-11-08-project-audit.kr.md</a></td>
+</tr>
+<tr>
+<td>Past runtime issues</td>
+<td><a href="../learning/runtime-troubleshooting-history.kr.html">docs/learning/runtime-troubleshooting-history.kr.md</a></td>
+</tr>
+</tbody></table>
+</div>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../learning/deployment-secrets-checklist.kr.html"><span>이전</span>배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a><a class="pager-next" href="../learning/work-history-2026-11.kr.html"><span>다음</span>작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/README.md" target="_blank" rel="noopener noreferrer"><code>README.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#features">Features</a></li><li class="toc-2"><a href="#quick-start-local">Quick start (Local)</a></li><li class="toc-2"><a href="#environments">Environments</a></li><li class="toc-2"><a href="#scripts">Scripts</a></li><li class="toc-2"><a href="#database-and-migrations">Database and migrations</a></li><li class="toc-2"><a href="#deploy-ec2--pm2">Deploy (EC2 + PM2)</a></li><li class="toc-2"><a href="#sns-login">SNS login</a></li><li class="toc-2"><a href="#api">API</a></li><li class="toc-2"><a href="#project-structure">Project structure</a></li><li class="toc-2"><a href="#verification-and-ci">Verification and CI</a></li><li class="toc-2"><a href="#documentation">Documentation</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/learning/runtime-troubleshooting-history.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>NestJS 로컬 실행 오류 및 수정 이력 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section" open><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr" aria-current="page">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">작업 기록과 감사</span><span class="badge badge-muted">이력 문서</span><span class="badge badge-stamp">기준 시점 2026-09-10</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="nestjs-로컬-실행-오류-및-수정-이력">NestJS 로컬 실행 오류 및 수정 이력</h1>
+<blockquote>
+<p>이력 문서 — 기준 시점 2026-09-10, 이후 코드 변경은 반영하지 않습니다(재현 절차와 원인 분석 기록용).</p>
+</blockquote>
+<p>이 문서는 2026-09-10 로컬 점검 과정에서 발생한 오류와 수정 내역을 기록한 학습 가이드입니다. 환경 파일, 원격 MariaDB, TypeORM 엔티티 메타데이터, Jest ESM 설정이 서로 어떻게 연결되는지 재현 가능한 순서로 정리합니다.</p>
+<blockquote>
+<p>주의: 실제 DB 비밀번호, JWT secret, OAuth client secret은 이 문서에 기록하지 않습니다.</p>
+</blockquote>
+<h2 id="1-최종-상태"><a class="heading-anchor" href="#1-%EC%B5%9C%EC%A2%85-%EC%83%81%ED%83%9C" aria-hidden="true" tabindex="-1">#</a>1. 최종 상태</h2>
+<p>현재 다음 검증이 통과했습니다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>검증</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>npm run build</code></td>
+<td>성공</td>
+</tr>
+<tr>
+<td><code>npm test -- --runInBand</code></td>
+<td>27개 스위트, 142개 테스트 통과</td>
+</tr>
+<tr>
+<td><code>npm run start</code></td>
+<td>성공</td>
+</tr>
+<tr>
+<td><code>GET /health</code></td>
+<td>HTTP 200, <code>database: up</code></td>
+</tr>
+<tr>
+<td><code>npm run test:e2e</code></td>
+<td>1개 스위트, 2개 테스트 통과</td>
+</tr>
+</tbody></table>
+</div>
+<p>현재 로컬 테스트는 <code>.env.test.local</code>의 <code>app_db</code>를 사용합니다. 테스트 전용 <code>app_db_test</code>가 준비되면 다시 분리해야 합니다.</p>
+<h2 id="2-환경-파일-정리"><a class="heading-anchor" href="#2-%ED%99%98%EA%B2%BD-%ED%8C%8C%EC%9D%BC-%EC%A0%95%EB%A6%AC" aria-hidden="true" tabindex="-1">#</a>2. 환경 파일 정리</h2>
+<h3 id="21-파일별-역할"><a class="heading-anchor" href="#21-%ED%8C%8C%EC%9D%BC%EB%B3%84-%EC%97%AD%ED%95%A0" aria-hidden="true" tabindex="-1">#</a>2.1 파일별 역할</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>파일</th>
+<th>용도</th>
+<th>Git 관리</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>.env</code></td>
+<td>로컬 개발/실행 설정</td>
+<td>무시됨</td>
+</tr>
+<tr>
+<td><code>.env.example</code></td>
+<td>개발 설정 템플릿</td>
+<td>추적됨</td>
+</tr>
+<tr>
+<td><code>.env.test.local</code></td>
+<td>로컬 E2E 실제 설정</td>
+<td>무시됨</td>
+</tr>
+<tr>
+<td><code>.env.test.example</code></td>
+<td>E2E 설정 템플릿</td>
+<td>추적됨</td>
+</tr>
+</tbody></table>
+</div>
+<p>실행 시 사용되는 파일은 <code>NODE_ENV</code>에 따라 달라집니다.</p>
+<pre><code class="language-text">일반 실행
+  NODE_ENV=development -&gt; .env
+
+E2E 실행
+  test/e2e-env.ts가 NODE_ENV=test 설정
+  -&gt; .env.test.local
+</code></pre>
+<p><code>.env.test.local</code>이 존재하더라도 일반 실행이 자동으로 이 파일을 읽지는 않습니다. 반대로 E2E는 테스트 설정을 우선 사용합니다.</p>
+<h3 id="22-확인할-설정"><a class="heading-anchor" href="#22-%ED%99%95%EC%9D%B8%ED%95%A0-%EC%84%A4%EC%A0%95" aria-hidden="true" tabindex="-1">#</a>2.2 확인할 설정</h3>
+<p>개발 실행과 E2E 실행에서 최소한 다음 값을 확인합니다.</p>
+<pre><code class="language-env">DB_TYPE=mariadb
+DB_HOST=&lt;same-as-workbench&gt;
+DB_PORT=3306
+DB_USERNAME=&lt;same-account-as-workbench&gt;
+DB_PASSWORD=&lt;same-password-as-workbench&gt;
+DB_DATABASE=app_db
+DB_SYNCHRONIZE=false
+</code></pre>
+<p>Google Client ID를 아직 발급받지 않은 경우에는 placeholder를 사용할 수 있지만 Google 로그인 기능은 사용할 수 없습니다.</p>
+<pre><code class="language-env">GOOGLE_ALLOWED_AUDIENCES=replace-with-google-client-id.apps.googleusercontent.com
+</code></pre>
+<h2 id="3-오류-및-수정-이력"><a class="heading-anchor" href="#3-%EC%98%A4%EB%A5%98-%EB%B0%8F-%EC%88%98%EC%A0%95-%EC%9D%B4%EB%A0%A5" aria-hidden="true" tabindex="-1">#</a>3. 오류 및 수정 이력</h2>
+<h3 id="31-only-db_typemariadb-is-supported"><a class="heading-anchor" href="#31-only-db_typemariadb-is-supported" aria-hidden="true" tabindex="-1">#</a>3.1 <code>Only DB_TYPE=mariadb is supported.</code></h3>
+<p><strong>증상</strong></p>
+<pre><code class="language-text">Error: Only DB_TYPE=mariadb is supported.
+</code></pre>
+<p><strong>원인</strong></p>
+<p>로컬 <code>.env</code>에 다음 값이 있었습니다.</p>
+<pre><code class="language-env">DB_TYPE=mysql
+</code></pre>
+<p>현재 애플리케이션의 <code>validateAppEnv</code>는 MariaDB만 허용합니다.</p>
+<p><strong>수정</strong></p>
+<pre><code class="language-env">DB_TYPE=mariadb
+</code></pre>
+<p>MariaDB 연결은 TypeORM의 <code>mariadb</code> 드라이버와 <code>mysql2</code> 패키지를 통해 처리합니다.</p>
+<h3 id="32-google_allowed_audiences-is-required"><a class="heading-anchor" href="#32-google_allowed_audiences-is-required" aria-hidden="true" tabindex="-1">#</a>3.2 <code>GOOGLE_ALLOWED_AUDIENCES is required.</code></h3>
+<p><strong>증상</strong></p>
+<pre><code class="language-text">Error: GOOGLE_ALLOWED_AUDIENCES is required.
+</code></pre>
+<p><strong>원인</strong></p>
+<p>Google OAuth Client ID가 아직 발급되지 않았지만, 현재 설정 검증은 audience 값을 필수로 요구합니다.</p>
+<p><strong>판단</strong></p>
+<p>이 값은 ID Token의 <code>aud</code> 검증에 사용되므로 임의로 제거해 검증을 생략하면 안 됩니다. placeholder로 앱 기동을 허용할 수는 있지만 실제 Google 로그인은 Client ID 발급 전까지 사용할 수 없습니다.</p>
+<p><strong>현재 가이드</strong></p>
+<ul>
+<li>템플릿에는 placeholder를 둡니다.</li>
+<li>실제 <code>.env</code>와 <code>.env.test.local</code>에도 필요한 경우 placeholder를 둡니다.</li>
+<li>Google Client ID 발급 후 실제 값으로 교체합니다.</li>
+</ul>
+<h3 id="33-e2e-jest-setup-파일-경로-오류"><a class="heading-anchor" href="#33-e2e-jest-setup-%ED%8C%8C%EC%9D%BC-%EA%B2%BD%EB%A1%9C-%EC%98%A4%EB%A5%98" aria-hidden="true" tabindex="-1">#</a>3.3 E2E Jest setup 파일 경로 오류</h3>
+<p><strong>증상</strong></p>
+<pre><code class="language-text">Module &lt;rootDir&gt;/test/e2e-env.ts in the setupFiles option was not found.
+</code></pre>
+<p><strong>원인</strong></p>
+<p><code>test/jest-e2e.json</code>의 <code>rootDir</code>가 이미 <code>test</code>인데 setup 경로에 다시 <code>test/</code>가 포함되어 있었습니다.</p>
+<p><strong>수정</strong></p>
+<pre><code class="language-json">{
+  &quot;rootDir&quot;: &quot;.&quot;,
+  &quot;setupFiles&quot;: [&quot;&lt;rootDir&gt;/e2e-env.ts&quot;]
+}
+</code></pre>
+<p>이제 Jest는 다음 파일을 찾습니다.</p>
+<pre><code class="language-text">test/e2e-env.ts
+</code></pre>
+<h3 id="34-jest에서-jose-esm-파싱-오류"><a class="heading-anchor" href="#34-jest%EC%97%90%EC%84%9C-jose-esm-%ED%8C%8C%EC%8B%B1-%EC%98%A4%EB%A5%98" aria-hidden="true" tabindex="-1">#</a>3.4 Jest에서 <code>jose</code> ESM 파싱 오류</h3>
+<p><strong>증상</strong></p>
+<pre><code class="language-text">SyntaxError: Unexpected token &#39;export&#39;
+node_modules/jose/dist/webapi/index.js
+</code></pre>
+<p><strong>원인</strong></p>
+<p><code>jose</code>는 ESM 패키지인데 기존 Jest 실행 방식이 CommonJS 환경으로 패키지를 읽었습니다.</p>
+<p><strong>수정</strong></p>
+<p><code>package.json</code>의 E2E 스크립트에 Node VM ESM 모드를 적용했습니다.</p>
+<pre><code class="language-json">&quot;test:e2e&quot;: &quot;node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./test/jest-e2e.json&quot;
+</code></pre>
+<p>Node 버전에 따라 experimental warning이 표시될 수 있지만, 테스트 실행 자체에는 문제가 되지 않습니다.</p>
+<h3 id="35-테스트-db-이름-정책과-app_db_test-권한-문제"><a class="heading-anchor" href="#35-%ED%85%8C%EC%8A%A4%ED%8A%B8-db-%EC%9D%B4%EB%A6%84-%EC%A0%95%EC%B1%85%EA%B3%BC-app_db_test-%EA%B6%8C%ED%95%9C-%EB%AC%B8%EC%A0%9C" aria-hidden="true" tabindex="-1">#</a>3.5 테스트 DB 이름 정책과 <code>app_db_test</code> 권한 문제</h3>
+<p><strong>초기 정책</strong></p>
+<p><code>NODE_ENV=test</code>에서는 실수로 개발 DB를 사용하지 않도록 DB 이름이 <code>_test</code>로 끝나야 했습니다.</p>
+<pre><code class="language-text">DB_DATABASE=app_db_test
+</code></pre>
+<p>하지만 원격 MariaDB에서 현재 테스트 계정 <code>appuser</code>가 접근할 수 있는 DB는 <code>app_db</code>였고, <code>app_db_test</code> 접근 시 다음 오류가 발생했습니다.</p>
+<pre><code class="language-text">Access denied for user &#39;appuser&#39;@&#39;%&#39; to database &#39;app_db_test&#39;
+</code></pre>
+<p><strong>현재 임시 조치</strong></p>
+<p>현재는 테스트 환경에서 아래 두 경우를 허용합니다.</p>
+<ul>
+<li><code>app_db</code>: 현재 테스트 계정 권한에 맞는 임시 설정</li>
+<li><code>*_test</code>: 추후 권장되는 전용 테스트 DB</li>
+</ul>
+<p>전용 테스트 DB를 준비하기 전까지는 다음 설정을 사용합니다.</p>
+<pre><code class="language-env">NODE_ENV=test
+DB_DATABASE=app_db
+</code></pre>
+<p><strong>향후 복구 작업</strong></p>
+<p>DB 관리자가 전용 테스트 DB와 권한을 준비하면 다음 순서로 복구합니다.</p>
+<pre><code class="language-sql">CREATE DATABASE app_db_test
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+GRANT ALL PRIVILEGES ON app_db_test.* TO &#39;appuser&#39;@&#39;%&#39;;
+FLUSH PRIVILEGES;
+</code></pre>
+<p>그 후 다음을 수행합니다.</p>
+<ol>
+<li><code>.env.test.local</code>의 <code>DB_DATABASE</code>를 <code>app_db_test</code>로 변경</li>
+<li><code>src/config/app-env.ts</code>에서 임시 <code>app_db</code> 허용 조건 제거</li>
+<li><code>src/config/app-env.spec.ts</code>의 테스트를 <code>_test</code> 전용 정책으로 복구</li>
+<li><code>docs/learning/deployment-secrets-checklist.kr.md</code>의 미완료 체크 항목 완료 처리</li>
+<li>migration 실행 후 E2E 재검증</li>
+</ol>
+<blockquote>
+<p>실제 운영에서는 <code>%</code>보다 허용할 클라이언트 주소를 좁혀 권한을 부여하는 편이 안전합니다.</p>
+</blockquote>
+<h3 id="36-db_synchronize-설정-점검"><a class="heading-anchor" href="#36-db_synchronize-%EC%84%A4%EC%A0%95-%EC%A0%90%EA%B2%80" aria-hidden="true" tabindex="-1">#</a>3.6 <code>DB_SYNCHRONIZE</code> 설정 점검</h3>
+<p><code>.env</code>와 <code>.env.test.local</code>의 <code>DB_SYNCHRONIZE</code>를 <code>false</code>로 변경했습니다.</p>
+<pre><code class="language-env">DB_SYNCHRONIZE=false
+</code></pre>
+<p>이 설정은 TypeORM이 애플리케이션 시작 시 엔티티 변경을 DB에 자동 반영하지 않도록 합니다. 공유 DB나 운영 DB에서 <code>true</code>로 두면 컬럼, 관계, 타입 변경이 의도치 않게 적용될 수 있습니다.</p>
+<p>스키마 변경은 migration으로 처리합니다.</p>
+<pre><code class="language-powershell">$env:NODE_ENV=&#39;test&#39;
+npm run migration:run
+</code></pre>
+<h2 id="4-db_synchronizefalse-이후-드러난-typeorm-오류"><a class="heading-anchor" href="#4-db_synchronizefalse-%EC%9D%B4%ED%9B%84-%EB%93%9C%EB%9F%AC%EB%82%9C-typeorm-%EC%98%A4%EB%A5%98" aria-hidden="true" tabindex="-1">#</a>4. <code>DB_SYNCHRONIZE=false</code> 이후 드러난 TypeORM 오류</h2>
+<p>자동 동기화 설정을 끄고 실제 TypeORM 초기화를 진행하자, 이전에 가려져 있던 엔티티 메타데이터 문제가 드러났습니다.</p>
+<h3 id="41-usersocialaccounts-메타데이터-누락"><a class="heading-anchor" href="#41-usersocialaccounts-%EB%A9%94%ED%83%80%EB%8D%B0%EC%9D%B4%ED%84%B0-%EB%88%84%EB%9D%BD" aria-hidden="true" tabindex="-1">#</a>4.1 <code>User#socialAccounts</code> 메타데이터 누락</h3>
+<p><strong>증상</strong></p>
+<pre><code class="language-text">Entity metadata for User#socialAccounts was not found.
+</code></pre>
+<p><strong>원인</strong></p>
+<p><code>User</code>가 <code>SocialAccount</code>과 관계를 선언하고 있었지만 전역 <code>databaseEntities</code> 배열에 <code>SocialAccount</code>이 빠져 있었습니다.</p>
+<p><strong>수정</strong></p>
+<p><code>src/database/database-options.ts</code>에 엔티티를 등록했습니다.</p>
+<pre><code class="language-ts">export const databaseEntities = [
+  User,
+  SocialAccount,
+  Artist,
+  Track,
+  Playlist,
+  PlaylistTrack,
+];
+</code></pre>
+<h3 id="42-mariadb의-data-type-object-오류"><a class="heading-anchor" href="#42-mariadb%EC%9D%98-data-type-object-%EC%98%A4%EB%A5%98" aria-hidden="true" tabindex="-1">#</a>4.2 MariaDB의 <code>Data type &quot;Object&quot;</code> 오류</h3>
+<p><strong>증상</strong></p>
+<p>다음과 같은 오류가 순서대로 발생했습니다.</p>
+<pre><code class="language-text">Data type &quot;Object&quot; in &quot;SocialAccount.email&quot; is not supported by &quot;mariadb&quot;
+Data type &quot;Object&quot; in &quot;User.password&quot; is not supported by &quot;mariadb&quot;
+Data type &quot;Object&quot; in &quot;Playlist.description&quot; is not supported by &quot;mariadb&quot;
+Data type &quot;Object&quot; in &quot;PlaylistTrack.note&quot; is not supported by &quot;mariadb&quot;
+</code></pre>
+<p><strong>원인</strong></p>
+<p>TypeScript의 <code>string | null</code> union 타입을 TypeORM decorator가 MariaDB 컬럼 타입으로 안정적으로 추론하지 못했습니다. 런타임 메타데이터가 <code>Object</code>가 되어 MariaDB가 거부했습니다.</p>
+<p><strong>수정</strong></p>
+<p>nullable 문자열 컬럼의 DB 타입을 명시했습니다.</p>
+<pre><code class="language-ts">@Column({ type: &#39;varchar&#39;, nullable: true })
+email: string | null;
+</code></pre>
+<p>적용 대상:</p>
+<ul>
+<li><code>User.password</code></li>
+<li><code>User.email</code></li>
+<li><code>User.name</code></li>
+<li><code>SocialAccount.email</code></li>
+<li><code>SocialAccount.name</code></li>
+<li><code>Artist.description</code></li>
+<li><code>Playlist.description</code></li>
+<li><code>PlaylistTrack.note</code></li>
+</ul>
+<p>이미 <code>type</code>이 명시되어 있던 nullable 날짜/숫자 컬럼은 추가 변경하지 않았습니다.</p>
+<h2 id="5-workbench와-nestjs-연결-비교-가이드"><a class="heading-anchor" href="#5-workbench%EC%99%80-nestjs-%EC%97%B0%EA%B2%B0-%EB%B9%84%EA%B5%90-%EA%B0%80%EC%9D%B4%EB%93%9C" aria-hidden="true" tabindex="-1">#</a>5. Workbench와 NestJS 연결 비교 가이드</h2>
+<p>MySQL Workbench에서 연결되더라도 NestJS가 실패할 수 있습니다. 두 프로그램이 정확히 같은 접속 정보를 사용하는지 비교해야 합니다.</p>
+<pre><code class="language-sql">SELECT USER(), CURRENT_USER(), DATABASE(), @@hostname, @@port;
+SHOW GRANTS FOR CURRENT_USER();
+</code></pre>
+<p>다음 항목을 1:1로 비교합니다.</p>
+<ul>
+<li>Host: <code>DB_HOST</code></li>
+<li>Port: <code>DB_PORT</code></li>
+<li>Username: <code>DB_USERNAME</code></li>
+<li>Password: <code>DB_PASSWORD</code></li>
+<li>Database/schema: <code>DB_DATABASE</code></li>
+<li>SSL 사용 여부: <code>DB_SSL</code></li>
+<li>접속 클라이언트의 출발지 IP</li>
+</ul>
+<p>특히 MariaDB 권한은 다음처럼 계정과 host 조합에 따라 달라질 수 있습니다.</p>
+<pre><code class="language-sql">SHOW GRANTS FOR &#39;appuser&#39;@&#39;%&#39;;
+SHOW GRANTS FOR &#39;appuser&#39;@&#39;localhost&#39;;
+</code></pre>
+<p>Workbench가 <code>appuser@localhost</code>로 연결되고 NestJS가 원격 주소에서 <code>appuser@&#39;%&#39;</code>로 연결되면 서로 다른 권한이 적용될 수 있습니다.</p>
+<h2 id="6-재현-및-점검-순서"><a class="heading-anchor" href="#6-%EC%9E%AC%ED%98%84-%EB%B0%8F-%EC%A0%90%EA%B2%80-%EC%88%9C%EC%84%9C" aria-hidden="true" tabindex="-1">#</a>6. 재현 및 점검 순서</h2>
+<h3 id="61-기본-코드-검증"><a class="heading-anchor" href="#61-%EA%B8%B0%EB%B3%B8-%EC%BD%94%EB%93%9C-%EA%B2%80%EC%A6%9D" aria-hidden="true" tabindex="-1">#</a>6.1 기본 코드 검증</h3>
+<pre><code class="language-powershell">npm test -- --runInBand
+npm run build
+</code></pre>
+<h3 id="62-일반-서버-검증"><a class="heading-anchor" href="#62-%EC%9D%BC%EB%B0%98-%EC%84%9C%EB%B2%84-%EA%B2%80%EC%A6%9D" aria-hidden="true" tabindex="-1">#</a>6.2 일반 서버 검증</h3>
+<p><code>.env</code>에 실제 개발 설정을 넣은 뒤 실행합니다.</p>
+<pre><code class="language-powershell">npm run start
+</code></pre>
+<p>별도 터미널에서 확인합니다.</p>
+<pre><code class="language-powershell">Invoke-WebRequest http://localhost:3000/health -UseBasicParsing
+</code></pre>
+<p>정상 결과 예시:</p>
+<pre><code class="language-json">{&quot;status&quot;:&quot;ok&quot;,&quot;database&quot;:&quot;up&quot;}
+</code></pre>
+<h3 id="63-e2e-검증"><a class="heading-anchor" href="#63-e2e-%EA%B2%80%EC%A6%9D" aria-hidden="true" tabindex="-1">#</a>6.3 E2E 검증</h3>
+<p><code>.env.test.local</code>에 테스트 설정을 넣은 뒤 실행합니다.</p>
+<pre><code class="language-powershell">npm run test:e2e
+</code></pre>
+<p>E2E는 <code>test/e2e-env.ts</code>에서 <code>.env.test.local</code>을 먼저 읽고 <code>NODE_ENV=test</code>를 설정합니다.</p>
+<h2 id="7-학습-포인트"><a class="heading-anchor" href="#7-%ED%95%99%EC%8A%B5-%ED%8F%AC%EC%9D%B8%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>7. 학습 포인트</h2>
+<ol>
+<li>환경 파일은 파일 개수보다 실행 모드와 로딩 우선순위를 먼저 확인해야 합니다.</li>
+<li>Workbench 연결 성공은 NestJS가 같은 계정, host, schema, SSL로 연결된다는 뜻이 아닙니다.</li>
+<li><code>DB_SYNCHRONIZE=false</code>는 오류를 만드는 설정이 아니라, 자동 스키마 변경을 막고 숨겨진 엔티티 설정 오류를 드러내는 안전한 설정입니다.</li>
+<li>TypeORM 관계를 추가하면 관계 대상 엔티티가 DataSource의 <code>entities</code> 목록에도 포함되어야 합니다.</li>
+<li><code>string | null</code>처럼 union 타입을 사용하는 ORM 컬럼은 DB 타입을 decorator에 명시하는 편이 안전합니다.</li>
+<li>테스트 DB 권한이 준비되지 않은 임시 운영은 반드시 문서화하고, 전용 DB로 복구할 작업을 체크리스트에 남겨야 합니다.</li>
+<li>외부 OAuth Client ID가 없더라도 audience 검증을 제거해서는 안 됩니다. 기능 준비 전에는 placeholder로 명시적으로 차단하는 편이 안전합니다.</li>
+</ol>
+<h2 id="8-후속-작업-체크리스트"><a class="heading-anchor" href="#8-%ED%9B%84%EC%86%8D-%EC%9E%91%EC%97%85-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>8. 후속 작업 체크리스트</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Google OAuth Client ID 발급 후 <code>.env</code>와 <code>.env.test.local</code>의 audience placeholder 교체</li>
+<li><input disabled="" type="checkbox"> <code>app_db_test</code> 생성</li>
+<li><input disabled="" type="checkbox"> <code>appuser</code>에 <code>app_db_test</code> 권한 부여</li>
+<li><input disabled="" type="checkbox"> <code>.env.test.local</code>을 <code>DB_DATABASE=app_db_test</code>로 변경</li>
+<li><input disabled="" type="checkbox"> <code>src/config/app-env.ts</code>의 임시 <code>app_db</code> 허용 조건 제거</li>
+<li><input disabled="" type="checkbox"> 전용 테스트 DB migration 실행</li>
+<li><input disabled="" type="checkbox"> <code>npm run test:e2e</code> 재실행</li>
+<li><input disabled="" type="checkbox"> Workbench와 애플리케이션의 접속 정보 및 권한 일치 여부 재확인</li>
+<li><input disabled="" type="checkbox"> 변경 후 <code>npm test -- --runInBand</code>, <code>npm run build</code>, <code>npm run start</code>, <code>npm run test:e2e</code> 재검증</li>
+</ul>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../audit/2026-09-02-project-audit.kr.html"><span>이전</span>NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a><a class="pager-next" href="../site-maintenance.html"><span>다음</span>학습 사이트 관리 가이드 (docs/html)</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/learning/runtime-troubleshooting-history.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/learning/runtime-troubleshooting-history.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-%EC%B5%9C%EC%A2%85-%EC%83%81%ED%83%9C">1. 최종 상태</a></li><li class="toc-2"><a href="#2-%ED%99%98%EA%B2%BD-%ED%8C%8C%EC%9D%BC-%EC%A0%95%EB%A6%AC">2. 환경 파일 정리</a></li><li class="toc-3"><a href="#21-%ED%8C%8C%EC%9D%BC%EB%B3%84-%EC%97%AD%ED%95%A0">2.1 파일별 역할</a></li><li class="toc-3"><a href="#22-%ED%99%95%EC%9D%B8%ED%95%A0-%EC%84%A4%EC%A0%95">2.2 확인할 설정</a></li><li class="toc-2"><a href="#3-%EC%98%A4%EB%A5%98-%EB%B0%8F-%EC%88%98%EC%A0%95-%EC%9D%B4%EB%A0%A5">3. 오류 및 수정 이력</a></li><li class="toc-3"><a href="#31-only-db_typemariadb-is-supported">3.1 Only DB_TYPE=mariadb is supported.</a></li><li class="toc-3"><a href="#32-google_allowed_audiences-is-required">3.2 GOOGLE_ALLOWED_AUDIENCES is required.</a></li><li class="toc-3"><a href="#33-e2e-jest-setup-%ED%8C%8C%EC%9D%BC-%EA%B2%BD%EB%A1%9C-%EC%98%A4%EB%A5%98">3.3 E2E Jest setup 파일 경로 오류</a></li><li class="toc-3"><a href="#34-jest%EC%97%90%EC%84%9C-jose-esm-%ED%8C%8C%EC%8B%B1-%EC%98%A4%EB%A5%98">3.4 Jest에서 jose ESM 파싱 오류</a></li><li class="toc-3"><a href="#35-%ED%85%8C%EC%8A%A4%ED%8A%B8-db-%EC%9D%B4%EB%A6%84-%EC%A0%95%EC%B1%85%EA%B3%BC-app_db_test-%EA%B6%8C%ED%95%9C-%EB%AC%B8%EC%A0%9C">3.5 테스트 DB 이름 정책과 app_db_test 권한 문제</a></li><li class="toc-3"><a href="#36-db_synchronize-%EC%84%A4%EC%A0%95-%EC%A0%90%EA%B2%80">3.6 DB_SYNCHRONIZE 설정 점검</a></li><li class="toc-2"><a href="#4-db_synchronizefalse-%EC%9D%B4%ED%9B%84-%EB%93%9C%EB%9F%AC%EB%82%9C-typeorm-%EC%98%A4%EB%A5%98">4. DB_SYNCHRONIZE=false 이후 드러난 TypeORM 오류</a></li><li class="toc-3"><a href="#41-usersocialaccounts-%EB%A9%94%ED%83%80%EB%8D%B0%EC%9D%B4%ED%84%B0-%EB%88%84%EB%9D%BD">4.1 User#socialAccounts 메타데이터 누락</a></li><li class="toc-3"><a href="#42-mariadb%EC%9D%98-data-type-object-%EC%98%A4%EB%A5%98">4.2 MariaDB의 Data type "Object" 오류</a></li><li class="toc-2"><a href="#5-workbench%EC%99%80-nestjs-%EC%97%B0%EA%B2%B0-%EB%B9%84%EA%B5%90-%EA%B0%80%EC%9D%B4%EB%93%9C">5. Workbench와 NestJS 연결 비교 가이드</a></li><li class="toc-2"><a href="#6-%EC%9E%AC%ED%98%84-%EB%B0%8F-%EC%A0%90%EA%B2%80-%EC%88%9C%EC%84%9C">6. 재현 및 점검 순서</a></li><li class="toc-3"><a href="#61-%EA%B8%B0%EB%B3%B8-%EC%BD%94%EB%93%9C-%EA%B2%80%EC%A6%9D">6.1 기본 코드 검증</a></li><li class="toc-3"><a href="#62-%EC%9D%BC%EB%B0%98-%EC%84%9C%EB%B2%84-%EA%B2%80%EC%A6%9D">6.2 일반 서버 검증</a></li><li class="toc-3"><a href="#63-e2e-%EA%B2%80%EC%A6%9D">6.3 E2E 검증</a></li><li class="toc-2"><a href="#7-%ED%95%99%EC%8A%B5-%ED%8F%AC%EC%9D%B8%ED%8A%B8">7. 학습 포인트</a></li><li class="toc-2"><a href="#8-%ED%9B%84%EC%86%8D-%EC%9E%91%EC%97%85-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8">8. 후속 작업 체크리스트</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

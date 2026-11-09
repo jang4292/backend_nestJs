@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/deployment/mariadb-systemd.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>EC2 + MariaDB 배포 가이드 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section" open><summary>배포·운영</summary><ul class="nav-list"><li><a href="mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr" aria-current="page">EC2 + MariaDB 배포 가이드</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">배포·운영</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="ec2--mariadb-배포-가이드">EC2 + MariaDB 배포 가이드</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code></p>
+</blockquote>
+<p>NestJS 프로세스와 MariaDB가 같은 EC2 호스트에 있는 구성을 기준으로 합니다.</p>
+<ul>
+<li>DB 연결은 <code>127.0.0.1:3306</code>을 사용하고 3306 포트는 외부에 공개하지 않습니다.</li>
+<li>실제 계정과 비밀번호는 서버의 <code>.env.production</code>(Git 미추적, chmod 600)에만 둡니다. 저장소, systemd unit, PM2 설정 파일에는 넣지 않습니다.</li>
+</ul>
+<h2 id="1-실행-방식"><a class="heading-anchor" href="#1-%EC%8B%A4%ED%96%89-%EB%B0%A9%EC%8B%9D" aria-hidden="true" tabindex="-1">#</a>1. 실행 방식</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>방식</th>
+<th>설정 주입</th>
+<th>사용 시점</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>PM2 + <code>.env.production</code> (기본)</strong></td>
+<td>프로젝트 루트의 <code>.env.production</code>(chmod 600)을 앱이 직접 읽음. <code>ecosystem.config.cjs</code>가 <code>cwd</code>와 <code>NODE_ENV=production</code>을 고정</td>
+<td>현재 운영 기본 경로</td>
+</tr>
+<tr>
+<td>PM2 + Secrets Manager (선택)</td>
+<td><code>eval &quot;$(… npm run -s secrets:export)&quot;</code>로 셸에 export한 값이 <code>.env.production</code>보다 우선</td>
+<td>비밀값을 서버 파일에 두지 않을 때</td>
+</tr>
+<tr>
+<td>systemd (대안)</td>
+<td><code>deploy/backend-nestjs.service.example</code>. <code>WorkingDirectory</code>의 <code>.env.production</code>을 앱이 읽음</td>
+<td>PM2를 쓰지 않을 때</td>
+</tr>
+</tbody></table>
+</div>
+<ul>
+<li>환경별 파일 규칙, 운영 DB 계정 SQL, nginx 확인 방법은 <a href="database-environments.kr.html">환경별 DB·설정 가이드</a>를 참고하세요.</li>
+<li>PM2와 Secrets Manager export는 <code>scripts/runtime-env-keys.cjs</code>에 나열된 키만 전달합니다. 새 환경변수를 추가하면 <code>src/config/app-env.ts</code>와 이 목록을 함께 고칩니다(어긋나면 <code>runtime-env-keys.spec.ts</code>가 실패).</li>
+</ul>
+<h2 id="2-배포-전-점검"><a class="heading-anchor" href="#2-%EB%B0%B0%ED%8F%AC-%EC%A0%84-%EC%A0%90%EA%B2%80" aria-hidden="true" tabindex="-1">#</a>2. 배포 전 점검</h2>
+<ul>
+<li><input disabled="" type="checkbox"> DB 백업을 완료했습니다(<a href="../music/database/mariadb-operations.html#backup-%EB%B0%8F-restore">MariaDB 운영</a>). 덤프는 저장소 밖(<code>~/backups</code>, <code>umask 077</code>)에 둡니다.</li>
+<li><input disabled="" type="checkbox"> 이번 릴리스의 migration을 확인했습니다. 2026-11-09 기준 <code>1766000000000-AddSessionVersionToUsers</code>가 추가되었습니다(비밀번호 변경 시 기존 토큰 무효화, <a href="../audit/2026-11-09-security-audit.kr.html#6-%EB%B0%B0%ED%8F%AC-%EC%98%81%ED%96%A5-develop--main">보안 감사 6장</a>).</li>
+<li><input disabled="" type="checkbox"> 서버의 <code>.env.production</code>을 최신 템플릿(<code>.env.production.example</code>)과 비교해, 빠진 키가 없습니다.</li>
+<li><input disabled="" type="checkbox"> <strong><code>npm run env:check:prod</code>가 <code>OK</code>입니다.</strong><ul>
+<li>이 명령은 서버·DB에 접속하지 않고 기동 시와 같은 검증만 실행합니다.</li>
+<li>다음 항목이 틀리면 <code>FAIL</code>로 알려 줍니다: <code>NODE_ENV=production</code>, <code>JWT_SECRET</code> 32자 이상·placeholder 금지, <code>CORS_ORIGIN</code>(origin 목록 또는 <code>none</code>), <code>DB_SYNCHRONIZE=false</code>, 활성 SNS provider의 필수 키</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> <strong><code>npm run db:check:prod</code>가 <code>OK</code>입니다.</strong> 읽기 전용으로 DB 접속, 계정 권한, 적용될(pending) migration 목록을 보여 줍니다. pending이 있으면 아래 백업을 반드시 먼저 합니다.</li>
+<li><input disabled="" type="checkbox"> SNS 로그인은 전부 <code>false</code>입니다(로컬 로그인만). 켜려면 <a href="../auth/sns-reenable-checklist.kr.html">재활성화 체크리스트</a>를 먼저 완료합니다.</li>
+<li><input disabled="" type="checkbox"> <code>TRUST_PROXY=loopback</code>(같은 호스트의 nginx 또는 proxy 없음). 외부 ALB면 hop 수로 바꿉니다.</li>
+<li><input disabled="" type="checkbox"> DB는 <code>127.0.0.1:3306</code>이며 3306이 외부에 열려 있지 않습니다(<code>sudo ss -ltnp | grep 3306</code>).</li>
+</ul>
+<h2 id="3-pm2-배포-절차"><a class="heading-anchor" href="#3-pm2-%EB%B0%B0%ED%8F%AC-%EC%A0%88%EC%B0%A8" aria-hidden="true" tabindex="-1">#</a>3. PM2 배포 절차</h2>
+<pre><code class="language-bash">cd /opt/backend-nestjs
+git pull --ff-only
+npm ci
+npm run build
+
+npm run env:check:prod           # FAIL이면 중단
+npm run db:check:prod            # 읽기 전용: 접속·권한·pending migration
+npm run migration:show:prod      # dist 기반, .env.production 사용
+npm run migration:run:prod       # 실패하면 여기서 중단하고 재시작하지 않습니다
+
+npm run pm2:reload
+curl -fsS http://127.0.0.1:${PORT:-3000}/health   # DB 장애 시 503 → curl 실패
+pm2 logs backend-nestjs --lines 50 | grep -i migration   # pending 경고(Migrations 로그)가 없어야 합니다
+</code></pre>
+<ul>
+<li><p>migration은 앱 기동 시 자동으로 실행되지 않습니다. 배포 단계의 명령으로만 적용하며, 이유는 <a href="../learning/database-schema-management.kr.html#4-%EC%A0%81%EC%9A%A9-%EB%B0%A9%EC%8B%9D-%EB%B9%84%EA%B5%90-%EC%A7%81%EC%A0%91-sql--%EB%AA%85%EB%A0%B9--%EA%B8%B0%EB%8F%99-%EC%8B%9C-%EC%9E%90%EB%8F%99">DB·스키마 관리 학습 가이드 4장</a>에 있습니다.</p>
+</li>
+<li><p>운영에서는 <code>db:ensure</code>(DB 자동 생성)가 거부됩니다. 운영 DB와 계정은 <a href="database-environments.kr.html#51-%EC%B5%9C%EC%B4%88-1%ED%9A%8C-%EC%9A%B4%EC%98%81-db%EC%99%80-%EA%B3%84%EC%A0%95-%EA%B4%80%EB%A6%AC%EC%9E%90">환경별 DB 가이드 5.1</a>의 관리자 SQL로 1회 만듭니다.</p>
+</li>
+<li><p>PM2 fork 모드의 reload는 새 프로세스가 기동에 실패해도 이전 프로세스를 유지하지 않습니다. 그래서 <code>env:check:prod</code>를 먼저 실행합니다.</p>
+</li>
+<li><p><code>kill_timeout</code>은 10초입니다. 이 시간 안에 앱이 graceful shutdown(<code>enableShutdownHooks</code>)으로 진행 중인 요청과 DB 풀을 정리합니다.</p>
+</li>
+<li><p><strong>Secrets Manager를 쓰는 경우:</strong> <code>migration:*:prod</code>와 <code>pm2:reload</code> 전에 <code>eval &quot;$(AWS_SECRET_ID=&lt;secret-id&gt; AWS_REGION=ap-northeast-2 npm run -s secrets:export)&quot;</code>를 실행합니다. export한 값이 <code>.env.production</code>보다 우선합니다.</p>
+<ul>
+<li>출력에 비밀값이 들어 있으므로 <code>eval</code> 없이 실행하거나 <code>set -x</code>, CI 로그에 남기지 않습니다.</li>
+</ul>
+</li>
+<li><p><code>pm2 save</code>는 환경변수를 <code>~/.pm2/dump.pm2</code>에 평문으로 저장합니다. 꼭 필요할 때만 쓰고 파일 권한을 확인합니다.</p>
+</li>
+</ul>
+<h2 id="4-systemd-배포-절차-대안"><a class="heading-anchor" href="#4-systemd-%EB%B0%B0%ED%8F%AC-%EC%A0%88%EC%B0%A8-%EB%8C%80%EC%95%88" aria-hidden="true" tabindex="-1">#</a>4. systemd 배포 절차 (대안)</h2>
+<ol>
+<li><code>deploy/backend-nestjs.service.example</code>을 <code>/etc/systemd/system/backend-nestjs.service</code>로 복사하고, 배포 경로(<code>WorkingDirectory</code>)와 서비스 계정을 맞춥니다.<ul>
+<li>예시에는 샌드박스 지시어(<code>NoNewPrivileges</code>, <code>ProtectSystem=strict</code>, <code>PrivateTmp</code> 등)가 들어 있습니다. 앱이 파일을 써야 하는 경로가 있으면 <code>ReadWritePaths</code>에 추가합니다.</li>
+<li>적용 후 <code>systemd-analyze security backend-nestjs</code>로 노출 점수를 확인합니다.</li>
+</ul>
+</li>
+<li><code>WorkingDirectory</code>에 <code>.env.production</code>을 두고(chmod 600, 서비스 계정 소유), <code>npm run env:check:prod</code> → <code>npm run db:check:prod</code> → <code>npm run migration:run:prod</code>를 실행합니다.</li>
+<li>서비스를 기동합니다.<pre><code class="language-bash">sudo systemctl daemon-reload
+sudo systemctl enable --now backend-nestjs
+</code></pre>
+</li>
+</ol>
+<h2 id="5-배포-후-작업"><a class="heading-anchor" href="#5-%EB%B0%B0%ED%8F%AC-%ED%9B%84-%EC%9E%91%EC%97%85" aria-hidden="true" tabindex="-1">#</a>5. 배포 후 작업</h2>
+<p><strong>admin 지정</strong> (최초 1회, <code>1765000000000-AddRoleToUsers</code> 적용 후):</p>
+<pre><code class="language-sql">UPDATE users SET role = &#39;admin&#39; WHERE username = &#39;&lt;admin-username&gt;&#39;;
+SELECT id, username, role FROM users WHERE role = &#39;admin&#39;;
+</code></pre>
+<p>역할은 매 요청마다 DB에서 다시 읽으므로, 변경 즉시 반영되고 재로그인이 필요 없습니다.</p>
+<p><strong>스모크 테스트:</strong></p>
+<ul>
+<li><code>GET /health</code>가 200 <code>{&quot;status&quot;:&quot;ok&quot;,&quot;database&quot;:&quot;up&quot;}</code>인지 확인합니다.</li>
+<li><code>GET /music/public/playlists</code>가 200인지 확인합니다.</li>
+<li>일반 사용자 토큰으로 <code>POST /music/tracks</code>를 보내 403, admin 토큰으로는 201인지 확인합니다.</li>
+<li>비활성 provider <code>POST /auth/&lt;provider&gt;/login</code>이 503 <code>AUTH_&lt;PROVIDER&gt;_DISABLED</code>인지 확인합니다. 대소문자를 바꾼 경로(<code>/auth/GOOGLE/login</code>)도 503이어야 합니다(SEC-17).</li>
+<li>비밀번호를 바꾼 뒤 이전 토큰으로 <code>GET /users/profile</code>이 401인지 확인합니다(AUTH-3).</li>
+</ul>
+<h2 id="6-롤백"><a class="heading-anchor" href="#6-%EB%A1%A4%EB%B0%B1" aria-hidden="true" tabindex="-1">#</a>6. 롤백</h2>
+<ul>
+<li>애플리케이션: 이전 커밋으로 <code>npm ci &amp;&amp; npm run build &amp;&amp; npm run pm2:reload</code></li>
+<li>최근 migration: <code>npm run migration:revert:prod</code>(<code>AddSessionVersionToUsers</code>, <code>AddRoleToUsers</code>는 컬럼만 삭제)<ul>
+<li><code>AddSessionVersionToUsers</code>를 되돌릴 때는 <strong>앱을 먼저 이전 빌드로 되돌린 뒤</strong> revert합니다. 새 코드는 이 컬럼을 조회합니다.</li>
+</ul>
+</li>
+<li><code>ArchiveLegacyMusicSchema</code>·<code>RepairLegacyMariaDbSchema</code>는 down이 없습니다. 문제가 생기면 배포 전 백업으로 복원합니다.</li>
+<li>최신 migration의 down/up은 CI <code>database</code> job이 매 PR마다 MariaDB 10.11에서 검증합니다(<code>migration:revert:test</code> → <code>migration:run:test</code>).</li>
+</ul>
+<h2 id="7-db-tls-원격-db-또는-rds로-옮길-때"><a class="heading-anchor" href="#7-db-tls-%EC%9B%90%EA%B2%A9-db-%EB%98%90%EB%8A%94-rds%EB%A1%9C-%EC%98%AE%EA%B8%B8-%EB%95%8C" aria-hidden="true" tabindex="-1">#</a>7. DB TLS (원격 DB 또는 RDS로 옮길 때)</h2>
+<ol>
+<li>서버에서 <code>SHOW VARIABLES LIKE &#39;have_ssl&#39;</code>, <code>require_secure_transport</code>를 확인합니다.</li>
+<li>CA 번들을 호스트마다 내려받습니다. 이 파일은 Git에 커밋하지 않습니다.<pre><code class="language-bash">curl -fsSL -o config/global-bundle.pem https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
+</code></pre>
+</li>
+<li><code>DB_SSL=true</code>, <code>DB_SSL_REJECT_UNAUTHORIZED=true</code>, <code>DB_SSL_CA=&lt;절대경로&gt;/config/global-bundle.pem</code>을 설정합니다. production에서 <code>DB_SSL=true</code>이면서 인증서 검증을 켰는데 CA가 없으면 기동이 실패합니다.</li>
+</ol>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../auth/login-api-reassessment.kr.html"><span>이전</span>로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a><a class="pager-next" href="../learning/deployment-secrets-checklist.kr.html"><span>다음</span>배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/deployment/mariadb-systemd.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/deployment/mariadb-systemd.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-%EC%8B%A4%ED%96%89-%EB%B0%A9%EC%8B%9D">1. 실행 방식</a></li><li class="toc-2"><a href="#2-%EB%B0%B0%ED%8F%AC-%EC%A0%84-%EC%A0%90%EA%B2%80">2. 배포 전 점검</a></li><li class="toc-2"><a href="#3-pm2-%EB%B0%B0%ED%8F%AC-%EC%A0%88%EC%B0%A8">3. PM2 배포 절차</a></li><li class="toc-2"><a href="#4-systemd-%EB%B0%B0%ED%8F%AC-%EC%A0%88%EC%B0%A8-%EB%8C%80%EC%95%88">4. systemd 배포 절차 (대안)</a></li><li class="toc-2"><a href="#5-%EB%B0%B0%ED%8F%AC-%ED%9B%84-%EC%9E%91%EC%97%85">5. 배포 후 작업</a></li><li class="toc-2"><a href="#6-%EB%A1%A4%EB%B0%B1">6. 롤백</a></li><li class="toc-2"><a href="#7-db-tls-%EC%9B%90%EA%B2%A9-db-%EB%98%90%EB%8A%94-rds%EB%A1%9C-%EC%98%AE%EA%B8%B8-%EB%95%8C">7. DB TLS (원격 DB 또는 RDS로 옮길 때)</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>
