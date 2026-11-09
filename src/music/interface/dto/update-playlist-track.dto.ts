@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Min, MaxLength } from 'class-validator';
 
 export class UpdatePlaylistTrackDto {
   @IsOptional()
@@ -8,5 +8,6 @@ export class UpdatePlaylistTrackDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(255)
   note?: string;
 }

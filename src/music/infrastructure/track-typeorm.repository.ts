@@ -59,7 +59,7 @@ export class TrackTypeOrmRepository implements TrackRepositoryPort {
       qb.andWhere(
         '(LOWER(track.title) LIKE LOWER(:search) OR LOWER(artist.name) LIKE LOWER(:search))',
         {
-          search: `%${search}%`,
+          search: `%${escapeLike(search)}%`,
         },
       );
     }
@@ -68,12 +68,12 @@ export class TrackTypeOrmRepository implements TrackRepositoryPort {
     }
     if (artistName) {
       qb.andWhere('LOWER(artist.name) LIKE LOWER(:artistName)', {
-        artistName: `%${artistName}%`,
+        artistName: `%${escapeLike(artistName)}%`,
       });
     }
     if (title) {
       qb.andWhere('LOWER(track.title) LIKE LOWER(:title)', {
-        title: `%${title}%`,
+        title: `%${escapeLike(title)}%`,
       });
     }
     if (minBpm !== undefined) {
@@ -94,4 +94,12 @@ export class TrackTypeOrmRepository implements TrackRepositoryPort {
     const [items, total] = await qb.getManyAndCount();
     return { items, total, page, limit };
   }
+}
+
+/**
+ * LIKE 패턴의 와일드카드(%, _)와 escape 문자(백슬래시)를 문자 그대로 검색하도록 이스케이프합니다.
+ * MariaDB의 기본 LIKE escape 문자는 백슬래시입니다. 값은 여전히 바인딩 파라미터로 전달됩니다.
+ */
+export function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, (char) => `\\${char}`);
 }

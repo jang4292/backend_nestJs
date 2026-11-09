@@ -67,13 +67,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (isServerError) {
       this.logger.error(message, this.resolveStack(exception), {
         requestId,
-        path: request.url,
+        path: redactSensitiveText(request.url),
         method: request.method,
       });
     } else {
       this.logger.warn(message, {
         requestId,
-        path: request.url,
+        path: redactSensitiveText(request.url),
         method: request.method,
       });
     }

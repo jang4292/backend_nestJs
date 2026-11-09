@@ -1,6 +1,17 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+  MaxLength,
+} from 'class-validator';
+
+/** 비로그인 검색어 상한. LIKE '%…%'는 인덱스를 쓰지 못하므로 긴 패턴으로 비용을 키우지 못하게 합니다. */
+export const SEARCH_TERM_MAX_LENGTH = 100;
 
 const SORTABLE_COLUMNS = [
   'id',
@@ -15,6 +26,7 @@ export class ListTracksQueryDto {
   @ApiPropertyOptional({ description: 'title/artist 통합 검색어' })
   @IsOptional()
   @IsString()
+  @MaxLength(SEARCH_TERM_MAX_LENGTH)
   search?: string;
 
   @ApiPropertyOptional({ description: '아티스트 ID 필터' })
@@ -27,11 +39,13 @@ export class ListTracksQueryDto {
   @ApiPropertyOptional({ description: '아티스트명 필터' })
   @IsOptional()
   @IsString()
+  @MaxLength(SEARCH_TERM_MAX_LENGTH)
   artistName?: string;
 
   @ApiPropertyOptional({ description: '곡 제목 필터' })
   @IsOptional()
   @IsString()
+  @MaxLength(SEARCH_TERM_MAX_LENGTH)
   title?: string;
 
   @ApiPropertyOptional({ description: '최소 BPM' })

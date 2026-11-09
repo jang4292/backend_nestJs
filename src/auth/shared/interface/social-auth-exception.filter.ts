@@ -48,7 +48,7 @@ export class SocialAuthExceptionFilter implements ExceptionFilter<SocialAuthErro
     const context = {
       requestId,
       errorCode: error.errorCode,
-      path: request.url,
+      path: redactSensitiveText(request.url),
       method: request.method,
     };
 
