@@ -1,0 +1,28 @@
+# 의존성·GitHub Actions 보안 업데이트 PR을 주간으로 받습니다(OPS-12).
+# PR은 develop을 대상으로 하며, CI(verify·database)를 통과한 것만 병합합니다.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: [dependencies]
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      # minor·patch는 한 PR로 묶고, major(NestJS 12, TypeORM 1.x 등)는 개별 PR로 검토합니다.
+      npm-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: weekly
+      day: monday
+    labels: [dependencies]
+    commit-message:
+      prefix: chore(ci)

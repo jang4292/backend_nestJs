@@ -59,6 +59,11 @@ id_rsa.pub
 tmp/
 uploads/
 
+# DB dumps and backups (사용자 데이터·비밀번호 해시 포함. 저장소 밖에 보관: docs/learning/database-improvement-guide.kr.md)
+*.sql
+*.sql.gz
+*.dump
+
 # OS / editors
 .DS_Store
 Thumbs.db

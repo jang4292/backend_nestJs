@@ -1,7 +1,20 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run *)",
+      "Bash(npm run lint:check)",
+      "Bash(npm run format:check)",
+      "Bash(npm run typecheck)",
+      "Bash(npm run build)",
+      "Bash(npm run env:check)",
+      "Bash(npm run env:check:test)",
+      "Bash(npm run env:check:prod)",
+      "Bash(npm run db:check)",
+      "Bash(npm run db:check:test *)",
+      "Bash(npm run db:check:test)",
+      "Bash(npm run migration:show:test)",
+      "Bash(npm run docs:html)",
+      "Bash(npm run docs:html:verify)",
+      "Bash(npm run docs:html:status)",
       "Bash(npm test *)",
       "Bash(npx jest *)",
       "Bash(npx tsc *)"
