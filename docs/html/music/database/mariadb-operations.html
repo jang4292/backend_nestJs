@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ko" data-root="../../" data-page-id="docs/music/database/mariadb-operations">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>MariaDB 운영 가이드 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section" open><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations" aria-current="page">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">데이터베이스</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="mariadb-운영-가이드">MariaDB 운영 가이드</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code></p>
+</blockquote>
+<h2 id="운영-토폴로지"><a class="heading-anchor" href="#%EC%9A%B4%EC%98%81-%ED%86%A0%ED%8F%B4%EB%A1%9C%EC%A7%80" aria-hidden="true" tabindex="-1">#</a>운영 토폴로지</h2>
+<pre><code class="language-text">Client -&gt; NestJS API -&gt; MariaDB
+</code></pre>
+<p>NestJS와 MariaDB가 같은 EC2에 있으면 애플리케이션은 가능한 한 <code>127.0.0.1:3306</code>으로 연결합니다. 별도 EC2를 사용하는 경우 private network와 Security Group 제한을 우선합니다. MariaDB의 3306 포트를 인터넷 전체에 공개하지 않습니다.</p>
+<h2 id="환경-변수"><a class="heading-anchor" href="#%ED%99%98%EA%B2%BD-%EB%B3%80%EC%88%98" aria-hidden="true" tabindex="-1">#</a>환경 변수</h2>
+<p>운영 환경에서는 다음 값을 secret manager 또는 안전한 배포 환경 변수로 주입합니다.</p>
+<pre><code class="language-env">DB_TYPE=mariadb
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USERNAME=music_app
+DB_PASSWORD=&lt;secret&gt;
+DB_DATABASE=music_db
+DB_POOL_MAX=10
+DB_CONNECT_TIMEOUT_MS=10000
+DB_SYNCHRONIZE=false
+DB_SSL=false
+</code></pre>
+<ul>
+<li>실제 키 목록은 <code>src/config/app-env.ts</code>와 <code>scripts/runtime-env-keys.cjs</code>를 기준으로 합니다.</li>
+<li>쿼리 로그는 <code>NODE_ENV=development</code>일 때만 켜집니다.</li>
+<li><code>DB_POOL_MIN</code>은 검증만 하고 mysql2 풀에는 적용하지 않습니다.</li>
+</ul>
+<p>비밀번호, connection URL, signed URL을 소스 코드나 로그에 기록하지 않습니다.</p>
+<h2 id="db-생성"><a class="heading-anchor" href="#db-%EC%83%9D%EC%84%B1" aria-hidden="true" tabindex="-1">#</a>DB 생성</h2>
+<p>DB 생성은 명시적인 provisioning 단계에서만 실행합니다. NestJS <code>start</code> 또는 <code>start:prod</code>가 DB를 생성하지 않습니다.</p>
+<pre><code class="language-sql">CREATE DATABASE IF NOT EXISTS music_db
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+</code></pre>
+<p>애플리케이션 런타임 계정과 migration 실행 계정은 가능하면 분리합니다. 실제 계정 비밀번호는 SQL 파일에 기록하지 않습니다.</p>
+<h2 id="migration-및-배포-순서"><a class="heading-anchor" href="#migration-%EB%B0%8F-%EB%B0%B0%ED%8F%AC-%EC%88%9C%EC%84%9C" aria-hidden="true" tabindex="-1">#</a>Migration 및 배포 순서</h2>
+<p>배포 명령과 체크리스트는 <a href="../../deployment/mariadb-systemd.kr.html">EC2 + MariaDB 배포 가이드</a>를 기준으로 합니다.</p>
+<ol>
+<li>현재 운영 DB를 백업합니다.</li>
+<li>애플리케이션을 build합니다.</li>
+<li>migration 상태를 확인합니다.</li>
+<li>명시적으로 migration을 실행합니다.</li>
+<li>migration 실패 시 API를 재시작하지 않고 배포를 중단합니다.</li>
+<li>API 프로세스를 restart/reload합니다.</li>
+<li>readiness와 API smoke test를 실행합니다.</li>
+<li>애플리케이션 로그와 MariaDB 상태를 확인합니다.</li>
+</ol>
+<p>애플리케이션 시작 시 migration을 자동 실행하지 않습니다.</p>
+<h2 id="backup-및-restore"><a class="heading-anchor" href="#backup-%EB%B0%8F-restore" aria-hidden="true" tabindex="-1">#</a>Backup 및 Restore</h2>
+<p>비밀번호가 shell history에 남지 않는 방법을 사용합니다. 아래 명령은 예시이며 실제 운영 계정과 경로로 대체합니다.</p>
+<p>덤프에는 사용자 데이터와 비밀번호 해시가 들어 있습니다. <strong>저장소 밖의 권한이 막힌 디렉터리</strong>에 만들고(<code>umask 077</code>), 프로젝트 루트에 두지 않습니다. <code>*.sql</code>, <code>*.sql.gz</code>는 <code>.gitignore</code>에 있습니다.</p>
+<pre><code class="language-bash">umask 077
+mkdir -p ~/backups
+mariadb-dump --single-transaction --routines --triggers -u &lt;user&gt; -p music_db \
+  | gzip &gt; ~/backups/music_db_$(date +%Y%m%d_%H%M%S).sql.gz
+gunzip -c ~/backups/music_db_&lt;timestamp&gt;.sql.gz | mariadb -u &lt;user&gt; -p music_db
+</code></pre>
+<ul>
+<li>MariaDB DDL은 암묵적으로 커밋되므로, migration 도중 실패하면 트랜잭션 rollback으로 되돌릴 수 없습니다.</li>
+<li><code>ArchiveLegacyMusicSchema</code>·<code>RepairLegacyMariaDbSchema</code>처럼 down이 없는 migration이 있으므로 <strong>배포 전 백업은 필수</strong>입니다.</li>
+</ul>
+<p>backup 위치, 보존 기간, restore 리허설 결과를 운영 기록으로 남깁니다. 자동화와 복원 훈련 방법은 <a href="../../learning/database-improvement-guide.kr.html#%EB%B0%B1%EC%97%85-%EC%9E%90%EB%8F%99%ED%99%94%EC%99%80-%EB%B3%B5%EC%9B%90-%ED%9B%88%EB%A0%A8">DB 개선 가이드</a>에 있습니다.</p>
+<h2 id="문자셋과-시간"><a class="heading-anchor" href="#%EB%AC%B8%EC%9E%90%EC%85%8B%EA%B3%BC-%EC%8B%9C%EA%B0%84" aria-hidden="true" tabindex="-1">#</a>문자셋과 시간</h2>
+<ul>
+<li>DB/table/문자열 컬럼은 <code>utf8mb4</code>를 기본으로 합니다.</li>
+<li>새 데이터의 저장 시간은 UTC를 기준으로 합니다.</li>
+<li>API 시간 값은 ISO 8601로 반환합니다.</li>
+<li>사용자 화면의 timezone 변환은 client 책임으로 둡니다.</li>
+<li>기존 운영 DB의 collation/timezone은 영향도 확인 없이 일괄 변경하지 않습니다.</li>
+</ul>
+<h2 id="사전-데이터-점검"><a class="heading-anchor" href="#%EC%82%AC%EC%A0%84-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EC%A0%90%EA%B2%80" aria-hidden="true" tabindex="-1">#</a>사전 데이터 점검</h2>
+<p>새 constraint를 적용하기 전에 다음 데이터를 확인합니다.</p>
+<pre><code class="language-sql">-- Legacy (1764000000000 migration 이후 legacy_* 테이블)
+SELECT playlistId, seq, COUNT(*)
+FROM legacy_playlist_track
+GROUP BY playlistId, seq
+HAVING COUNT(*) &gt; 1;
+
+-- Catalog: (playlistId, position)은 UNIQUE로 강제됨. Track 중복은 정책 미확정이라 점검만 합니다.
+SELECT playlistId, trackId, COUNT(*)
+FROM playlist_track
+GROUP BY playlistId, trackId
+HAVING COUNT(*) &gt; 1;
+</code></pre>
+<p>위반 데이터는 자동 삭제하지 않습니다. 제품 정책과 정리 절차를 확정한 뒤 별도 migration 또는 운영 작업으로 처리합니다.</p>
+<h2 id="권한role-관리"><a class="heading-anchor" href="#%EA%B6%8C%ED%95%9Crole-%EA%B4%80%EB%A6%AC" aria-hidden="true" tabindex="-1">#</a>권한(role) 관리</h2>
+<p><code>users.role</code>(user|admin)은 <code>1765000000000-AddRoleToUsers</code> migration으로 추가되었습니다.</p>
+<ul>
+<li>음악 카탈로그와 legacy 데이터의 쓰기 API는 admin만 호출할 수 있습니다.</li>
+<li>admin 지정과 해제는 운영 DB에서 수동으로 하고, 작업 기록을 남깁니다.</li>
+</ul>
+<pre><code class="language-sql">UPDATE users SET role = &#39;admin&#39; WHERE username = &#39;&lt;admin-username&gt;&#39;;
+UPDATE users SET role = &#39;user&#39;  WHERE username = &#39;&lt;former-admin&gt;&#39;;
+</code></pre>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../../deployment/database-environments.kr.html"><span>이전</span>환경별 DB·설정 가이드 (Local / Test / Prod)</a><a class="pager-next" href="../../learning/api-security-guide.kr.html"><span>다음</span>API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/music/database/mariadb-operations.md" target="_blank" rel="noopener noreferrer"><code>docs/music/database/mariadb-operations.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#%EC%9A%B4%EC%98%81-%ED%86%A0%ED%8F%B4%EB%A1%9C%EC%A7%80">운영 토폴로지</a></li><li class="toc-2"><a href="#%ED%99%98%EA%B2%BD-%EB%B3%80%EC%88%98">환경 변수</a></li><li class="toc-2"><a href="#db-%EC%83%9D%EC%84%B1">DB 생성</a></li><li class="toc-2"><a href="#migration-%EB%B0%8F-%EB%B0%B0%ED%8F%AC-%EC%88%9C%EC%84%9C">Migration 및 배포 순서</a></li><li class="toc-2"><a href="#backup-%EB%B0%8F-restore">Backup 및 Restore</a></li><li class="toc-2"><a href="#%EB%AC%B8%EC%9E%90%EC%85%8B%EA%B3%BC-%EC%8B%9C%EA%B0%84">문자셋과 시간</a></li><li class="toc-2"><a href="#%EC%82%AC%EC%A0%84-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EC%A0%90%EA%B2%80">사전 데이터 점검</a></li><li class="toc-2"><a href="#%EA%B6%8C%ED%95%9Crole-%EA%B4%80%EB%A6%AC">권한(role) 관리</a></li></ul>
+    </aside>
+  </div>
+  <script src="../../assets/search-index.js"></script>
+  <script src="../../assets/site.js"></script>
+</body>
+</html>

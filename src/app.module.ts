@@ -1,32 +1,81 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthLocalModule } from './auth/local/auth-local.module';
+import { AuthGoogleModule } from './auth/google/auth-google.module';
+import { AuthAppleModule } from './auth/apple/auth-apple.module';
+import { AuthKakaoModule } from './auth/kakao/auth-kakao.module';
+import { AuthNaverModule } from './auth/naver/auth-naver.module';
+import { AuthFacebookModule } from './auth/facebook/auth-facebook.module';
+import { CommonModule } from './common/common.module';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { ProviderReadinessGuard } from './common/auth/provider-readiness.guard';
+import { RequestIdInterceptor } from './common/request-id/request-id.interceptor';
+import { validateAppEnv } from './config/app-env';
+import { explainEnvError } from './config/env-diagnostics';
+import { assertEnvFileAvailable, resolveEnvFilePath } from './config/env-files';
 import { UsersModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
-import { User } from './users/entities/user.entity';
+import { MusicModule } from './music/music.module';
+import { CatalogMusicModule } from './music/catalog/catalog-music.module';
+import { createDatabaseOptions } from './database/database-options';
+import { MigrationStatusService } from './database/migration-status.service';
+
+// NODE_ENV별 env 파일(.env / .env.test.local / .env.production, ENV_FILE로 재지정 가능)
+const envFilePath = resolveEnvFilePath();
+assertEnvFileAvailable(envFilePath);
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath,
+      cache: true,
+      // 검증 실패 메시지에 읽은 env 파일과 NODE_ENV를 덧붙입니다.
+      validate: (config: Record<string, unknown>) => {
+        try {
+          return validateAppEnv(config);
+        } catch (error) {
+          throw new Error(
+            explainEnvError(error, {
+              envFile: envFilePath,
+              nodeEnv:
+                typeof config.NODE_ENV === 'string' && config.NODE_ENV.trim()
+                  ? config.NODE_ENV.trim()
+                  : 'development',
+            }),
+          );
+        }
+      },
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: configService.get<string>('DB_TYPE', 'postgres') as 'postgres',
-        host: configService.get<string>('DB_HOST', 'localhost'),
-        port: configService.get<number>('DB_PORT', 5432),
-        username: configService.get<string>('DB_USERNAME', 'postgres'),
-        password: configService.get<string>('DB_PASSWORD', 'password'),
-        database: configService.get<string>('DB_DATABASE', 'nestjs_db'),
-        entities: [User],
-        synchronize: configService.get<boolean>('DB_SYNCHRONIZE', true),
-        logging: configService.get<string>('NODE_ENV') === 'development',
-      }),
+      useFactory: (configService: ConfigService) =>
+        createDatabaseOptions({
+          DB_TYPE: configService.get<'mariadb'>('DB_TYPE', 'mariadb'),
+          DB_HOST: configService.getOrThrow<string>('DB_HOST'),
+          DB_PORT: configService.getOrThrow<number>('DB_PORT'),
+          DB_USERNAME: configService.getOrThrow<string>('DB_USERNAME'),
+          DB_PASSWORD: configService.getOrThrow<string>('DB_PASSWORD'),
+          DB_DATABASE: configService.getOrThrow<string>('DB_DATABASE'),
+          DATABASE_URL: configService.get<string>('DATABASE_URL'),
+          DB_SYNCHRONIZE: configService.get<boolean>('DB_SYNCHRONIZE', false),
+          DB_SSL: configService.get<boolean>('DB_SSL', false),
+          DB_SSL_REJECT_UNAUTHORIZED: configService.get<boolean>(
+            'DB_SSL_REJECT_UNAUTHORIZED',
+            true,
+          ),
+          DB_SSL_CA: configService.get<string>('DB_SSL_CA'),
+          DB_POOL_MIN: configService.get<number>('DB_POOL_MIN'),
+          DB_POOL_MAX: configService.get<number>('DB_POOL_MAX'),
+          DB_CONNECT_TIMEOUT_MS: configService.get<number>(
+            'DB_CONNECT_TIMEOUT_MS',
+          ),
+          logging: configService.get<string>('NODE_ENV') === 'development',
+        }),
       inject: [ConfigService],
     }),
     ThrottlerModule.forRootAsync({
@@ -40,9 +89,36 @@ import { User } from './users/entities/user.entity';
       inject: [ConfigService],
     }),
     UsersModule,
-    AuthModule,
+    AuthLocalModule,
+    AuthGoogleModule,
+    AuthAppleModule,
+    AuthKakaoModule,
+    AuthNaverModule,
+    AuthFacebookModule,
+    CommonModule,
+    MusicModule,
+    CatalogMusicModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    MigrationStatusService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestIdInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ProviderReadinessGuard,
+    },
+  ],
 })
 export class AppModule {}

@@ -16,12 +16,32 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
+  afterEach(async () => {
+    await app.close();
+  });
+
   it('/ (GET)', () => {
     return request(app.getHttpServer())
       .get('/')
       .expect(200)
       .expect('Welcome to NestJS Backend API!');
   });
+
+  // SEC-17: Express 라우팅은 대소문자를 구분하지 않으므로, 경로 철자와 무관하게 비활성 provider는 503이어야 합니다.
+  it.each(['/auth/google/login', '/auth/GOOGLE/login', '/auth/Kakao/login'])(
+    '%s (POST) is blocked while the provider is disabled',
+    (path) => {
+      return request(app.getHttpServer())
+        .post(path)
+        .send({ idToken: 'x', accessToken: 'x' })
+        .expect(503)
+        .expect((res) => {
+          const body = res.body as { ok?: boolean; errorCode?: string };
+          expect(body.ok).toBe(false);
+          expect(body.errorCode).toMatch(/^AUTH_(GOOGLE|KAKAO)_DISABLED$/);
+        });
+    },
+  );
 
   it('/health (GET)', () => {
     return request(app.getHttpServer())

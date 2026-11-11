@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="API_EXAMPLES">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>API Usage Examples · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section" open><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="API_EXAMPLES.html" data-page-id="API_EXAMPLES" aria-current="page">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">제품과 API</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11.</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="api-usage-examples">API Usage Examples</h1>
+<blockquote>
+<p>Last updated: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code>.
+The complete route and permission table is in
+<a href="../product/api-spec.kr.html">docs/product/api-spec.kr.md</a>.</p>
+</blockquote>
+<h2 id="prerequisites"><a class="heading-anchor" href="#prerequisites" aria-hidden="true" tabindex="-1">#</a>Prerequisites</h2>
+<ol>
+<li>Create <code>.env</code> from the template and type in the DB connection values,
+including <code>DB_PASSWORD</code> (the file is git-ignored):<pre><code class="language-bash">cp .env.example .env &amp;&amp; chmod 600 .env
+</code></pre>
+<pre><code class="language-env">NODE_ENV=development
+DB_HOST=&lt;dev-db-host&gt;
+DB_PORT=&lt;port&gt;
+DB_USERNAME=&lt;dev-user&gt;
+DB_PASSWORD=&lt;type it here&gt;
+DB_DATABASE=app_db_dev   # a database dedicated to this app
+JWT_SECRET=a-local-secret-of-at-least-32-characters
+CORS_ORIGIN=http://localhost:3001
+# SNS providers stay disabled (AUTH_*_ENABLED=false); their routes return 503.
+</code></pre>
+</li>
+<li>Check the connection, then create the database and tables:<pre><code class="language-bash">npm ci
+npm run db:check   # read-only: connection, privileges, pending migrations
+npm run db:setup   # creates app_db_dev if missing, then applies migrations
+</code></pre>
+</li>
+<li>Start the server:<pre><code class="language-bash">npm run start:dev
+</code></pre>
+</li>
+<li>For admin-only examples, promote a user after registering it:
+<code>UPDATE users SET role = &#39;admin&#39; WHERE username = &#39;&lt;username&gt;&#39;;</code></li>
+</ol>
+<p>See <a href="../deployment/database-environments.kr.html">docs/deployment/database-environments.kr.md</a>
+for Test and Prod.</p>
+<p>Access levels used below:</p>
+<ul>
+<li><strong>public</strong>: no token</li>
+<li><strong>JWT</strong>: <code>Authorization: Bearer &lt;token&gt;</code></li>
+<li><strong>admin</strong>: JWT of a user whose <code>role</code> is <code>admin</code></li>
+</ul>
+<p>Grant admin access in the database:</p>
+<pre><code class="language-sql">UPDATE users SET role = &#39;admin&#39; WHERE username = &#39;johndoe&#39;;
+</code></pre>
+<h2 id="1-health-check-public"><a class="heading-anchor" href="#1-health-check-public" aria-hidden="true" tabindex="-1">#</a>1. Health Check (public)</h2>
+<pre><code class="language-bash">curl -i http://localhost:3000/health
+</code></pre>
+<pre><code class="language-json">{ &quot;status&quot;: &quot;ok&quot;, &quot;timestamp&quot;: &quot;2026-11-08T10:00:00.000Z&quot;, &quot;database&quot;: &quot;up&quot; }
+</code></pre>
+<p>When the database is unreachable the endpoint returns <strong>503</strong> with
+<code>&quot;status&quot;: &quot;degraded&quot;, &quot;database&quot;: &quot;down&quot;</code>. It is excluded from rate limiting.</p>
+<h2 id="2-register-public"><a class="heading-anchor" href="#2-register-public" aria-hidden="true" tabindex="-1">#</a>2. Register (public)</h2>
+<pre><code class="language-bash">curl -X POST http://localhost:3000/users/register \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{
+    &quot;username&quot;: &quot;johndoe&quot;,
+    &quot;password&quot;: &quot;SecurePass123&quot;,
+    &quot;email&quot;: &quot;john@example.com&quot;,
+    &quot;name&quot;: &quot;John Doe&quot;
+  }&#39;
+</code></pre>
+<pre><code class="language-json">{
+  &quot;id&quot;: 1,
+  &quot;username&quot;: &quot;johndoe&quot;,
+  &quot;email&quot;: &quot;john@example.com&quot;,
+  &quot;name&quot;: &quot;John Doe&quot;,
+  &quot;role&quot;: &quot;user&quot;,
+  &quot;providers&quot;: [],
+  &quot;createdAt&quot;: &quot;2026-11-08T10:00:00.000Z&quot;,
+  &quot;updatedAt&quot;: &quot;2026-11-08T10:00:00.000Z&quot;
+}
+</code></pre>
+<p>Rules:</p>
+<ul>
+<li><code>username</code> must be 4–50 characters.</li>
+<li><code>password</code> must be at least 8 characters and at most 72 bytes in UTF-8
+(bcrypt ignores anything after 72 bytes). One Korean character is 3 bytes.</li>
+<li><code>email</code> is at most 255 characters and <code>name</code> at most 100.</li>
+<li>Usernames starting with <code>google_</code>, <code>apple_</code>, <code>kakao_</code>, <code>naver_</code> or
+<code>facebook_</code> are reserved for SNS accounts and return 400.</li>
+<li>A duplicate username or email returns 409.</li>
+</ul>
+<h2 id="3-login-public"><a class="heading-anchor" href="#3-login-public" aria-hidden="true" tabindex="-1">#</a>3. Login (public)</h2>
+<p><code>identifierType</code> is <code>username</code> or <code>email</code>.</p>
+<pre><code class="language-bash">curl -X POST http://localhost:3000/auth/login \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{
+    &quot;identifierType&quot;: &quot;username&quot;,
+    &quot;identifier&quot;: &quot;johndoe&quot;,
+    &quot;password&quot;: &quot;SecurePass123&quot;
+  }&#39;
+</code></pre>
+<pre><code class="language-json">{
+  &quot;access_token&quot;: &quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...&quot;,
+  &quot;user&quot;: {
+    &quot;id&quot;: 1,
+    &quot;username&quot;: &quot;johndoe&quot;,
+    &quot;email&quot;: &quot;john@example.com&quot;,
+    &quot;name&quot;: &quot;John Doe&quot;,
+    &quot;role&quot;: &quot;user&quot;,
+    &quot;providers&quot;: [],
+    &quot;createdAt&quot;: &quot;2026-11-08T10:00:00.000Z&quot;,
+    &quot;updatedAt&quot;: &quot;2026-11-08T10:00:00.000Z&quot;
+  }
+}
+</code></pre>
+<ul>
+<li>Wrong credentials, an unknown account, and an SNS-only account (no password)
+all return the same 401 <code>Invalid credentials</code>.</li>
+<li>The endpoint allows 5 requests per minute per client IP.</li>
+<li>After 10 failed attempts for the same identifier within 15 minutes (from any
+IP), further attempts return 429 <code>RATE_LIMITED</code> with a <code>Retry-After</code> header
+in seconds, even with the right password. A successful login resets the
+count.</li>
+</ul>
+<pre><code class="language-json">{
+  &quot;ok&quot;: false,
+  &quot;requestId&quot;: &quot;6f1c…&quot;,
+  &quot;errorCode&quot;: &quot;RATE_LIMITED&quot;,
+  &quot;message&quot;: &quot;Too many failed login attempts. Try again later.&quot;
+}
+</code></pre>
+<h2 id="4-profile-jwt"><a class="heading-anchor" href="#4-profile-jwt" aria-hidden="true" tabindex="-1">#</a>4. Profile (JWT)</h2>
+<pre><code class="language-bash">curl http://localhost:3000/users/profile \
+  -H &quot;Authorization: Bearer YOUR_ACCESS_TOKEN&quot;
+</code></pre>
+<p><code>providers</code> lists linked SNS accounts, for example <code>[&quot;google&quot;, &quot;kakao&quot;]</code>.</p>
+<h3 id="update-name-or-email"><a class="heading-anchor" href="#update-name-or-email" aria-hidden="true" tabindex="-1">#</a>Update name or email</h3>
+<pre><code class="language-bash">curl -X PATCH http://localhost:3000/users/profile \
+  -H &quot;Content-Type: application/json&quot; \
+  -H &quot;Authorization: Bearer YOUR_ACCESS_TOKEN&quot; \
+  -d &#39;{ &quot;email&quot;: &quot;newemail@example.com&quot;, &quot;name&quot;: &quot;John Smith&quot; }&#39;
+</code></pre>
+<p>An email that already belongs to another account returns 409.</p>
+<h3 id="change-password"><a class="heading-anchor" href="#change-password" aria-hidden="true" tabindex="-1">#</a>Change password</h3>
+<p><code>currentPassword</code> is required when the account already has a password:</p>
+<pre><code class="language-bash">curl -X PATCH http://localhost:3000/users/profile \
+  -H &quot;Content-Type: application/json&quot; \
+  -H &quot;Authorization: Bearer YOUR_ACCESS_TOKEN&quot; \
+  -d &#39;{ &quot;currentPassword&quot;: &quot;SecurePass123&quot;, &quot;password&quot;: &quot;NewSecurePass456&quot; }&#39;
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Case</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>currentPassword</code> missing</td>
+<td>400</td>
+</tr>
+<tr>
+<td><code>currentPassword</code> wrong</td>
+<td>403</td>
+</tr>
+<tr>
+<td>New password shorter than 8 characters or longer than 72 bytes</td>
+<td>400</td>
+</tr>
+<tr>
+<td>SNS-only account without a password</td>
+<td>First password can be set without <code>currentPassword</code></td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>A password change revokes every existing token, including the one used for
+the request.</strong> The next request with an old token returns 401, so the client
+should send the user back to the login screen.</p>
+<h2 id="5-social-login-public"><a class="heading-anchor" href="#5-social-login-public" aria-hidden="true" tabindex="-1">#</a>5. Social Login (public)</h2>
+<blockquote>
+<p><strong>All SNS providers are currently disabled.</strong> Only local login is used, and
+every <code>/auth/&lt;provider&gt;/*</code> route returns 503 <code>AUTH_&lt;PROVIDER&gt;_DISABLED</code>. A
+provider is enabled only with <code>AUTH_&lt;PROVIDER&gt;_ENABLED=true</code>, after completing
+<a href="../auth/sns-reenable-checklist.kr.html">docs/auth/sns-reenable-checklist.kr.md</a>.
+The examples below apply once a provider is enabled.</p>
+</blockquote>
+<p>All SNS responses use the request-id envelope:</p>
+<pre><code class="language-json">{
+  &quot;ok&quot;: true,
+  &quot;requestId&quot;: &quot;6f1c…&quot;,
+  &quot;data&quot;: {
+    &quot;accessToken&quot;: &quot;jwt_token_here&quot;,
+    &quot;expiresIn&quot;: 3600,
+    &quot;user&quot;: { &quot;id&quot;: 2, &quot;username&quot;: &quot;google_117123456789&quot;, &quot;email&quot;: &quot;user@example.com&quot; }
+  }
+}
+</code></pre>
+<pre><code class="language-bash"># Google / Apple: ID token (or {&quot;code&quot;, &quot;redirectUri&quot;} for the code flow)
+curl -X POST http://localhost:3000/auth/google/login \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;idToken&quot;:&quot;GOOGLE_ID_TOKEN&quot;}&#39;
+
+# Kakao / Naver / Facebook: provider access token (or {&quot;code&quot;, &quot;redirectUri&quot;})
+curl -X POST http://localhost:3000/auth/kakao/login \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;accessToken&quot;:&quot;KAKAO_ACCESS_TOKEN&quot;}&#39;
+</code></pre>
+<p>How each provider token is verified:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Google, Apple</td>
+<td>ID token <code>aud</code></td>
+</tr>
+<tr>
+<td>Facebook</td>
+<td><code>debug_token</code> <code>app_id</code></td>
+</tr>
+<tr>
+<td>Kakao</td>
+<td><code>access_token_info</code> <code>app_id</code> against <code>KAKAO_APP_ID</code>; a token from another app returns 401 <code>AUTH_KAKAO_INVALID_TOKEN</code></td>
+</tr>
+<tr>
+<td>Naver</td>
+<td>Cannot be verified, so <code>accessToken</code> login is rejected (400) unless <code>AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=true</code>; use the code flow</td>
+</tr>
+</tbody></table>
+</div>
+<p>Other endpoints:</p>
+<ul>
+<li>Every provider exposes <code>POST /auth/{provider}/exchange-code</code>.</li>
+<li>Google and Apple also expose <code>POST /auth/{provider}/verify-id-token</code>.</li>
+<li>A disabled provider (<code>AUTH_&lt;PROVIDER&gt;_ENABLED=false</code>) returns 503
+<code>AUTH_&lt;PROVIDER&gt;_DISABLED</code> without calling the provider.</li>
+</ul>
+<p>Details are in the <a href="../auth/sns-login-overview.kr.html">SNS login overview</a>.</p>
+<h2 id="6-catalog-tracks-and-audio-assets"><a class="heading-anchor" href="#6-catalog-tracks-and-audio-assets" aria-hidden="true" tabindex="-1">#</a>6. Catalog Tracks and Audio Assets</h2>
+<pre><code class="language-bash"># public: newest first, page/limit (limit &lt;= 100)
+curl &#39;http://localhost:3000/music/tracks?page=1&amp;limit=20&#39;
+curl http://localhost:3000/music/tracks/1
+
+# admin
+curl -X POST http://localhost:3000/music/tracks \
+  -H &quot;Content-Type: application/json&quot; \
+  -H &quot;Authorization: Bearer ADMIN_ACCESS_TOKEN&quot; \
+  -d &#39;{ &quot;title&quot;: &quot;Song A&quot;, &quot;artist&quot;: &quot;Artist X&quot;, &quot;bpm&quot;: 120 }&#39;
+
+curl -X POST http://localhost:3000/music/tracks/1/audio-assets \
+  -H &quot;Content-Type: application/json&quot; \
+  -H &quot;Authorization: Bearer ADMIN_ACCESS_TOKEN&quot; \
+  -d &#39;{ &quot;url&quot;: &quot;https://media.example.com/song-a.mp3&quot;, &quot;duration&quot;: 210, &quot;bpm&quot;: 121 }&#39;
+</code></pre>
+<ul>
+<li><code>Track.bpm</code> is the catalog value. <code>AudioAsset.bpm</code> is file or analysis
+metadata and is not synchronised with it.</li>
+<li>A regular user token on a write route returns 403.</li>
+<li>Deleting a track that is used in a playlist returns 409
+<code>FOREIGN_KEY_CONSTRAINT</code>.</li>
+</ul>
+<h2 id="7-public-catalog-playlists-public"><a class="heading-anchor" href="#7-public-catalog-playlists-public" aria-hidden="true" tabindex="-1">#</a>7. Public Catalog Playlists (public)</h2>
+<p>Only <code>published</code> playlists are visible:</p>
+<pre><code class="language-bash">curl &#39;http://localhost:3000/music/public/playlists?page=1&amp;limit=20&#39;
+curl http://localhost:3000/music/public/playlists/1
+</code></pre>
+<p>The detail response contains playlist metadata, track summaries and each item&#39;s
+<code>position</code>. It never includes <code>audio_asset.url</code>, S3 object keys or playback
+tokens.</p>
+<h2 id="8-manage-catalog-playlists-admin"><a class="heading-anchor" href="#8-manage-catalog-playlists-admin" aria-hidden="true" tabindex="-1">#</a>8. Manage Catalog Playlists (admin)</h2>
+<pre><code class="language-bash">curl -X POST http://localhost:3000/music/playlists \
+  -H &quot;Content-Type: application/json&quot; \
+  -H &quot;Authorization: Bearer ADMIN_ACCESS_TOKEN&quot; \
+  -d &#39;{ &quot;title&quot;: &quot;Evening Set&quot;, &quot;description&quot;: &quot;A public catalog playlist&quot;, &quot;anonymousPlayable&quot;: false }&#39;
+
+curl -X POST http://localhost:3000/music/playlists/1/tracks \
+  -H &quot;Content-Type: application/json&quot; \
+  -H &quot;Authorization: Bearer ADMIN_ACCESS_TOKEN&quot; \
+  -d &#39;{&quot;trackId&quot;:1,&quot;position&quot;:1,&quot;note&quot;:&quot;Opening track&quot;}&#39;
+
+curl -X PATCH http://localhost:3000/music/playlists/1/publish \
+  -H &quot;Authorization: Bearer ADMIN_ACCESS_TOKEN&quot;
+
+curl -X PATCH http://localhost:3000/music/playlists/1/tracks/reorder \
+  -H &quot;Content-Type: application/json&quot; \
+  -H &quot;Authorization: Bearer ADMIN_ACCESS_TOKEN&quot; \
+  -d &#39;{&quot;items&quot;:[{&quot;id&quot;:2,&quot;position&quot;:1},{&quot;id&quot;:1,&quot;position&quot;:2}]}&#39;
+</code></pre>
+<ul>
+<li>The reorder request must include every existing item exactly once.</li>
+<li><code>(playlistId, position)</code> is unique, so an occupied position returns 400.</li>
+</ul>
+<h2 id="9-legacy-music-api--musiclegacy-"><a class="heading-anchor" href="#9-legacy-music-api--musiclegacy-" aria-hidden="true" tabindex="-1">#</a>9. Legacy Music API (<code>/music/legacy</code>)</h2>
+<p>Access:</p>
+<ul>
+<li><code>GET /music/legacy/tracks</code> and <code>GET /music/legacy/tracks/:id</code> are public.</li>
+<li>Other reads require a JWT.</li>
+<li>All writes are admin-only.</li>
+</ul>
+<pre><code class="language-bash">curl &#39;http://localhost:3000/music/legacy/tracks?search=song&amp;page=1&amp;limit=20&#39;
+
+curl http://localhost:3000/music/legacy/artists \
+  -H &quot;Authorization: Bearer YOUR_ACCESS_TOKEN&quot;
+
+curl &#39;http://localhost:3000/music/legacy/playlists/by-date?date=2026-01-01&#39; \
+  -H &quot;Authorization: Bearer YOUR_ACCESS_TOKEN&quot;
+
+curl -X POST http://localhost:3000/music/legacy/artists \
+  -H &quot;Content-Type: application/json&quot; \
+  -H &quot;Authorization: Bearer ADMIN_ACCESS_TOKEN&quot; \
+  -d &#39;{&quot;name&quot;:&quot;Artist X&quot;}&#39;
+
+curl -X POST http://localhost:3000/music/legacy/playlists/1/tracks \
+  -H &quot;Content-Type: application/json&quot; \
+  -H &quot;Authorization: Bearer ADMIN_ACCESS_TOKEN&quot; \
+  -d &#39;{ &quot;trackId&quot;: 1, &quot;seq&quot;: 1, &quot;note&quot;: &quot;Opening track&quot; }&#39;
+</code></pre>
+<ul>
+<li><code>by-date</code> requires <code>date=YYYY-MM-DD</code>; without it the endpoint returns 400.</li>
+<li>Deleting an artist that still has tracks returns 409 <code>FOREIGN_KEY_CONSTRAINT</code>.</li>
+</ul>
+<h2 id="10-error-responses"><a class="heading-anchor" href="#10-error-responses" aria-hidden="true" tabindex="-1">#</a>10. Error Responses</h2>
+<p>Every error uses the same envelope, and the <code>x-request-id</code> response header
+matches <code>requestId</code>:</p>
+<pre><code class="language-json">{
+  &quot;ok&quot;: false,
+  &quot;requestId&quot;: &quot;6f1c…&quot;,
+  &quot;errorCode&quot;: &quot;BAD_REQUEST&quot;,
+  &quot;message&quot;: &quot;username must be longer than or equal to 4 characters, password must be longer than or equal to 8 characters&quot;
+}
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>HTTP</th>
+<th><code>errorCode</code></th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>400</td>
+<td><code>BAD_REQUEST</code></td>
+<td>Validation failure, reserved username, missing <code>currentPassword</code></td>
+</tr>
+<tr>
+<td>401</td>
+<td><code>UNAUTHORIZED</code></td>
+<td>Missing, expired or tampered token; token issued before a password change; invalid credentials</td>
+</tr>
+<tr>
+<td>403</td>
+<td><code>FORBIDDEN</code></td>
+<td>Not an admin; wrong <code>currentPassword</code></td>
+</tr>
+<tr>
+<td>404</td>
+<td><code>NOT_FOUND</code></td>
+<td>Resource not found</td>
+</tr>
+<tr>
+<td>409</td>
+<td><code>CONFLICT</code>, <code>FOREIGN_KEY_CONSTRAINT</code></td>
+<td>Duplicate username/email; resource still referenced</td>
+</tr>
+<tr>
+<td>429</td>
+<td><code>RATE_LIMITED</code></td>
+<td>Too many requests per IP, or 10 failed logins for one account in 15 minutes (<code>Retry-After</code>)</td>
+</tr>
+<tr>
+<td>503</td>
+<td><code>AUTH_&lt;PROVIDER&gt;_DISABLED</code>, <code>AUTH_&lt;PROVIDER&gt;_CONFIG_MISSING</code></td>
+<td>SNS provider disabled, or enabled without required verification settings</td>
+</tr>
+<tr>
+<td>500</td>
+<td><code>INTERNAL_SERVER_ERROR</code> / <code>AUTH_&lt;PROVIDER&gt;_INTERNAL_ERROR</code></td>
+<td>Message is always <code>Internal server error</code>; details are logged server-side</td>
+</tr>
+</tbody></table>
+</div>
+<p>SNS routes use <code>AUTH_&lt;PROVIDER&gt;_&lt;REASON&gt;</code> codes, for example
+<code>AUTH_KAKAO_EXCHANGE_FAILED</code>.</p>
+<h2 id="11-javascript-example"><a class="heading-anchor" href="#11-javascript-example" aria-hidden="true" tabindex="-1">#</a>11. JavaScript Example</h2>
+<pre><code class="language-typescript">const base = &#39;http://localhost:3000&#39;;
+
+await fetch(`${base}/users/register`, {
+  method: &#39;POST&#39;,
+  headers: { &#39;Content-Type&#39;: &#39;application/json&#39; },
+  body: JSON.stringify({ username: &#39;testuser&#39;, password: &#39;password123&#39; }),
+});
+
+const loginResponse = await fetch(`${base}/auth/login`, {
+  method: &#39;POST&#39;,
+  headers: { &#39;Content-Type&#39;: &#39;application/json&#39; },
+  body: JSON.stringify({
+    identifierType: &#39;username&#39;,
+    identifier: &#39;testuser&#39;,
+    password: &#39;password123&#39;,
+  }),
+});
+const { access_token } = await loginResponse.json();
+
+const profile = await fetch(`${base}/users/profile`, {
+  headers: { Authorization: `Bearer ${access_token}` },
+}).then((res) =&gt; res.json());
+</code></pre>
+<h2 id="12-security-notes"><a class="heading-anchor" href="#12-security-notes" aria-hidden="true" tabindex="-1">#</a>12. Security Notes</h2>
+<ol>
+<li>Use HTTPS in production. Set <code>TRUST_PROXY</code> when TLS terminates at a proxy.</li>
+<li>Never commit <code>.env</code> files; only <code>*.example</code> files are tracked.</li>
+<li><code>JWT_SECRET</code> must be at least 32 characters in production. Placeholder text
+is rejected at startup.</li>
+<li>Set <code>CORS_ORIGIN</code> to explicit origins; <code>*</code> is rejected.</li>
+<li>Do not log raw provider tokens, JWTs or passwords. The exception filters
+redact them.</li>
+</ol>
+<h2 id="13-production-deployment-checklist"><a class="heading-anchor" href="#13-production-deployment-checklist" aria-hidden="true" tabindex="-1">#</a>13. Production Deployment Checklist</h2>
+<p>Follow <a href="../deployment/mariadb-systemd.kr.html">docs/deployment/mariadb-systemd.kr.md</a>.
+In short:</p>
+<ol>
+<li>Back up the database.</li>
+<li>Set <code>NODE_ENV=production</code>, a 32+ character <code>JWT_SECRET</code>, <code>CORS_ORIGIN</code>,
+<code>TRUST_PROXY</code> (behind a proxy), and the enabled providers&#39; settings
+(<code>KAKAO_APP_ID</code>, <code>APPLE_ALLOWED_AUDIENCES</code>, ...).</li>
+<li>Run <code>npm run build</code>, then <code>npm run env:check:prod</code>, <code>npm run migration:show:prod</code>
+and <code>npm run migration:run:prod</code>.</li>
+<li>Grant the admin role.</li>
+<li>Run <code>npm run pm2:reload</code>, then check <code>curl -fsS /health</code>.</li>
+</ol>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../product/api-spec.kr.html"><span>이전</span>API 명세 (라우트·권한)</a><a class="pager-next" href="../learning/nestjs-operational-stability-guide.kr.html"><span>다음</span>NestJS 아키텍처·운영 안정성 학습 가이드</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/API_EXAMPLES.md" target="_blank" rel="noopener noreferrer"><code>API_EXAMPLES.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#prerequisites">Prerequisites</a></li><li class="toc-2"><a href="#1-health-check-public">1. Health Check (public)</a></li><li class="toc-2"><a href="#2-register-public">2. Register (public)</a></li><li class="toc-2"><a href="#3-login-public">3. Login (public)</a></li><li class="toc-2"><a href="#4-profile-jwt">4. Profile (JWT)</a></li><li class="toc-3"><a href="#update-name-or-email">Update name or email</a></li><li class="toc-3"><a href="#change-password">Change password</a></li><li class="toc-2"><a href="#5-social-login-public">5. Social Login (public)</a></li><li class="toc-2"><a href="#6-catalog-tracks-and-audio-assets">6. Catalog Tracks and Audio Assets</a></li><li class="toc-2"><a href="#7-public-catalog-playlists-public">7. Public Catalog Playlists (public)</a></li><li class="toc-2"><a href="#8-manage-catalog-playlists-admin">8. Manage Catalog Playlists (admin)</a></li><li class="toc-2"><a href="#9-legacy-music-api--musiclegacy-">9. Legacy Music API ( /music/legacy )</a></li><li class="toc-2"><a href="#10-error-responses">10. Error Responses</a></li><li class="toc-2"><a href="#11-javascript-example">11. JavaScript Example</a></li><li class="toc-2"><a href="#12-security-notes">12. Security Notes</a></li><li class="toc-2"><a href="#13-production-deployment-checklist">13. Production Deployment Checklist</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

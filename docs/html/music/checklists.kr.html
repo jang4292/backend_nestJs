@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/music/checklists.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>Music 체크리스트 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section" open><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="checklists.kr.html" data-page-id="docs/music/checklists.kr" aria-current="page">Music 체크리스트</a></li><li><a href="troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">아키텍처</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="music-체크리스트">Music 체크리스트</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code></p>
+</blockquote>
+<h2 id="학습-체크리스트"><a class="heading-anchor" href="#%ED%95%99%EC%8A%B5-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>학습 체크리스트</h2>
+<ul>
+<li><input disabled="" type="checkbox"> 요청 route가 Legacy인지 Catalog인지 확인했다.</li>
+<li><input disabled="" type="checkbox"> route가 실제로 사용하는 Entity와 DB table을 확인했다.</li>
+<li><input disabled="" type="checkbox"> Track과 AudioAsset의 역할 차이를 설명할 수 있다.</li>
+<li><input disabled="" type="checkbox"> Playlist와 PlaylistTrack을 별도 관계 Entity로 둔 이유를 설명할 수 있다.</li>
+<li><input disabled="" type="checkbox"> <code>position</code>이 재생 순서를 결정한다는 것을 확인했다.</li>
+<li><input disabled="" type="checkbox"> Controller, service/facade, use case, repository의 책임을 구분했다.</li>
+<li><input disabled="" type="checkbox"> Entity와 public presenter의 차이를 이해했다.</li>
+<li><input disabled="" type="checkbox"> 공개 API와 JWT 보호 API를 구분했다.</li>
+<li><input disabled="" type="checkbox"> DB 상태를 <code>npm run db:check</code>(또는 <code>npm run migration:show</code>)로 확인했다.</li>
+</ul>
+<h2 id="기능-개발-체크리스트"><a class="heading-anchor" href="#%EA%B8%B0%EB%8A%A5-%EA%B0%9C%EB%B0%9C-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>기능 개발 체크리스트</h2>
+<ul>
+<li><input disabled="" type="checkbox"> 새 DTO에 <code>class-validator</code> 검증을 추가했다.</li>
+<li><input disabled="" type="checkbox"> 공개 route와 관리 route를 분리했다.</li>
+<li><input disabled="" type="checkbox"> 관리(쓰기) route에 <code>@AdminOnly()</code>를 붙였다. 빠지면 <code>music-authorization.spec.ts</code>가 실패한다.</li>
+<li><input disabled="" type="checkbox"> 삭제할 때 FK 위반은 infrastructure에서 <code>ForeignKeyConstraintError</code>(409)로 변환했다(<code>src/database/mariadb-errors.ts</code>).</li>
+<li><input disabled="" type="checkbox"> 공개 Playlist query가 <code>status = published</code>를 강제한다.</li>
+<li><input disabled="" type="checkbox"> 공개 응답은 presenter/response DTO를 통과한다.</li>
+<li><input disabled="" type="checkbox"> 공개 응답에 <code>url</code>, object key, token이 없다.</li>
+<li><input disabled="" type="checkbox"> Playlist item position 충돌을 검사한다.</li>
+<li><input disabled="" type="checkbox"> reorder 요청이 모든 item을 정확히 한 번 포함하는지 검증한다.</li>
+<li><input disabled="" type="checkbox"> 여러 position 변경을 transaction으로 처리한다.</li>
+<li><input disabled="" type="checkbox"> Not Found, Bad Request, Conflict 응답을 구분한다.</li>
+<li><input disabled="" type="checkbox"> 페이지네이션과 정렬 기본값을 문서화했다.</li>
+<li><input disabled="" type="checkbox"> unit test와 E2E 계약을 추가했다.</li>
+</ul>
+<h2 id="db-및-migration-체크리스트"><a class="heading-anchor" href="#db-%EB%B0%8F-migration-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>DB 및 Migration 체크리스트</h2>
+<ul>
+<li><input disabled="" type="checkbox"> 운영 DB는 MariaDB 기준으로 확인했다.</li>
+<li><input disabled="" type="checkbox"> <code>DB_SYNCHRONIZE=false</code>인지 확인했다.</li>
+<li><input disabled="" type="checkbox"> 기존 Migration을 수정하지 않고 새 Migration을 추가했다.</li>
+<li><input disabled="" type="checkbox"> Migration 실행 전 DB backup을 만들었다.</li>
+<li><input disabled="" type="checkbox"> <code>npm run migration:show</code> 결과를 기록했다.</li>
+<li><input disabled="" type="checkbox"> FK 대상 table과 실행 순서를 확인했다.</li>
+<li><input disabled="" type="checkbox"> <code>(playlistId, position)</code> 중복 데이터를 사전 점검했다.</li>
+<li><input disabled="" type="checkbox"> <code>CASCADE</code>와 <code>RESTRICT</code> 삭제 정책을 확인했다.</li>
+<li><input disabled="" type="checkbox"> Migration 실패 시 API 재시작을 중단한다.</li>
+<li><input disabled="" type="checkbox"> 적용 후 table, index, FK를 MariaDB에서 확인한다.</li>
+</ul>
+<h2 id="음원-보안-체크리스트"><a class="heading-anchor" href="#%EC%9D%8C%EC%9B%90-%EB%B3%B4%EC%95%88-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>음원 보안 체크리스트</h2>
+<ul>
+<li><input disabled="" type="checkbox"> 공개 Playlist 응답에 음원 URL이 없다.</li>
+<li><input disabled="" type="checkbox"> AudioAsset 관리 조회가 인증되어 있다.</li>
+<li><input disabled="" type="checkbox"> S3 public URL의 복사·공유 가능성을 문서화했다.</li>
+<li><input disabled="" type="checkbox"> URL과 token을 로그에 기록하지 않는다.</li>
+<li><input disabled="" type="checkbox"> 향후 private bucket과 presigned URL 전환 조건을 정했다.</li>
+<li><input disabled="" type="checkbox"> presigned URL 사용 시 TTL, Range 요청, CORS를 검증한다.</li>
+<li><input disabled="" type="checkbox"> 파일 교체와 비활성화 시 기존 URL 정책을 정했다.</li>
+</ul>
+<h2 id="배포-체크리스트"><a class="heading-anchor" href="#%EB%B0%B0%ED%8F%AC-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>배포 체크리스트</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npm ci</code>가 성공했다.</li>
+<li><input disabled="" type="checkbox"> <code>npm run build</code>가 성공했다.</li>
+<li><input disabled="" type="checkbox"> Migration 상태를 확인했다.</li>
+<li><input disabled="" type="checkbox"> 백업과 복구 절차를 확인했다.</li>
+<li><input disabled="" type="checkbox"> <code>npm run migration:run</code>을 명시적으로 실행했다.</li>
+<li><input disabled="" type="checkbox"> API reload 후 <code>/health</code>를 확인했다.</li>
+<li><input disabled="" type="checkbox"> 공개 Playlist 목록과 상세 API를 smoke test했다.</li>
+<li><input disabled="" type="checkbox"> draft Playlist가 공개되지 않는지 확인했다.</li>
+<li><input disabled="" type="checkbox"> 공개 응답에 음원 URL이 없는지 확인했다.</li>
+<li><input disabled="" type="checkbox"> MariaDB와 API 로그에 오류가 없는지 확인했다.</li>
+</ul>
+<h2 id="장애-대응-체크리스트"><a class="heading-anchor" href="#%EC%9E%A5%EC%95%A0-%EB%8C%80%EC%9D%91-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>장애 대응 체크리스트</h2>
+<ul>
+<li><input disabled="" type="checkbox"> request ID와 endpoint를 확보했다.</li>
+<li><input disabled="" type="checkbox"> API 오류인지 DB connection 오류인지 분리했다.</li>
+<li><input disabled="" type="checkbox"> <code>npm run migration:show</code> 결과를 확인했다.</li>
+<li><input disabled="" type="checkbox"> 최근 Migration과 배포 시점을 확인했다.</li>
+<li><input disabled="" type="checkbox"> affected table의 FK/index/row 상태를 확인했다.</li>
+<li><input disabled="" type="checkbox"> 공개 응답의 민감정보 노출 여부를 확인했다.</li>
+<li><input disabled="" type="checkbox"> 필요한 경우 API를 중지하고 DB backup을 보존했다.</li>
+<li><input disabled="" type="checkbox"> 원인과 재발 방지 조치를 <code>docs/music/troubleshooting.kr.md</code>에 추가했다.</li>
+</ul>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="api-reorganization-review.kr.html"><span>이전</span>Music API 서버 로직 재점검 및 구조 재정리 보고서</a><a class="pager-next" href="troubleshooting.kr.html"><span>다음</span>Music 원인 분석 및 트러블슈팅</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/music/checklists.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/music/checklists.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#%ED%95%99%EC%8A%B5-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8">학습 체크리스트</a></li><li class="toc-2"><a href="#%EA%B8%B0%EB%8A%A5-%EA%B0%9C%EB%B0%9C-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8">기능 개발 체크리스트</a></li><li class="toc-2"><a href="#db-%EB%B0%8F-migration-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8">DB 및 Migration 체크리스트</a></li><li class="toc-2"><a href="#%EC%9D%8C%EC%9B%90-%EB%B3%B4%EC%95%88-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8">음원 보안 체크리스트</a></li><li class="toc-2"><a href="#%EB%B0%B0%ED%8F%AC-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8">배포 체크리스트</a></li><li class="toc-2"><a href="#%EC%9E%A5%EC%95%A0-%EB%8C%80%EC%9D%91-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8">장애 대응 체크리스트</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

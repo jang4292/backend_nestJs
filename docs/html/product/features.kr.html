@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/product/features.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>기능 명세 (기획) · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section" open><summary>제품과 API</summary><ul class="nav-list"><li><a href="features.kr.html" data-page-id="docs/product/features.kr" aria-current="page">기능 명세 (기획)</a></li><li><a href="api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">제품과 API</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="기능-명세-기획">기능 명세 (기획)</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code>
+현재 구현을 기준으로 정리한 명세입니다. &quot;정책 미확정&quot; 표시는 제품 결정이 필요한 항목입니다.</p>
+</blockquote>
+<h2 id="1-계정"><a class="heading-anchor" href="#1-%EA%B3%84%EC%A0%95" aria-hidden="true" tabindex="-1">#</a>1. 계정</h2>
+<h3 id="11-회원가입-post-usersregister"><a class="heading-anchor" href="#11-%ED%9A%8C%EC%9B%90%EA%B0%80%EC%9E%85-post-usersregister" aria-hidden="true" tabindex="-1">#</a>1.1 회원가입 <code>POST /users/register</code></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>항목</th>
+<th>규칙</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>username</td>
+<td>필수, 4~50자, 고유. 대소문자와 관계없이 <code>google_</code>, <code>apple_</code>, <code>kakao_</code>, <code>naver_</code>, <code>facebook_</code> 접두사 사용 불가(SNS 계정용 예약)</td>
+</tr>
+<tr>
+<td>password</td>
+<td>필수, <strong>8자 이상, UTF-8 72바이트 이하</strong>(bcrypt는 72바이트 이후를 무시). bcrypt(cost 10)로 저장</td>
+</tr>
+<tr>
+<td>email</td>
+<td>선택, 이메일 형식, 255자 이하, 고유</td>
+</tr>
+<tr>
+<td>name</td>
+<td>선택, 100자 이하</td>
+</tr>
+<tr>
+<td>실패</td>
+<td>형식 오류 400, username/email 중복 409</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="12-로그인-post-authlogin"><a class="heading-anchor" href="#12-%EB%A1%9C%EA%B7%B8%EC%9D%B8-post-authlogin" aria-hidden="true" tabindex="-1">#</a>1.2 로그인 <code>POST /auth/login</code></h3>
+<ul>
+<li>요청: <code>{ identifierType: &#39;username&#39; | &#39;email&#39;, identifier, password }</code></li>
+<li>성공: <code>{ access_token, user }</code> (JWT HS256, 기본 만료 1시간 <code>JWT_EXPIRES_IN</code>)</li>
+<li>실패<ul>
+<li>401 <code>Invalid credentials</code>. 계정 없음, 비밀번호 없음(SNS 전용 계정), 불일치를 구분하지 않으며 응답 시간도 같게 맞춥니다.</li>
+<li>요청 제한 초과 시 429. 로그인은 IP당 분당 5회입니다.</li>
+<li><strong>계정 단위 제한:</strong> 같은 식별자(대소문자·앞뒤 공백 무시)로 15분 안에 10번 실패하면, 어떤 IP에서든 그 창이 끝날 때까지 429 <code>RATE_LIMITED</code>와 <code>Retry-After</code>(초)를 반환합니다. 올바른 비밀번호도 거부되며, 로그인에 성공하면 횟수가 초기화됩니다. 없는 계정도 같은 방식으로 셉니다.</li>
+<li>입력 상한: <code>identifier</code> 255자, <code>password</code> 1024자. 기존 비밀번호 호환을 위해 72바이트 제한은 두지 않습니다.</li>
+</ul>
+</li>
+</ul>
+<h3 id="13-프로필-getpatch-usersprofile-로그인-필요"><a class="heading-anchor" href="#13-%ED%94%84%EB%A1%9C%ED%95%84-getpatch-usersprofile-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%ED%95%84%EC%9A%94" aria-hidden="true" tabindex="-1">#</a>1.3 프로필 <code>GET/PATCH /users/profile</code> (로그인 필요)</h3>
+<ul>
+<li>응답 필드: <code>id, username, email, name, role, providers(연결된 SNS 목록), createdAt, updatedAt</code>. 비밀번호 해시는 어떤 응답에도 포함하지 않습니다.</li>
+<li>수정 가능 필드: <code>email</code>, <code>name</code>, <code>password</code></li>
+<li>email 변경: 다른 계정이 쓰는 email이면 409</li>
+<li>비밀번호 변경<ul>
+<li>기존 비밀번호가 있는 계정은 <code>currentPassword</code>가 필수입니다. 없으면 400, 틀리면 403입니다.</li>
+<li>비밀번호가 없는 SNS 전용 계정은 <code>currentPassword</code> 없이 최초 설정할 수 있습니다.</li>
+<li>새 비밀번호는 가입과 같은 정책(8자 이상, 72바이트 이하)입니다.</li>
+<li><strong>비밀번호를 바꾸면 그 전에 발급된 토큰이 모두 무효가 됩니다.</strong> 요청에 쓴 현재 토큰도 포함하므로 클라이언트는 다시 로그인해야 합니다(<code>users.sessionVersion</code>, 2026-11-09 결정).</li>
+</ul>
+</li>
+</ul>
+<h2 id="2-sns-로그인"><a class="heading-anchor" href="#2-sns-%EB%A1%9C%EA%B7%B8%EC%9D%B8" aria-hidden="true" tabindex="-1">#</a>2. SNS 로그인</h2>
+<blockquote>
+<p><strong>현재 상태: 5종 모두 비활성입니다. 운영은 로컬 로그인만 사용합니다.</strong></p>
+<ul>
+<li>provider는 <code>AUTH_&lt;PROVIDER&gt;_ENABLED=true</code>로 명시해야 켜집니다.</li>
+<li>꺼진 provider의 라우트는 503 <code>AUTH_&lt;PROVIDER&gt;_DISABLED</code>를 반환합니다.</li>
+<li>다시 켜는 조건은 <a href="../auth/sns-reenable-checklist.kr.html">재활성화 체크리스트</a>에 있습니다.</li>
+</ul>
+</blockquote>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>provider</th>
+<th>로그인 입력</th>
+<th>서버 검증</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Google</td>
+<td><code>idToken</code> 또는 <code>code</code>(+<code>redirectUri</code>, 선택 <code>codeVerifier</code>)</td>
+<td>ID Token 서명, <code>aud</code>(<code>GOOGLE_ALLOWED_AUDIENCES</code>), <code>iss</code>, 만료, 선택 nonce</td>
+</tr>
+<tr>
+<td>Apple</td>
+<td><code>idToken</code> 또는 <code>code</code></td>
+<td>JWKS 서명, <code>aud</code>(<code>APPLE_ALLOWED_AUDIENCES</code> 필수), <code>iss</code>, 만료, 선택 nonce</td>
+</tr>
+<tr>
+<td>Kakao</td>
+<td><code>accessToken</code> 또는 <code>code</code></td>
+<td><code>accessToken</code>이면 발급 앱(<code>app_id</code> = <code>KAKAO_APP_ID</code>) 확인 후 프로필 조회</td>
+</tr>
+<tr>
+<td>Naver</td>
+<td><code>code</code>(기본). <code>accessToken</code>은 <code>AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=true</code>일 때만</td>
+<td>code 교환 후 프로필 조회. accessToken은 발급 앱을 검증할 수 없어 기본 차단(400)</td>
+</tr>
+<tr>
+<td>Facebook</td>
+<td><code>accessToken</code> 또는 <code>code</code></td>
+<td><code>debug_token</code>으로 <code>app_id</code> 확인 후 프로필 조회</td>
+</tr>
+</tbody></table>
+</div>
+<p>공통 규칙:</p>
+<ul>
+<li><strong>계정 연결:</strong> <code>(provider, providerUserId)</code>로 기존 연결을 찾습니다. 없으면 username <code>&lt;provider&gt;_&lt;sub&gt;</code> 계정을 새로 만듭니다.</li>
+<li><strong>email 정책:</strong> provider email은 <code>social_accounts</code>에 저장합니다. <code>users.email</code>에는 비어 있을 때만 채우며, 다음 경우에는 쓰지 않습니다.<ul>
+<li>provider가 미검증이라고 알린 email</li>
+<li>다른 계정이 이미 쓰는 email</li>
+</ul>
+</li>
+<li><strong>자동 병합 없음:</strong> 로컬 계정과 같은 email이어도 자동으로 병합하지 않습니다(계정 탈취 방지).</li>
+<li><strong>name:</strong> 사용자가 설정한 <code>users.name</code>을 SNS 로그인 때마다 덮어쓰지 않습니다.</li>
+<li><strong>Apple email:</strong> ID Token claim을 우선합니다. 최초 인증 시 클라이언트가 보낸 email은 token에 email이 없을 때만 미검증으로 사용합니다.</li>
+<li><strong>기능 플래그(명시적 opt-in):</strong> <code>AUTH_&lt;PROVIDER&gt;_ENABLED=true</code>가 아니면(미지정 포함) 해당 provider의 모든 라우트가 외부 호출 없이 503 <code>AUTH_&lt;PROVIDER&gt;_DISABLED</code>를 반환합니다. 경로의 대소문자와 관계없이 적용됩니다. credential 키가 있어도 자동으로 켜지지 않습니다.</li>
+<li><strong>fail-closed:</strong> 켜진 provider라도 검증 설정(audience, <code>KAKAO_APP_ID</code>, redirect URI 허용 목록)이 비어 있으면 검증을 생략하지 않고 503 <code>AUTH_&lt;PROVIDER&gt;_CONFIG_MISSING</code>으로 거부합니다.</li>
+<li><strong>오류 코드:</strong> <code>AUTH_&lt;PROVIDER&gt;_&lt;REASON&gt;</code><ul>
+<li><code>BAD_REQUEST</code>: 400</li>
+<li><code>STATE_MISMATCH</code>, <code>EXCHANGE_FAILED</code>, <code>PROFILE_FETCH_FAILED</code>, <code>INVALID_*</code>, <code>TOKEN_EXPIRED</code>, <code>MISSING_SUB</code>, <code>NONCE_MISMATCH</code>: 401</li>
+<li><code>CONFIG_MISSING</code>: 503</li>
+<li><code>INTERNAL_ERROR</code>: 500. 메시지는 <code>Internal server error</code>로 가립니다.</li>
+</ul>
+</li>
+<li><strong>state:</strong> OAuth <code>state</code>는 redirect를 받는 클라이언트가 검증해야 합니다. 서버의 <code>state</code>/<code>expectedState</code> 비교는 보조 장치일 뿐입니다.</li>
+</ul>
+<h2 id="3-음악-카탈로그"><a class="heading-anchor" href="#3-%EC%9D%8C%EC%95%85-%EC%B9%B4%ED%83%88%EB%A1%9C%EA%B7%B8" aria-hidden="true" tabindex="-1">#</a>3. 음악 카탈로그</h2>
+<h3 id="31-track--audioasset"><a class="heading-anchor" href="#31-track--audioasset" aria-hidden="true" tabindex="-1">#</a>3.1 Track / AudioAsset</h3>
+<ul>
+<li><strong>Track:</strong> <code>title</code>(1–200자), <code>artist</code>(1–200자), <code>bpm</code>(0–400, 선택)</li>
+<li><strong>AudioAsset</strong><ul>
+<li>Track 하나에 여러 개를 둘 수 있습니다(1:N).</li>
+<li>필드: <code>url</code>(선택, http(s) 절대 URL, 2000자 이하), <code>duration</code>(초), <code>bpm</code>(분석값)</li>
+<li><code>Track.bpm</code>과 자동 동기화하지 않습니다.</li>
+</ul>
+</li>
+<li><strong>조회</strong><ul>
+<li>Track 목록·상세는 공개입니다. 목록은 최신순이며 <code>page</code>, <code>limit</code>(최대 100)를 받습니다.</li>
+<li>AudioAsset 목록은 내부 저장소 정보를 담고 있어 admin만 조회합니다.</li>
+</ul>
+</li>
+<li><strong>삭제:</strong> 플레이리스트에 포함된 Track은 삭제할 수 없습니다(409). AudioAsset은 Track과 함께 삭제됩니다.</li>
+</ul>
+<h3 id="32-playlist"><a class="heading-anchor" href="#32-playlist" aria-hidden="true" tabindex="-1">#</a>3.2 Playlist</h3>
+<ul>
+<li><strong>상태:</strong> <code>draft</code>로 생성하고, <code>published</code>가 되면 공개 API에 노출됩니다. <code>archived</code>는 공개하지 않습니다.<ul>
+<li>정책 미확정: 공개 상태 전이 규칙. 현재는 archived도 다시 published로 바꿀 수 있습니다.</li>
+</ul>
+</li>
+<li><strong>항목:</strong> <code>(playlistId, position)</code>이 고유합니다. 재정렬 요청에는 기존 항목을 모두 한 번씩 포함해야 합니다.<ul>
+<li>정책 미확정: 같은 Track을 중복 허용할지, 날짜당 플레이리스트를 하나로 제한할지(<a href="../music/decisions.html">결정 문서</a>)</li>
+</ul>
+</li>
+<li><strong>공개 응답:</strong> 제목, 설명, Track 요약, 순서만 반환합니다. 음원 URL, S3 키, 재생 토큰은 포함하지 않습니다.</li>
+</ul>
+<h3 id="33-legacy--musiclegacy-"><a class="heading-anchor" href="#33-legacy--musiclegacy-" aria-hidden="true" tabindex="-1">#</a>3.3 Legacy (<code>/music/legacy</code>)</h3>
+<ul>
+<li>Artist/Track/Playlist/PlaylistTrack CRUD를 보존합니다.</li>
+<li><strong>권한</strong><ul>
+<li>조회는 로그인 사용자 전체입니다. Track 목록·상세는 공개입니다.</li>
+<li>쓰기는 admin만 할 수 있습니다.</li>
+</ul>
+</li>
+<li><strong>오류:</strong> 연결된 Track이 있는 Artist를 삭제하면 409입니다. <code>by-date</code>는 <code>date=YYYY-MM-DD</code>가 필수입니다.</li>
+<li>정책 미확정: legacy 폐기 일정과 데이터 이전</li>
+</ul>
+<h2 id="4-공통-정책"><a class="heading-anchor" href="#4-%EA%B3%B5%ED%86%B5-%EC%A0%95%EC%B1%85" aria-hidden="true" tabindex="-1">#</a>4. 공통 정책</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>항목</th>
+<th>정책</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>오류 응답</td>
+<td><code>{ ok: false, requestId, errorCode, message }</code>. 5xx 메시지는 일반화하고 비밀값은 마스킹합니다</td>
+</tr>
+<tr>
+<td>요청 ID</td>
+<td><code>x-request-id</code>가 영문·숫자·<code>. _ : = + / -</code> 128자 이하면 그대로 쓰고, 아니면 새 UUID를 생성합니다. 응답 헤더로 돌려줍니다(CORS 노출)</td>
+</tr>
+<tr>
+<td>입력 검증</td>
+<td>전역 <code>ValidationPipe(whitelist, forbidNonWhitelisted, transform)</code>. 모든 문자열 입력에 길이 상한(DB 컬럼 길이 이하)</td>
+</tr>
+<tr>
+<td>요청 제한</td>
+<td>전역 <code>THROTTLE_LIMIT</code>/<code>THROTTLE_TTL</code>(기본 10회/60초), 로그인 IP당 5회/분 + 계정당 실패 10회/15분, <code>/health</code> 제외. proxy 뒤에서는 <code>TRUST_PROXY</code> 필수</td>
+</tr>
+<tr>
+<td>CORS</td>
+<td><code>CORS_ORIGIN</code> 쉼표 목록, <code>*</code> 금지</td>
+</tr>
+<tr>
+<td>문서</td>
+<td>Swagger <code>/api-docs</code>. production에서는 비노출</td>
+</tr>
+</tbody></table>
+</div>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="overview.kr.html"><span>이전</span>서비스 개요 (기획)</a><a class="pager-next" href="api-spec.kr.html"><span>다음</span>API 명세 (라우트·권한)</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/product/features.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/product/features.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-%EA%B3%84%EC%A0%95">1. 계정</a></li><li class="toc-3"><a href="#11-%ED%9A%8C%EC%9B%90%EA%B0%80%EC%9E%85-post-usersregister">1.1 회원가입 POST /users/register</a></li><li class="toc-3"><a href="#12-%EB%A1%9C%EA%B7%B8%EC%9D%B8-post-authlogin">1.2 로그인 POST /auth/login</a></li><li class="toc-3"><a href="#13-%ED%94%84%EB%A1%9C%ED%95%84-getpatch-usersprofile-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%ED%95%84%EC%9A%94">1.3 프로필 GET/PATCH /users/profile (로그인 필요)</a></li><li class="toc-2"><a href="#2-sns-%EB%A1%9C%EA%B7%B8%EC%9D%B8">2. SNS 로그인</a></li><li class="toc-2"><a href="#3-%EC%9D%8C%EC%95%85-%EC%B9%B4%ED%83%88%EB%A1%9C%EA%B7%B8">3. 음악 카탈로그</a></li><li class="toc-3"><a href="#31-track--audioasset">3.1 Track / AudioAsset</a></li><li class="toc-3"><a href="#32-playlist">3.2 Playlist</a></li><li class="toc-3"><a href="#33-legacy--musiclegacy-">3.3 Legacy ( /music/legacy )</a></li><li class="toc-2"><a href="#4-%EA%B3%B5%ED%86%B5-%EC%A0%95%EC%B1%85">4. 공통 정책</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

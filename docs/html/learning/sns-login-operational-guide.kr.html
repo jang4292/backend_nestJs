@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/learning/sns-login-operational-guide.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>SNS 로그인 빌드·동작·운영·학습 가이드 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section" open><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr" aria-current="page">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">인증·SNS 로그인</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="sns-로그인-빌드동작운영학습-가이드">SNS 로그인 빌드·동작·운영·학습 가이드</h1>
+<p>작성일: 2026-09-12  </p>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code></p>
+</blockquote>
+<p>이 문서는 현재 NestJS 프로젝트의 Google, Apple, Kakao, Naver, Facebook 로그인 흐름을 빌드하고 검증하며 운영하는 절차를 정리합니다. 실제 provider credential을 문서나 저장소에 기록하지 않고, 환경변수와 운영 secret 저장소를 통해 주입합니다.</p>
+<h2 id="1-구조"><a class="heading-anchor" href="#1-%EA%B5%AC%EC%A1%B0" aria-hidden="true" tabindex="-1">#</a>1. 구조</h2>
+<pre><code class="language-text">Client
+  -&gt; POST /auth/{provider}/login
+  -&gt; provider use-case
+  -&gt; provider adapter (JWKS, OAuth token endpoint, Graph/Profile API)
+  -&gt; SocialAccountLinkerPort
+  -&gt; users + social_accounts transaction
+  -&gt; SessionIssuerPort
+  -&gt; application JWT
+</code></pre>
+<ul>
+<li>Google, Apple: <code>idToken</code> 또는 authorization code</li>
+<li>Kakao, Naver, Facebook: access token 또는 authorization code</li>
+<li>계정 식별자: 이메일이 아니라 <code>(provider, providerUserId)</code></li>
+<li>세션: 모든 로그인 방식이 <code>SessionModule</code>의 JWT issuer를 공유</li>
+<li>저장: user와 social account 생성/갱신은 TypeORM transaction으로 처리</li>
+</ul>
+<h2 id="2-빌드와-단위-검증"><a class="heading-anchor" href="#2-%EB%B9%8C%EB%93%9C%EC%99%80-%EB%8B%A8%EC%9C%84-%EA%B2%80%EC%A6%9D" aria-hidden="true" tabindex="-1">#</a>2. 빌드와 단위 검증</h2>
+<p>Node와 npm 환경을 준비한 뒤 잠금 파일 기준으로 의존성을 설치합니다.</p>
+<pre><code class="language-bash">npm ci
+npm run build
+npm test -- --runInBand
+</code></pre>
+<p>변경한 TypeScript 파일만 먼저 lint합니다.</p>
+<pre><code class="language-bash">npx eslint \
+  src/config/app-env.ts \
+  src/common/auth/provider-readiness.guard.ts \
+  src/common/auth/provider-readiness.guard.spec.ts \
+  src/config/app-env.spec.ts
+</code></pre>
+<p>개발 서버의 <code>app_db_test</code> 권한이 준비되어 있으면 다음을 추가 실행합니다(Test 환경, <code>.env.test.local</code>).</p>
+<pre><code class="language-bash">npm run db:check:test
+npm run db:setup:test
+npm run test:e2e
+</code></pre>
+<p>실제 provider 서버 호출은 단위 테스트에서 mock으로 대체합니다. 실계정 OAuth 검증은 별도 staging 환경에서 redirect URI와 credential을 확인한 뒤 수행합니다.</p>
+<h2 id="3-환경변수-정책"><a class="heading-anchor" href="#3-%ED%99%98%EA%B2%BD%EB%B3%80%EC%88%98-%EC%A0%95%EC%B1%85" aria-hidden="true" tabindex="-1">#</a>3. 환경변수 정책</h2>
+<h3 id="공통-필수값"><a class="heading-anchor" href="#%EA%B3%B5%ED%86%B5-%ED%95%84%EC%88%98%EA%B0%92" aria-hidden="true" tabindex="-1">#</a>공통 필수값</h3>
+<pre><code class="language-env">NODE_ENV=development|test|production
+DB_TYPE=mariadb
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USERNAME=...
+DB_PASSWORD=...
+DB_DATABASE=...
+DB_SYNCHRONIZE=false
+JWT_SECRET=...
+JWT_EXPIRES_IN=1h
+</code></pre>
+<h3 id="provider-활성화"><a class="heading-anchor" href="#provider-%ED%99%9C%EC%84%B1%ED%99%94" aria-hidden="true" tabindex="-1">#</a>provider 활성화</h3>
+<pre><code class="language-env">AUTH_GOOGLE_ENABLED=true
+AUTH_APPLE_ENABLED=false
+AUTH_KAKAO_ENABLED=false
+AUTH_NAVER_ENABLED=false
+AUTH_FACEBOOK_ENABLED=false
+</code></pre>
+<p><code>false</code>인 provider는 route가 제거되지 않지만 controller와 외부 provider API를 실행하지 않고 <code>503</code>을 반환합니다.</p>
+<p>모든 provider는 명시적 opt-in입니다. flag를 생략하면 Google을 포함해 비활성이며, credential 키가 있어도 자동으로 켜지지 않습니다. 현재 운영은 로컬 로그인만 사용하므로 5종 모두 <code>false</code>입니다. 켜기 전에는 <code>docs/auth/sns-reenable-checklist.kr.md</code>를 완료하세요.</p>
+<h3 id="flow-설정"><a class="heading-anchor" href="#flow-%EC%84%A4%EC%A0%95" aria-hidden="true" tabindex="-1">#</a>flow 설정</h3>
+<ul>
+<li>Google ID token: <code>GOOGLE_ALLOWED_AUDIENCES</code></li>
+<li>Google code: <code>GOOGLE_OAUTH_CLIENT_ID</code>, <code>GOOGLE_OAUTH_CLIENT_SECRET</code>, <code>GOOGLE_OAUTH_REDIRECT_URIS</code></li>
+<li>Apple ID token: <code>APPLE_ALLOWED_AUDIENCES</code>(Apple이 활성화되면 모든 환경에서 필수)</li>
+<li>Apple code: <code>APPLE_SERVICE_ID</code>, <code>APPLE_TEAM_ID</code>, <code>APPLE_KEY_ID</code>, <code>APPLE_PRIVATE_KEY</code>, <code>APPLE_REDIRECT_URIS</code></li>
+<li>Kakao: <code>KAKAO_REST_API_KEY</code>, <code>KAKAO_APP_ID</code>(클라이언트 accessToken의 발급 앱 검증, production 필수); code flow는 <code>KAKAO_REDIRECT_URIS</code>를 함께 관리</li>
+<li>Naver: ⚠ accessToken의 발급 앱을 검증할 방법이 없으므로 accessToken 로그인은 기본 차단됩니다(<code>AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=false</code>). code flow만 사용합니다</li>
+<li>Naver: <code>NAVER_CLIENT_ID</code>; code flow는 <code>NAVER_CLIENT_SECRET</code>, <code>NAVER_REDIRECT_URIS</code>를 함께 관리</li>
+<li>Facebook: <code>FACEBOOK_APP_ID</code>, <code>FACEBOOK_APP_SECRET</code>; code flow는 <code>FACEBOOK_REDIRECT_URIS</code>를 함께 관리</li>
+</ul>
+<p>production에서 선택한 code-flow 설정을 일부만 입력하면 startup validation이 실패합니다. token-only 배포는 code-flow 설정을 모두 생략할 때만 허용됩니다. placeholder 값을 실제 secret처럼 입력하지 않습니다.</p>
+<h2 id="4-api-동작-계약"><a class="heading-anchor" href="#4-api-%EB%8F%99%EC%9E%91-%EA%B3%84%EC%95%BD" aria-hidden="true" tabindex="-1">#</a>4. API 동작 계약</h2>
+<h3 id="로그인"><a class="heading-anchor" href="#%EB%A1%9C%EA%B7%B8%EC%9D%B8" aria-hidden="true" tabindex="-1">#</a>로그인</h3>
+<pre><code class="language-text">POST /auth/google/login
+POST /auth/apple/login
+POST /auth/kakao/login
+POST /auth/naver/login
+POST /auth/facebook/login
+</code></pre>
+<p>각 요청은 token 계열 입력과 <code>code</code> 중 정확히 하나를 사용합니다. 둘 다 보내거나 둘 다 생략하면 provider별 <code>*_BAD_REQUEST</code>가 반환됩니다.</p>
+<p>성공 응답은 공통적으로 application JWT와 사용자 공개 정보를 반환합니다.</p>
+<pre><code class="language-json">{
+  &quot;ok&quot;: true,
+  &quot;requestId&quot;: &quot;...&quot;,
+  &quot;data&quot;: {
+    &quot;accessToken&quot;: &quot;&lt;application-jwt&gt;&quot;,
+    &quot;expiresIn&quot;: 3600,
+    &quot;user&quot;: { &quot;id&quot;: 1, &quot;username&quot;: &quot;google_...&quot;, &quot;email&quot;: &quot;user@example.com&quot; }
+  }
+}
+</code></pre>
+<h3 id="비활성-provider"><a class="heading-anchor" href="#%EB%B9%84%ED%99%9C%EC%84%B1-provider" aria-hidden="true" tabindex="-1">#</a>비활성 provider</h3>
+<pre><code class="language-json">{
+  &quot;ok&quot;: false,
+  &quot;requestId&quot;: &quot;...&quot;,
+  &quot;errorCode&quot;: &quot;AUTH_KAKAO_DISABLED&quot;,
+  &quot;message&quot;: &quot;This authentication provider is not available.&quot;
+}
+</code></pre>
+<p>HTTP status는 <code>503</code>입니다. <code>x-request-id</code>는 응답 헤더와 envelope에 함께 있어야 합니다.</p>
+<h3 id="oauth-code-보안"><a class="heading-anchor" href="#oauth-code-%EB%B3%B4%EC%95%88" aria-hidden="true" tabindex="-1">#</a>OAuth code 보안</h3>
+<ul>
+<li>code flow는 등록된 redirect URI만 사용합니다.</li>
+<li><code>state</code>와 <code>expectedState</code>는 둘 다 전달하거나 둘 다 생략해야 하며, 값이 다르면 state mismatch입니다.</li>
+<li>Google code flow에서는 PKCE <code>codeVerifier</code>를 사용합니다.</li>
+<li>token, code, client secret, private key는 로그에 기록하지 않습니다.</li>
+<li>이메일이 같다는 이유만으로 local 계정과 SNS 계정을 자동 병합하지 않습니다.</li>
+</ul>
+<h2 id="5-ec2--mariadb-운영-순서"><a class="heading-anchor" href="#5-ec2--mariadb-%EC%9A%B4%EC%98%81-%EC%88%9C%EC%84%9C" aria-hidden="true" tabindex="-1">#</a>5. EC2 + MariaDB 운영 순서</h2>
+<ol>
+<li>프로젝트 루트의 <code>.env.production</code>에 환경변수를 넣습니다(템플릿 <code>.env.production.example</code>).</li>
+<li>파일 권한을 <code>600</code>으로 제한하고 <code>npm run build &amp;&amp; npm run env:check:prod</code>로 검증합니다.</li>
+<li>MariaDB는 애플리케이션과 같은 EC2라면 <code>127.0.0.1:3306</code>으로 연결합니다.</li>
+<li>Security Group에서 3306을 인터넷에 공개하지 않습니다.</li>
+<li><code>DB_SYNCHRONIZE=false</code>를 확인합니다.</li>
+<li>build 후 <code>npm run migration:show:prod</code> → <code>npm run migration:run:prod</code>를 실행합니다.</li>
+<li>systemd 또는 PM2로 애플리케이션을 재시작합니다.</li>
+<li><code>/health</code>와 비활성 provider 503 응답을 확인합니다.</li>
+</ol>
+<p>권장 명령:</p>
+<pre><code class="language-bash">npm ci
+npm run build
+npm run env:check:prod
+npm run db:check:prod
+npm run migration:show:prod
+npm run migration:run:prod
+npm run pm2:reload
+curl -i http://127.0.0.1:3000/health
+</code></pre>
+<p>배포 중 migration이 실패하면 애플리케이션을 정상 서비스 상태로 전환하지 않습니다. 장애 로그에는 request ID, 경로, HTTP status만 남기고 secret과 token은 남기지 않습니다.</p>
+<h2 id="6-장애-대응"><a class="heading-anchor" href="#6-%EC%9E%A5%EC%95%A0-%EB%8C%80%EC%9D%91" aria-hidden="true" tabindex="-1">#</a>6. 장애 대응</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>증상</th>
+<th>확인 항목</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>AUTH_*_DISABLED</code> 503</td>
+<td><code>AUTH_{PROVIDER}_ENABLED</code>, 배포 환경변수 주입, systemd/PM2 <code>--update-env</code></td>
+</tr>
+<tr>
+<td><code>*_CONFIG_MISSING</code> 503</td>
+<td>활성 flow의 client credential, redirect URI, Apple private key</td>
+</tr>
+<tr>
+<td>state mismatch</td>
+<td>client가 보낸 state와 expectedState 보존 여부, callback 재시도 여부</td>
+</tr>
+<tr>
+<td>profile fetch 실패</td>
+<td>provider access token 만료, provider API 상태, Graph/API version</td>
+</tr>
+<tr>
+<td>앱 startup 실패</td>
+<td><code>npm run build</code>, DB credential, <code>DB_SYNCHRONIZE</code>, production provider 설정</td>
+</tr>
+<tr>
+<td>DB 로그인 후 계정 미생성</td>
+<td>migration 상태, <code>social_accounts</code> unique/FK, transaction rollback 로그</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="7-학습-순서"><a class="heading-anchor" href="#7-%ED%95%99%EC%8A%B5-%EC%88%9C%EC%84%9C" aria-hidden="true" tabindex="-1">#</a>7. 학습 순서</h2>
+<ol>
+<li><code>src/app.module.ts</code>에서 provider module, global guard, filter를 확인합니다.</li>
+<li><code>src/auth/{provider}/interface</code>에서 DTO와 route 계약을 읽습니다.</li>
+<li><code>application/use-cases</code>에서 token/code 상호배타성, state 검증, 세션 발급 흐름을 읽습니다.</li>
+<li><code>infrastructure</code>에서 외부 API/JWKS adapter와 오류 매핑을 읽습니다.</li>
+<li><code>src/users/infrastructure/social-account-linker-typeorm.adapter.ts</code>에서 transaction 경계를 확인합니다.</li>
+<li><code>src/auth/session</code>에서 provider-agnostic JWT 발급을 확인합니다.</li>
+<li>각 구조를 해당 <code>*.spec.ts</code> 테스트와 함께 읽고, mock이 외부 호출을 어떻게 대체하는지 확인합니다.</li>
+</ol>
+<p>핵심 학습 포인트는 provider별 외부 인증과 애플리케이션 계정·세션 발급을 분리하는 것입니다. provider가 바뀌어도 계정 연결 포트, transaction, JWT 세션 계약은 공용으로 유지합니다.</p>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../auth/sns-login-overview.kr.html"><span>이전</span>SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a><a class="pager-next" href="../auth/sns-reenable-checklist.kr.html"><span>다음</span>SNS 로그인 재활성화 체크리스트</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/learning/sns-login-operational-guide.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/learning/sns-login-operational-guide.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-%EA%B5%AC%EC%A1%B0">1. 구조</a></li><li class="toc-2"><a href="#2-%EB%B9%8C%EB%93%9C%EC%99%80-%EB%8B%A8%EC%9C%84-%EA%B2%80%EC%A6%9D">2. 빌드와 단위 검증</a></li><li class="toc-2"><a href="#3-%ED%99%98%EA%B2%BD%EB%B3%80%EC%88%98-%EC%A0%95%EC%B1%85">3. 환경변수 정책</a></li><li class="toc-3"><a href="#%EA%B3%B5%ED%86%B5-%ED%95%84%EC%88%98%EA%B0%92">공통 필수값</a></li><li class="toc-3"><a href="#provider-%ED%99%9C%EC%84%B1%ED%99%94">provider 활성화</a></li><li class="toc-3"><a href="#flow-%EC%84%A4%EC%A0%95">flow 설정</a></li><li class="toc-2"><a href="#4-api-%EB%8F%99%EC%9E%91-%EA%B3%84%EC%95%BD">4. API 동작 계약</a></li><li class="toc-3"><a href="#%EB%A1%9C%EA%B7%B8%EC%9D%B8">로그인</a></li><li class="toc-3"><a href="#%EB%B9%84%ED%99%9C%EC%84%B1-provider">비활성 provider</a></li><li class="toc-3"><a href="#oauth-code-%EB%B3%B4%EC%95%88">OAuth code 보안</a></li><li class="toc-2"><a href="#5-ec2--mariadb-%EC%9A%B4%EC%98%81-%EC%88%9C%EC%84%9C">5. EC2 + MariaDB 운영 순서</a></li><li class="toc-2"><a href="#6-%EC%9E%A5%EC%95%A0-%EB%8C%80%EC%9D%91">6. 장애 대응</a></li><li class="toc-2"><a href="#7-%ED%95%99%EC%8A%B5-%EC%88%9C%EC%84%9C">7. 학습 순서</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

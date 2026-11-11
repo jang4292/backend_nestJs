@@ -1,0 +1,35 @@
+# PM2 대신 systemd로 실행할 때의 예시입니다(기본 운영 경로는 PM2: npm run pm2:reload).
+# 앱은 WorkingDirectory의 .env.production 을 직접 읽으므로 EnvironmentFile이 필요 없습니다.
+[Unit]
+Description=Backend NestJS API
+After=network.target mariadb.service
+
+[Service]
+Type=simple
+User=backend-nestjs
+WorkingDirectory=/opt/backend-nestjs
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node /opt/backend-nestjs/dist/main.js
+Restart=on-failure
+RestartSec=5
+# graceful shutdown(enableShutdownHooks)에 시간을 줍니다.
+TimeoutStopSec=15
+
+# --- 샌드박스(OPS-15): 앱이 탈취돼도 시스템을 바꾸지 못하게 합니다 ---
+# 권한 상승 금지(setuid 등)
+NoNewPrivileges=true
+# /usr, /etc 등을 읽기 전용으로. 앱이 쓸 곳만 ReadWritePaths로 엽니다(로그를 파일로 남기면 그 경로 추가)
+ProtectSystem=strict
+ReadWritePaths=/opt/backend-nestjs/logs
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+# 확인: systemd-analyze security backend-nestjs
+
+[Install]
+WantedBy=multi-user.target

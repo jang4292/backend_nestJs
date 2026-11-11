@@ -1,0 +1,1404 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/audit/2026-11-08-project-audit.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>프로젝트 전수 감사 리포트 (2026-11-08) · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section" open><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr" aria-current="page">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">작업 기록과 감사</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="프로젝트-전수-감사-리포트-2026-11-08">프로젝트 전수 감사 리포트 (2026-11-08)</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code>
+이전 감사: <a href="2026-09-02-project-audit.kr.html">2026-09-02 감사</a> (이력 문서)
+후속 조치(같은 날): 환경별 DB·env 파일 정리와 SNS 로그인 전면 비활성화 — <a href="#9-후속-조치-환경별-db-설정과-sns-비활성화">9장</a>
+후속 조치(2026-11-09): 새 개발 DB 연결, DB 생성·점검 도구, MariaDB CI 검증, migration 결함 수정, Local/Test/Prod 정리와 다른 DB 삭제 방지 — <a href="#10-후속-조치-개발-db-연결과-스키마-관리-체계">10장</a>
+전체 작업 내역과 배운 점: <a href="../learning/work-history-2026-11.kr.html">작업 내역과 배운 점</a>
+<strong>후속 보안 감사(2026-11-09):</strong> <a href="2026-11-09-security-audit.kr.html">보안 전수 감사</a>. 비활성 SNS provider 우회(SEC-17, High)를 수정하고, 이 리포트의 AUTH-3·SEC-14·SEC-16을 해결했습니다. 이후 보안 항목은 그 리포트를 기준으로 봅니다.</p>
+</blockquote>
+<h2 id="0-요약"><a class="heading-anchor" href="#0-%EC%9A%94%EC%95%BD" aria-hidden="true" tabindex="-1">#</a>0. 요약</h2>
+<ul>
+<li><strong>감사 기준:</strong> Clean Architecture, DDD, API 백엔드 운영 기준(보안, 인증·인가, 데이터 무결성, 운영성, 테스트)</li>
+<li><strong>감사 대상:</strong> develop 전체와 develop → main 릴리스 범위</li>
+</ul>
+<h3 id="결론"><a class="heading-anchor" href="#%EA%B2%B0%EB%A1%A0" aria-hidden="true" tabindex="-1">#</a>결론</h3>
+<p>이번 브랜치(<code>chore/project-audit-2026-11</code>)를 develop에 병합하면 develop → main 릴리스를 진행할 수 있는 상태가 됩니다. 다만 다음 두 가지는 배포 전에 반드시 수행해야 합니다.</p>
+<ul>
+<li><a href="#53-배포-체크리스트">5.3 배포 체크리스트</a></li>
+<li><a href="#6-로드맵">6. 로드맵</a>의 <strong>P0</strong> 항목 확인</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>지표</th>
+<th>감사 시작 (<code>9b731ef</code>)</th>
+<th>감사 후</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>유닛 테스트</td>
+<td>31 suites / 163 tests 통과</td>
+<td><strong>46 suites / 310 tests 통과</strong></td>
+</tr>
+<tr>
+<td>빌드 타입체크</td>
+<td>통과</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>전체 타입체크(spec 포함)</td>
+<td>오류 4건</td>
+<td><strong>0건</strong></td>
+</tr>
+<tr>
+<td>ESLint</td>
+<td>오류 17건(파일 10개)</td>
+<td><strong>0건</strong></td>
+</tr>
+<tr>
+<td>Prettier</td>
+<td>확인 스크립트 없음</td>
+<td><code>format:check</code> 통과</td>
+</tr>
+<tr>
+<td><code>npm audit --omit=dev</code></td>
+<td>11건 (critical 1, high 4, moderate 6)</td>
+<td><strong>5건 (high 2, moderate 3)</strong> — 남은 건은 모두 메이저 업그레이드가 필요함</td>
+</tr>
+<tr>
+<td>CI</td>
+<td>없음</td>
+<td>GitHub Actions: <code>verify</code>(lint, format, typecheck, test, build, audit) + <code>database</code>(MariaDB 10.11에서 migration 전체 체인, revert/재적용, e2e)</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="이번에-수정한-주요-결함"><a class="heading-anchor" href="#%EC%9D%B4%EB%B2%88%EC%97%90-%EC%88%98%EC%A0%95%ED%95%9C-%EC%A3%BC%EC%9A%94-%EA%B2%B0%ED%95%A8" aria-hidden="true" tabindex="-1">#</a>이번에 수정한 주요 결함</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>결함</th>
+<th>수정 전 동작</th>
+<th>수정 후</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>음악 쓰기 API 권한 없음</td>
+<td>가입만 하면 누구나 카탈로그·플레이리스트를 생성, 수정, 삭제, 공개 가능</td>
+<td>admin 전용</td>
+</tr>
+<tr>
+<td>PM2·Secrets Manager 경로의 환경변수 누락</td>
+<td>23개 키가 전달되지 않아 Apple/Kakao/Naver/Facebook 로그인이 꺼진 채(503) 기동됨</td>
+<td>모든 키 전달</td>
+</tr>
+<tr>
+<td>Artist 삭제 시 FK 판별 오류</td>
+<td>PostgreSQL 코드로 판별해 409 대신 500</td>
+<td>409</td>
+</tr>
+<tr>
+<td>SNS 로그인 중 DB 오류 노출</td>
+<td>오류 메시지가 클라이언트에 그대로 전달되고 서버 로그에는 남지 않음</td>
+<td>마스킹 후 로그 기록</td>
+</tr>
+<tr>
+<td>다른 앱에서 발급된 Kakao 토큰</td>
+<td>이 서비스 로그인에 그대로 사용 가능</td>
+<td>발급 앱 검증 후 거부</td>
+</tr>
+<tr>
+<td>reverse proxy 뒤의 요청 제한</td>
+<td>모든 사용자가 proxy IP 하나의 제한을 공유</td>
+<td><code>TRUST_PROXY</code> 설정으로 실제 클라이언트 IP 기준 집계</td>
+</tr>
+<tr>
+<td>로컬 계정과 같은 email의 SNS 첫 로그인</td>
+<td><code>users.email</code> UNIQUE 위반으로 500</td>
+<td>정상 로그인</td>
+</tr>
+<tr>
+<td>빈 MariaDB에 migration 적용(10장)</td>
+<td><code>AddUniqueEmailToUsers</code>에서 <code>MySql does not support unique constraints</code>로 실패. 새 DB를 만들 수 없음</td>
+<td>전체 체인 통과(CI가 매 PR 검증)</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="1-범위와-방법"><a class="heading-anchor" href="#1-%EB%B2%94%EC%9C%84%EC%99%80-%EB%B0%A9%EB%B2%95" aria-hidden="true" tabindex="-1">#</a>1. 범위와 방법</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>영역</th>
+<th>방법</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>아키텍처</td>
+<td>계층 의존 방향(domain ← application ← infrastructure/interface), 포트·어댑터 일관성, 모듈 경계, 중복 코드 비교(provider 이름 정규화 후 diff)</td>
+</tr>
+<tr>
+<td>API 보안</td>
+<td>인증·인가 범위, 입력 검증, 오류 정보 노출, OAuth/OIDC 검증 단계, rate limit, CORS, 프록시</td>
+</tr>
+<tr>
+<td>데이터</td>
+<td>TypeORM entity와 migration 정합성, FK/UNIQUE 오류 처리, 트랜잭션 격리, 비밀번호 컬럼 노출</td>
+</tr>
+<tr>
+<td>운영</td>
+<td>환경변수 검증, 배포 스크립트(PM2/systemd/Secrets Manager), health, graceful shutdown, 외부 호출 타임아웃, 의존성 취약점</td>
+</tr>
+<tr>
+<td>품질</td>
+<td>타입체크, ESLint, Prettier, 유닛 테스트, 빌드, CI</td>
+</tr>
+<tr>
+<td>저장소</td>
+<td><code>.gitignore</code>, 추적 파일, Git 이력의 비밀값 검색(값은 출력하지 않음)</td>
+</tr>
+<tr>
+<td>문서</td>
+<td>docs/ 전체의 현행성(삭제된 경로, PostgreSQL 서술, 실제 라우트와의 차이)</td>
+</tr>
+<tr>
+<td>릴리스</td>
+<td><code>main...develop</code> diff, 브레이킹 변경, 배포 순서</td>
+</tr>
+</tbody></table>
+</div>
+<p>실행 검증은 아래 세 가지로 했습니다.</p>
+<ol>
+<li><strong>품질 게이트:</strong> <code>npm run lint:check</code>, <code>npm run format:check</code>, <code>npm run typecheck</code>, <code>npx jest</code>, <code>npm run build</code>, <code>npm audit --omit=dev</code></li>
+<li><strong>DI·HTTP 스모크:</strong> 빌드된 <code>AppModule</code> 전체에서 <code>DataSource</code>만 가짜로 바꿔 띄우고 실제 HTTP 요청을 보냈습니다(결과는 <a href="#7-검증과-한계">7장</a>).</li>
+<li><strong>라우트 추출:</strong> 빌드된 컨트롤러 메타데이터에서 전체 라우트와 권한을 뽑았습니다(<a href="../product/api-spec.kr.html">API 명세</a>의 근거).</li>
+</ol>
+<h2 id="2-심각도-기준"><a class="heading-anchor" href="#2-%EC%8B%AC%EA%B0%81%EB%8F%84-%EA%B8%B0%EC%A4%80" aria-hidden="true" tabindex="-1">#</a>2. 심각도 기준</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>등급</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>High</td>
+<td>권한 우회, 비밀 정보 노출, 데이터 무결성 손상, 운영 기능 중단으로 이어질 수 있음</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>특정 조건에서 오동작하거나 보안 수준을 낮추고, 유지보수 비용을 크게 높임</td>
+</tr>
+<tr>
+<td>Low</td>
+<td>일관성, 가독성, 관측성 개선</td>
+</tr>
+</tbody></table>
+</div>
+<p>조치 상태 표기:</p>
+<ul>
+<li>✅: 이번 브랜치에서 수정</li>
+<li>📌: <a href="#6-로드맵">로드맵</a>에 기록</li>
+<li>📝: 문서화 또는 운영 절차로 대응</li>
+</ul>
+<h2 id="3-발견-사항과-조치"><a class="heading-anchor" href="#3-%EB%B0%9C%EA%B2%AC-%EC%82%AC%ED%95%AD%EA%B3%BC-%EC%A1%B0%EC%B9%98" aria-hidden="true" tabindex="-1">#</a>3. 발견 사항과 조치</h2>
+<h3 id="31-clean-architecture--ddd"><a class="heading-anchor" href="#31-clean-architecture--ddd" aria-hidden="true" tabindex="-1">#</a>3.1 Clean Architecture / DDD</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>등급</th>
+<th>발견 사항</th>
+<th>근거</th>
+<th>조치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CA-1</td>
+<td>High</td>
+<td>Users use-case가 <code>Repository&lt;User&gt;</code>, <code>bcrypt</code>, interface DTO에 직접 의존함</td>
+<td><code>src/users/application/use-cases/*</code> (수정 전)</td>
+<td>✅ <code>USER_REPOSITORY_PORT</code>·<code>PASSWORD_HASHER_PORT</code>와 TypeORM/bcrypt 어댑터 도입, command 타입 사용</td>
+</tr>
+<tr>
+<td>CA-2</td>
+<td>Medium</td>
+<td>application 계층이 <code>@nestjs/common</code> HTTP 예외를 직접 던짐(17개 파일)</td>
+<td>예: <code>delete-artist.use-case.ts</code></td>
+<td>✅ <code>DomainError</code> 계층 도입, <code>GlobalExceptionFilter</code>에서 중앙 매핑. users, local login, artist 삭제는 전환함 / 📌 legacy·catalog의 나머지 use-case</td>
+</tr>
+<tr>
+<td>CA-3</td>
+<td>Medium</td>
+<td>legacy music use-case 9개가 interface DTO를 import하고 entity를 그대로 반환함</td>
+<td><code>src/music/application/use-cases/**</code></td>
+<td>📌 P2</td>
+</tr>
+<tr>
+<td>CA-4</td>
+<td>Medium</td>
+<td>모든 repository port 시그니처가 TypeORM entity를 사용함(도메인 모델과 ORM 미분리)</td>
+<td><code>src/music/application/ports/*</code>, <code>user-repository.port.ts</code></td>
+<td>📌 P2. 이번에는 의존 방향만 정리</td>
+</tr>
+<tr>
+<td>CA-5</td>
+<td>Medium</td>
+<td><code>CatalogMusicService</code>가 port와 Repository를 섞어 쓰는 god service이며 use-case가 없음</td>
+<td><code>src/music/catalog/catalog-music.service.ts</code></td>
+<td>📌 P2</td>
+</tr>
+<tr>
+<td>CA-6</td>
+<td>Medium</td>
+<td><code>MusicService</code>가 use-case 20개를 그대로 전달하는 facade라 계층만 늘림</td>
+<td><code>src/music/music.service.ts</code></td>
+<td>📌 P2</td>
+</tr>
+<tr>
+<td>CA-7</td>
+<td>Medium</td>
+<td>SNS 5개 모듈이 사실상 복사본: 예외 필터 5개 동일, kakao/naver/facebook use-case·controller는 provider 이름을 지우면 0줄 차이</td>
+<td><code>src/auth/{provider}/**</code></td>
+<td>✅ 공통 <code>SocialAuthError</code>·<code>SocialAuthExceptionFilter</code>·<code>toSocialAuthError</code>로 통합 / 📌 use-case 통합 P2</td>
+</tr>
+<tr>
+<td>CA-8</td>
+<td>Medium</td>
+<td>도메인 모델이 빈약함: Playlist 공개 상태 전이에 규칙이 없음(archived를 published로 바꿀 수 있고, 재공개하면 <code>publishedAt</code>이 초기화됨)</td>
+<td><code>catalog-music.service.ts</code> publish</td>
+<td>📌 P1</td>
+</tr>
+<tr>
+<td>CA-9</td>
+<td>Low</td>
+<td><code>common</code>과 <code>session</code>이 users 모듈 타입에 의존함(공유 커널 경계 역전)</td>
+<td><code>common/auth/authenticated-request.ts</code>, <code>session-issuer.port.ts</code></td>
+<td>📌 P2</td>
+</tr>
+<tr>
+<td>CA-10</td>
+<td>Low</td>
+<td><code>JwtAuthGuard</code>가 passport 전역 등록이라는 부수효과에 기대어 동작하고, users ↔ session 모듈이 순환 참조함</td>
+<td><code>session.module.ts</code></td>
+<td>📌 P2</td>
+</tr>
+<tr>
+<td>CA-11</td>
+<td>Low</td>
+<td>전역과 중복된 <code>RequestIdInterceptor</code>·<code>@Body(ValidationPipe)</code> 적용</td>
+<td>SNS·users·local 컨트롤러</td>
+<td>✅ 제거</td>
+</tr>
+<tr>
+<td>CA-12</td>
+<td>Low</td>
+<td>죽은 코드</td>
+<td><code>common/filters/http-exception.filter.ts</code>, <code>google/interface/response.helper.ts</code>, <code>validate-password.use-case.ts</code></td>
+<td>✅ 삭제</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="32-api-보안-인가입력노출"><a class="heading-anchor" href="#32-api-%EB%B3%B4%EC%95%88-%EC%9D%B8%EA%B0%80%EC%9E%85%EB%A0%A5%EB%85%B8%EC%B6%9C" aria-hidden="true" tabindex="-1">#</a>3.2 API 보안 (인가·입력·노출)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>등급</th>
+<th>발견 사항</th>
+<th>조치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SEC-1</td>
+<td><strong>High</strong></td>
+<td>역할·소유자 개념이 없어, 가입한 누구나 카탈로그 트랙·음원·플레이리스트를 생성, 수정, 삭제, 공개할 수 있음</td>
+<td>✅ 최소 RBAC 도입: <code>users.role</code>(user/admin) 마이그레이션, <code>@AdminOnly()</code>. catalog 쓰기 11개, legacy 쓰기 12개 라우트를 admin 전용으로 전환. 쓰기 라우트에 <code>@AdminOnly</code>가 빠지면 실패하는 메타데이터 spec 추가</td>
+</tr>
+<tr>
+<td>SEC-2</td>
+<td><strong>High</strong></td>
+<td><code>trust proxy</code> 미설정. proxy 뒤에서는 Throttler가 proxy IP 하나로 집계해, 전역 10회/60초와 로그인 5회/분 제한을 전체 사용자가 공유함</td>
+<td>✅ <code>TRUST_PROXY</code> 환경변수 추가 / 📝 배포 시 설정 필요</td>
+</tr>
+<tr>
+<td>SEC-3</td>
+<td><strong>High</strong></td>
+<td>Kakao·Naver는 클라이언트가 보낸 access token으로 프로필만 조회하고, 그 토큰이 이 앱에서 발급됐는지 확인하지 않음(토큰 치환 공격)</td>
+<td>✅ Kakao: <code>/v1/user/access_token_info</code>의 <code>app_id</code>를 <code>KAKAO_APP_ID</code>와 비교 / ✅ Naver: accessToken 로그인 기본 차단(<code>AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=false</code>, code flow만). SNS 전체도 현재 비활성</td>
+</tr>
+<tr>
+<td>SEC-4</td>
+<td><strong>High</strong></td>
+<td>SNS 컨트롤러가 알 수 없는 오류(TypeORM &quot;Duplicate entry &#39;x@y&#39;…&quot; 등)의 원문을 <code>*_INTERNAL_ERROR</code>로 클라이언트에 그대로 내려보내고 서버에는 로그를 남기지 않음</td>
+<td>✅ 메시지를 마스킹하고 requestId·원인(<code>Error.cause</code>)을 redaction 후 로그에 기록</td>
+</tr>
+<tr>
+<td>SEC-5</td>
+<td>Medium</td>
+<td>OAuth <code>state</code>와 <code>expectedState</code>가 모두 클라이언트 body에서 들어와, 서버 측 비교는 CSRF 방어 효과가 없음</td>
+<td>📝 state 검증은 redirect를 받는 클라이언트의 책임임을 문서화 / 📌 P1 서버 저장형 state/PKCE</td>
+</tr>
+<tr>
+<td>SEC-6</td>
+<td>Medium</td>
+<td><code>exchange-code</code>가 provider의 access/refresh token을 호출자에게 반환하고, <code>verify-id-token</code>은 공개 검증기로 동작함</td>
+<td>📌 P1 필요성 재검토 후 제한</td>
+</tr>
+<tr>
+<td>SEC-7</td>
+<td>Medium</td>
+<td>Apple 최초 로그인 시 클라이언트가 보낸(서명되지 않은) email이 ID Token의 email을 덮어씀</td>
+<td>✅ token claim 우선. 클라이언트 email은 token에 없을 때만 미검증으로 사용하고 <code>@IsEmail</code>로 검증</td>
+</tr>
+<tr>
+<td>SEC-8</td>
+<td>Medium</td>
+<td>SNS 로그인이 <code>users.email</code>을 검증 여부와 상관없이 덮어씀. 다른 계정이 쓰는 email이면 UNIQUE 위반으로 500</td>
+<td>✅ 기존 email은 덮어쓰지 않음. 미검증이거나 이미 사용 중인 email은 <code>users</code>에 기록하지 않고 <code>social_accounts</code>에만 저장. 자동 계정 병합은 하지 않음</td>
+</tr>
+<tr>
+<td>SEC-9</td>
+<td>Medium</td>
+<td>계정이 없거나 비밀번호가 없으면 bcrypt를 건너뛰어 응답 시간으로 계정 존재 여부가 드러남</td>
+<td>✅ 모든 경로에서 bcrypt 비교를 1회 수행</td>
+</tr>
+<tr>
+<td>SEC-10</td>
+<td>Medium</td>
+<td><code>PATCH /users/profile</code>이 현재 비밀번호 확인 없이 비밀번호를 변경함(탈취된 토큰으로 계정 영구 장악 가능)</td>
+<td>✅ <code>currentPassword</code> 필수(SNS 전용 계정의 최초 설정은 허용), 불일치 시 403</td>
+</tr>
+<tr>
+<td>SEC-11</td>
+<td>Medium</td>
+<td>Apple 비운영 환경에서 aud 미검증(다른 앱용 Apple 토큰도 통과)</td>
+<td>✅ Apple이 활성화되면 환경과 무관하게 <code>APPLE_ALLOWED_AUDIENCES</code> 필수</td>
+</tr>
+<tr>
+<td>SEC-12</td>
+<td>Low</td>
+<td>로컬 가입으로 <code>google_&lt;sub&gt;</code> 같은 SNS username을 선점하면 해당 SNS 사용자의 최초 로그인이 막힘</td>
+<td>✅ <code>&lt;provider&gt;_</code> 접두사 예약</td>
+</tr>
+<tr>
+<td>SEC-13</td>
+<td>Low</td>
+<td>CORS가 origin 1개만 받고 <code>*</code>를 거부하지 않음, <code>x-request-id</code> 미노출</td>
+<td>✅ 쉼표 목록 지원, <code>*</code> 거부, <code>exposedHeaders</code> 설정</td>
+</tr>
+<tr>
+<td>SEC-14</td>
+<td>Low</td>
+<td>클라이언트가 보낸 <code>x-request-id</code>를 형식·길이 검사 없이 사용함(로그 주입)</td>
+<td>✅ 2026-11-09 <a href="2026-11-09-security-audit.kr.html">보안 감사</a>에서 수정</td>
+</tr>
+<tr>
+<td>SEC-15</td>
+<td>Low</td>
+<td>Facebook Graph 호출에 <code>appsecret_proof</code> 없음</td>
+<td>📌 P2</td>
+</tr>
+<tr>
+<td>SEC-16</td>
+<td>Low</td>
+<td>redirect URI 허용 목록이 비어 있으면 검사를 생략함(Google/Apple/Naver는 운영에서도 필수가 아님)</td>
+<td>✅ 2026-11-09 <a href="2026-11-09-security-audit.kr.html">보안 감사</a>에서 수정(목록이 비면 code flow 거부)</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="33-인증세션"><a class="heading-anchor" href="#33-%EC%9D%B8%EC%A6%9D%EC%84%B8%EC%85%98" aria-hidden="true" tabindex="-1">#</a>3.3 인증·세션</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>등급</th>
+<th>발견 사항</th>
+<th>조치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AUTH-1</td>
+<td>Medium</td>
+<td>JWT 검증 알고리즘 미고정, placeholder 탐지가 <code>change-this</code>/<code>your-</code>만 확인해 <code>replace-with-…</code>가 운영에서 통과, 길이 기준 없음</td>
+<td>✅ HS256 고정(서명·검증), 운영에서 32자 이상과 <code>replace-with</code> 탐지</td>
+</tr>
+<tr>
+<td>AUTH-2</td>
+<td>Medium</td>
+<td><code>JWT_EXPIRES_IN</code> 해석 불일치. <code>&#39;3600&#39;</code>을 서명할 때는 3.6초(ms)로, 응답에는 3600초로 보고. <code>&#39;7 days&#39;</code>는 서명은 7일인데 응답에는 3600</td>
+<td>✅ 기간 파서를 하나로 통일하고 기동 시 형식 검증</td>
+</tr>
+<tr>
+<td>AUTH-3</td>
+<td>Medium</td>
+<td>refresh token과 폐기 기능이 없음. 비밀번호를 바꿔도 기존 토큰이 만료 전까지 유효</td>
+<td>✅ 2026-11-09 비밀번호 변경 시 무효화(<code>sessionVersion</code>) / 📌 P1 refresh token</td>
+</tr>
+<tr>
+<td>AUTH-4</td>
+<td>Medium</td>
+<td><code>PublicUser.providers</code>가 항상 <code>[]</code>(<code>byId</code>가 <code>socialAccounts</code>를 로드하지 않음)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>AUTH-5</td>
+<td>Medium</td>
+<td>응답 형식 불일치: local은 <code>{access_token, user}</code>, SNS는 <code>{ok, requestId, data:{accessToken,…}}</code></td>
+<td>📌 P1 클라이언트 계약 결정 필요</td>
+</tr>
+<tr>
+<td>AUTH-6</td>
+<td>Low</td>
+<td>JWT에 iss/aud claim 없음</td>
+<td>📌 P2</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="34-db마이그레이션"><a class="heading-anchor" href="#34-db%EB%A7%88%EC%9D%B4%EA%B7%B8%EB%A0%88%EC%9D%B4%EC%85%98" aria-hidden="true" tabindex="-1">#</a>3.4 DB·마이그레이션</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>등급</th>
+<th>발견 사항</th>
+<th>조치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DB-1</td>
+<td><strong>High</strong></td>
+<td>Artist 삭제의 FK 판별이 PostgreSQL <code>&#39;23503&#39;</code> 기준이라, MariaDB에서 연결된 track이 있으면 409 대신 500</td>
+<td>✅ <code>src/database/mariadb-errors.ts</code>(<code>ER_ROW_IS_REFERENCED_2</code>/1451, <code>ER_DUP_ENTRY</code>/1062)로 통일</td>
+</tr>
+<tr>
+<td>DB-2</td>
+<td>Medium</td>
+<td>플레이리스트에 포함된 catalog track을 삭제하면 <code>RESTRICT</code> FK 때문에 500</td>
+<td>✅ 409</td>
+</tr>
+<tr>
+<td>DB-3</td>
+<td>Medium</td>
+<td><code>migrations/mariadb/1763000000000-CreateMariaDbSchema.ts</code>가 비재귀 glob에 걸리지 않아 실행된 적이 없는 고아 파일(전체 스키마를 재생성하는 내용)</td>
+<td>✅ 삭제(Git 이력에는 보존)</td>
+</tr>
+<tr>
+<td>DB-4</td>
+<td>Medium</td>
+<td>SNS 동시 최초 로그인 복구 시, 실패한 REPEATABLE READ 트랜잭션 스냅샷 안에서 다시 조회해 경쟁 행이 보이지 않음</td>
+<td>✅ 트랜잭션 밖에서 재조회</td>
+</tr>
+<tr>
+<td>DB-5</td>
+<td>Medium</td>
+<td><code>users.password</code>가 기본 조회에 포함됨(presenter에만 의존해 비밀번호를 숨김)</td>
+<td>✅ <code>select: false</code>, 로그인·비밀번호 변경 경로만 명시적으로 조회</td>
+</tr>
+<tr>
+<td>DB-6</td>
+<td>Medium</td>
+<td>운영 서버의 migration이 ts-node와 <code>src</code>, devDependencies에 의존함</td>
+<td>✅ <code>migration:*:prod</code>가 <code>dist/database/data-source.js</code>를 node로 실행</td>
+</tr>
+<tr>
+<td>DB-7</td>
+<td>Medium</td>
+<td><code>RepairLegacyMariaDbSchema.down()</code>은 비어 있고 <code>ArchiveLegacyMusicSchema.down()</code>은 예외를 던짐. MariaDB DDL은 암묵적으로 커밋됨</td>
+<td>📝 배포 전 백업 필수, 롤백은 백업 복원으로 처리(<a href="#54-롤백">5.4</a>)</td>
+</tr>
+<tr>
+<td>DB-8</td>
+<td>Low</td>
+<td>플레이리스트 재정렬이 트랜잭션 밖에서 항목을 읽고, 2N회 UPDATE하며, 항목 수 상한이 없음</td>
+<td>📌 P1</td>
+</tr>
+<tr>
+<td>DB-9</td>
+<td>Low</td>
+<td>검색이 <code>LOWER(...) LIKE &#39;%…%&#39;</code>라 인덱스를 못 쓰고 <code>%</code>/<code>_</code>를 이스케이프하지 않음</td>
+<td>📌 P2</td>
+</tr>
+<tr>
+<td>DB-10</td>
+<td>Low</td>
+<td>공개 플레이리스트 목록이 개수를 세려고 모든 항목을 로드함</td>
+<td>📌 P2</td>
+</tr>
+<tr>
+<td>DB-11</td>
+<td>Low</td>
+<td><code>DB_POOL_MIN</code>을 검증만 하고 사용하지 않음(mysql2는 min 개념이 없음)</td>
+<td>📌 P2 정리</td>
+</tr>
+<tr>
+<td>DB-12</td>
+<td>Medium</td>
+<td>entity 메타데이터와 migration 결과가 다름(drift): FK·인덱스 이름, <code>datetime</code> vs <code>datetime(6)</code>, entity에 없는 인덱스, collation. <code>migration:generate</code> 초안에 의도하지 않은 변경이 섞임</td>
+<td>📌 P1 entity에 이름·정밀도 선언(DB 변경 없음) 권장. 그때까지 CI drift 단계는 보고만 함</td>
+</tr>
+<tr>
+<td>DB-13</td>
+<td><strong>High</strong></td>
+<td><code>1761-AddUniqueEmailToUsers</code>, <code>1762-CreateSocialAccounts</code>가 TypeORM MySQL 드라이버가 지원하지 않는 <code>create/dropUniqueConstraint</code>를 사용. 빈 MariaDB에서 체인이 실패(기존 DB는 이력만 기록되어 드러나지 않았음)</td>
+<td>✅ 같은 이름의 unique index로 수정. 이미 기록된 DB는 영향 없음</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="35-운영-설정배포관측"><a class="heading-anchor" href="#35-%EC%9A%B4%EC%98%81-%EC%84%A4%EC%A0%95%EB%B0%B0%ED%8F%AC%EA%B4%80%EC%B8%A1" aria-hidden="true" tabindex="-1">#</a>3.5 운영 (설정·배포·관측)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>등급</th>
+<th>발견 사항</th>
+<th>조치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OPS-1</td>
+<td><strong>High</strong></td>
+<td><code>ecosystem.config.cjs</code>와 <code>export-secrets-env.cjs</code>의 키 목록에서 23개가 빠짐(<code>DB_TYPE</code>, <code>DATABASE_URL</code>, <code>AUTH_*_ENABLED</code>, <code>APPLE_*</code>, <code>KAKAO_*</code>, <code>NAVER_*</code>, <code>FACEBOOK_*</code>)</td>
+<td>✅ 단일 목록 <code>scripts/runtime-env-keys.cjs</code>로 통합하고, <code>AppEnv</code>와 어긋나면 실패하는 spec 추가</td>
+</tr>
+<tr>
+<td>OPS-2</td>
+<td>Medium</td>
+<td>graceful shutdown이 없어 SIGTERM 시 요청 처리 중단, DB 풀 미정리</td>
+<td>✅ <code>enableShutdownHooks()</code>, PM2 <code>kill_timeout</code></td>
+</tr>
+<tr>
+<td>OPS-3</td>
+<td>Medium</td>
+<td><code>/health</code>가 DB 장애에도 항상 200이고 rate limit 대상임</td>
+<td>✅ DB 장애 시 503 <code>degraded</code>, <code>@SkipThrottle()</code></td>
+</tr>
+<tr>
+<td>OPS-4</td>
+<td>Medium</td>
+<td>SNS 외부 호출에 타임아웃이 없고, JSON이 아닌 응답이면 예외 발생</td>
+<td>✅ <code>fetchWithTimeout</code>(5초), <code>readJsonSafely</code></td>
+</tr>
+<tr>
+<td>OPS-5</td>
+<td>Medium</td>
+<td>CI가 없고, <code>lint</code> 스크립트가 <code>--fix</code>만 있으며, Node 버전 고정이 없음</td>
+<td>✅ GitHub Actions, <code>lint:check</code>·<code>typecheck</code>·<code>format:check</code>, <code>.nvmrc</code>(24)·<code>engines</code></td>
+</tr>
+<tr>
+<td>OPS-6</td>
+<td>Medium</td>
+<td>구조화 로그와 액세스 로그가 없고, requestId는 오류일 때만 로그에 남음</td>
+<td>📌 P1</td>
+</tr>
+<tr>
+<td>OPS-7</td>
+<td>Medium</td>
+<td>의존성 취약점 11건</td>
+<td>✅ <code>npm audit fix</code>로 5건까지 감소 / 📌 P1 NestJS 12·TypeORM 1.x 업그레이드(남은 high는 multer인데, 파일 업로드 미사용으로 실제 경로 없음)</td>
+</tr>
+<tr>
+<td>OPS-8</td>
+<td>Low</td>
+<td>배포 경로가 systemd와 PM2 두 가지로 문서화되어 있음</td>
+<td>✅ PM2 + <code>.env.production</code>을 기본으로 통일, systemd는 같은 env 파일을 쓰는 대안으로만 유지</td>
+</tr>
+<tr>
+<td>OPS-9</td>
+<td>Low</td>
+<td>의도된 503(provider 비활성)이 ERROR 등급으로 stack과 함께 로그에 남음</td>
+<td>📌 P2</td>
+</tr>
+<tr>
+<td>OPS-10</td>
+<td>Low</td>
+<td><code>main.ts</code>에서 <code>console.*</code> 사용</td>
+<td>✅ Nest <code>Logger</code></td>
+</tr>
+<tr>
+<td>OPS-11</td>
+<td>Low</td>
+<td><code>NODE_ENV</code>가 비어 있으면 development로 간주되어 Swagger가 노출됨</td>
+<td>📝 배포 체크리스트에 <code>NODE_ENV=production</code> 명시</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="36-테스트"><a class="heading-anchor" href="#36-%ED%85%8C%EC%8A%A4%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>3.6 테스트</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>등급</th>
+<th>발견 사항</th>
+<th>조치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T-1</td>
+<td>Medium</td>
+<td>users use-case, social linker, 비밀번호 해셔 spec 0개</td>
+<td>✅ 추가</td>
+</tr>
+<tr>
+<td>T-2</td>
+<td>Medium</td>
+<td>legacy use-case 15개 spec 없음, catalog publish/reorder 미검증</td>
+<td>📌 P1</td>
+</tr>
+<tr>
+<td>T-3</td>
+<td>Medium</td>
+<td>e2e가 <code>/</code>와 <code>/health</code>만 검사하고, DB가 필요하며 CI에 없음</td>
+<td>🟡 CI <code>database</code> job에서 MariaDB 10.11로 e2e 실행(10장). 시나리오 확장은 📌 P1</td>
+</tr>
+<tr>
+<td>T-4</td>
+<td>Medium</td>
+<td>SNS 인프라 어댑터 spec 없음(이번에 Kakao 토큰 검증 spec만 추가)</td>
+<td>📌 P1</td>
+</tr>
+<tr>
+<td>T-5</td>
+<td>Low</td>
+<td>spec 타입 오류 4건, lint 오류 17건</td>
+<td>✅</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="37-저장소-위생-gitignore-등"><a class="heading-anchor" href="#37-%EC%A0%80%EC%9E%A5%EC%86%8C-%EC%9C%84%EC%83%9D-gitignore-%EB%93%B1" aria-hidden="true" tabindex="-1">#</a>3.7 저장소 위생 (.gitignore 등)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>등급</th>
+<th>발견 사항</th>
+<th>조치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>R-1</td>
+<td>Low</td>
+<td><code>.gitignore</code> 중복(키·인증서 블록 2회, <code>dist</code>/<code>dist/</code>, <code>.cache</code> 3회)과 무관한 프레임워크 섹션(Next/Nuxt/Gatsby 등). <code>.DS_Store</code>, <code>.idea/</code>, <code>.vscode/</code>, <code>.claude/settings.local.json</code>, <code>tmp/</code>, <code>.pm2/</code> 누락</td>
+<td>✅ NestJS 기준으로 재작성</td>
+</tr>
+<tr>
+<td>R-2</td>
+<td>Low</td>
+<td>추적 중인 <code>.claude/settings.json</code>에 일회성 <code>xargs sed</code> 리팩터링 명령, 광범위한 <code>git rm *</code>·<code>git mv *</code> 허용, PostgreSQL <code>pg_isready</code> 잔재</td>
+<td>✅ npm/jest/tsc 허용만 남김</td>
+</tr>
+<tr>
+<td>R-3</td>
+<td>Low</td>
+<td>예제 env와 README에 실제 호스트로 보이는 <code>DB_HOST</code> 값</td>
+<td>✅ <code>127.0.0.1</code>로 교체 / 📝 Git 이력에는 남아 있음(비밀값 아님). 3306 외부 비공개 유지</td>
+</tr>
+<tr>
+<td>R-4</td>
+<td>Low</td>
+<td>CA 번들 파일명 불일치(<code>config/global-bundle.pem</code> vs 문서의 <code>rds-ca-bundle.pem</code>)</td>
+<td>✅ <code>config/global-bundle.pem</code>으로 통일, 다운로드 방법 기재</td>
+</tr>
+<tr>
+<td>R-5</td>
+<td>Info</td>
+<td>Git 이력 비밀값 검색: <code>.env</code>, <code>*.pem</code>, <code>*.key</code> 커밋 이력 없음. <code>JWT_SECRET=</code>·<code>CLIENT_SECRET=</code>·<code>PRIVATE KEY</code>·<code>AKIA</code> 검색 결과 없음. <code>DB_PASSWORD=</code> 1건은 redaction 테스트용 가짜 값</td>
+<td>이상 없음</td>
+</tr>
+<tr>
+<td>R-6</td>
+<td>Low</td>
+<td>커밋·PR 제목 규칙 불일치. 4개 커밋이 PR 없이 develop에 직접 push됨</td>
+<td>📝 <a href="#8-커밋pr-컨벤션-권고">8장</a> / 📌 브랜치 보호 규칙</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="38-문서"><a class="heading-anchor" href="#38-%EB%AC%B8%EC%84%9C" aria-hidden="true" tabindex="-1">#</a>3.8 문서</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>등급</th>
+<th>발견 사항</th>
+<th>조치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>D-1</td>
+<td>Medium</td>
+<td><code>API_EXAMPLES.md</code> 로그인 예시가 <code>{username, password}</code>라 현재 API에서 400</td>
+<td>✅ <code>{identifierType, identifier, password}</code></td>
+</tr>
+<tr>
+<td>D-2</td>
+<td>Medium</td>
+<td>기획(제품 요구사항) 문서 없음</td>
+<td>✅ <a href="../product/overview.kr.html">docs/product</a> 신설(현재 코드 기준으로 역정리)</td>
+</tr>
+<tr>
+<td>D-3</td>
+<td>Low</td>
+<td>삭제된 경로(<code>auth.service.ts</code>, <code>social-common/</code> 등)와 PostgreSQL 서술이 남은 문서</td>
+<td>✅ 갱신 또는 삭제. 모든 유지 문서에 최신화 기준 표기</td>
+</tr>
+<tr>
+<td>D-4</td>
+<td>Low</td>
+<td>2천 줄 이상의 Copilot 프롬프트 2개가 &quot;요구사항&quot; 문서로 링크됨</td>
+<td>✅ 미해결 요구사항을 <a href="#6-로드맵">로드맵</a>·<a href="../music/decisions.html">결정 문서</a>로 옮긴 뒤 삭제</td>
+</tr>
+<tr>
+<td>D-5</td>
+<td>Low</td>
+<td>docs 인덱스 없음</td>
+<td>✅ <a href="../index.html">docs/README.md</a></td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="4-이번-브랜치의-변경-요약"><a class="heading-anchor" href="#4-%EC%9D%B4%EB%B2%88-%EB%B8%8C%EB%9E%9C%EC%B9%98%EC%9D%98-%EB%B3%80%EA%B2%BD-%EC%9A%94%EC%95%BD" aria-hidden="true" tabindex="-1">#</a>4. 이번 브랜치의 변경 요약</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>커밋</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>chore(repo)</code></td>
+<td><code>.gitignore</code> 재작성, <code>.claude/settings.json</code> 정리, 예제 env placeholder화, 고아 migration 삭제</td>
+</tr>
+<tr>
+<td><code>chore(ci)</code></td>
+<td>lint·타입 오류 수정, <code>lint:check</code>·<code>typecheck</code>·<code>format:check</code>, <code>.nvmrc</code>, 미사용 의존성 4개 제거, <code>npm audit fix</code>, GitHub Actions</td>
+</tr>
+<tr>
+<td><code>fix(config)</code></td>
+<td>런타임 env 키 단일화, <code>TRUST_PROXY</code>, graceful shutdown, CORS 목록, JWT HS256·길이·만료 형식, Apple aud·Kakao app id 요구</td>
+</tr>
+<tr>
+<td><code>fix(db)</code></td>
+<td>MariaDB 오류 판별 공용화(FK 409), <code>DomainError</code> 중앙 매핑</td>
+</tr>
+<tr>
+<td><code>feat(users,auth)</code></td>
+<td>users 포트·어댑터, 비밀번호 <code>select:false</code>, 타이밍 균등화, <code>currentPassword</code>, providers 로드, 예약 username, social linker 수정, 최소 RBAC</td>
+</tr>
+<tr>
+<td><code>fix(api)</code></td>
+<td><code>/health</code> 503, by-date 검증, 공개 트랙 목록 페이지네이션(최대 100)</td>
+</tr>
+<tr>
+<td><code>refactor(auth)</code></td>
+<td>SNS 공통 오류 처리, Kakao 토큰 앱 검증, Apple email 우선순위, 외부 호출 타임아웃</td>
+</tr>
+<tr>
+<td><code>docs</code></td>
+<td>이 리포트, docs 인덱스, 기획 문서, 기존 문서 최신화와 정리</td>
+</tr>
+</tbody></table>
+</div>
+<p>신규 마이그레이션은 <code>1765000000000-AddRoleToUsers</code> 하나입니다. <code>users.role ENUM(&#39;user&#39;,&#39;admin&#39;) NOT NULL DEFAULT &#39;user&#39;</code>를 추가하며 <code>down()</code>은 컬럼을 삭제합니다.</p>
+<h2 id="5-릴리스-점검-develop--main"><a class="heading-anchor" href="#5-%EB%A6%B4%EB%A6%AC%EC%8A%A4-%EC%A0%90%EA%B2%80-develop--main" aria-hidden="true" tabindex="-1">#</a>5. 릴리스 점검 (develop → main)</h2>
+<h3 id="51-범위"><a class="heading-anchor" href="#51-%EB%B2%94%EC%9C%84" aria-hidden="true" tabindex="-1">#</a>5.1 범위</h3>
+<ul>
+<li>develop은 main보다 커밋 11개 앞서 있습니다(이번 브랜치 병합 후 +1 merge).</li>
+<li>main에만 있는 변경은 없습니다. main의 <code>ca1272a</code>는 merge base와 트리가 같으므로 충돌하지 않습니다.</li>
+<li>main은 users와 local auth만 있는 초기 앱입니다. 기능은 PostgreSQL, Nest 기본 오류 형식, Throttler 미적용 상태입니다.</li>
+<li>develop은 다음을 추가합니다.<ul>
+<li>MariaDB 전용 전환</li>
+<li>SNS 로그인 5종</li>
+<li>음악 카탈로그와 legacy API</li>
+<li>공통 오류 envelope</li>
+<li>migration 체계</li>
+<li>이번 감사 보완 전체</li>
+</ul>
+</li>
+</ul>
+<h3 id="52-브레이킹-변경-main-기준-클라이언트운영"><a class="heading-anchor" href="#52-%EB%B8%8C%EB%A0%88%EC%9D%B4%ED%82%B9-%EB%B3%80%EA%B2%BD-main-%EA%B8%B0%EC%A4%80-%ED%81%B4%EB%9D%BC%EC%9D%B4%EC%96%B8%ED%8A%B8%EC%9A%B4%EC%98%81" aria-hidden="true" tabindex="-1">#</a>5.2 브레이킹 변경 (main 기준 클라이언트·운영)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>변경</th>
+<th>영향</th>
+<th>대응</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>DB: PostgreSQL → <strong>MariaDB 전용</strong>(<code>pg</code> 제거, <code>DB_TYPE=mariadb</code>만 허용)</td>
+<td>main 운영 DB가 PostgreSQL이면 데이터 이전 필요</td>
+<td>백업 → MariaDB에 migration 적용 → users 데이터 이전 스크립트(필요 시)</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>POST /auth/login</code> body가 <code>{username, password}</code>에서 <code>{identifierType: &#39;username&#39;|&#39;email&#39;, identifier, password}</code>로 바뀜</td>
+<td>기존 클라이언트는 400</td>
+<td>클라이언트 동시 배포</td>
+</tr>
+<tr>
+<td>3</td>
+<td>오류 응답 형식이 Nest 기본 <code>{statusCode, message, error}</code>에서 <code>{ok:false, requestId, errorCode, message}</code>로 바뀜</td>
+<td>오류 파싱 로직</td>
+<td>클라이언트 수정</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>PATCH /users/profile</code> 비밀번호 변경에 <code>currentPassword</code> 필수</td>
+<td>비밀번호 변경 UI</td>
+<td>클라이언트 수정</td>
+</tr>
+<tr>
+<td>5</td>
+<td>음악 쓰기 API가 admin 전용</td>
+<td>관리 도구</td>
+<td>배포 후 admin 지정</td>
+</tr>
+<tr>
+<td>6</td>
+<td>운영 기동 조건 강화: <code>JWT_SECRET</code> 32자 이상·placeholder 금지, <code>JWT_EXPIRES_IN</code> 형식, <code>CORS_ORIGIN</code>에 <code>*</code> 금지, Apple 활성 시 <code>APPLE_ALLOWED_AUDIENCES</code>, 운영에서 Kakao 활성 시 <code>KAKAO_APP_ID</code></td>
+<td>조건을 못 맞추면 서버가 뜨지 않음</td>
+<td>배포 전 비밀값 점검</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>/health</code>가 DB 장애 시 503</td>
+<td>LB·모니터링 판정</td>
+<td>의도된 동작</td>
+</tr>
+<tr>
+<td>8</td>
+<td>로컬 가입 시 <code>&lt;provider&gt;_</code> 접두사 username 거부</td>
+<td>신규 가입만 해당</td>
+<td>—</td>
+</tr>
+<tr>
+<td>9</td>
+<td>사용자 응답에 <code>role</code>, <code>providers</code> 필드 추가</td>
+<td>추가만 있음</td>
+<td>—</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="53-배포-체크리스트"><a class="heading-anchor" href="#53-%EB%B0%B0%ED%8F%AC-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>5.3 배포 체크리스트</h3>
+<ol>
+<li>MariaDB 전체 백업: <code>mysqldump --single-transaction --routines</code>. 자세한 내용은 <a href="../music/database/mariadb-operations.html">MariaDB 운영</a>을 참고합니다.</li>
+<li>비밀값을 점검합니다.<ul>
+<li><code>JWT_SECRET</code>이 32자 이상인지 확인하고, <code>NODE_ENV=production</code>과 <code>CORS_ORIGIN</code>을 설정합니다.</li>
+<li>reverse proxy 뒤라면 <code>TRUST_PROXY=1</code>을 설정합니다.</li>
+<li>Kakao를 사용하면 <code>KAKAO_APP_ID</code>, Apple을 사용하면 <code>APPLE_ALLOWED_AUDIENCES</code>를 설정합니다.</li>
+</ul>
+</li>
+<li>빌드하고 마이그레이션을 적용합니다(<code>.env.production</code> 기준, <a href="../deployment/mariadb-systemd.kr.html">EC2 배포 가이드</a>).<pre><code class="language-bash">git pull --ff-only &amp;&amp; npm ci &amp;&amp; npm run build
+npm run env:check:prod          # 설정 검증(DB 접속 없음)
+npm run db:check:prod           # 읽기 전용: 접속·권한·pending 목록
+npm run migration:show:prod     # 1765000000000-AddRoleToUsers가 pending인지 확인
+npm run migration:run:prod
+</code></pre>
+</li>
+<li>admin을 지정합니다: <code>UPDATE users SET role = &#39;admin&#39; WHERE username = &#39;&lt;admin-username&gt;&#39;;</code></li>
+<li><code>npm run pm2:reload</code>로 재기동한 뒤 <code>curl -fsS http://127.0.0.1:${PORT:-3000}/health</code>가 200인지 확인합니다.</li>
+<li>스모크 테스트를 합니다.<ul>
+<li>일반 사용자 토큰으로 <code>POST /music/tracks</code>를 보내 403이 나오는지 확인합니다.</li>
+<li>admin 토큰으로 같은 요청이 201인지 확인합니다.</li>
+<li>공개 목록 <code>GET /music/public/playlists</code>가 200인지 확인합니다.</li>
+</ul>
+</li>
+</ol>
+<h3 id="54-롤백"><a class="heading-anchor" href="#54-%EB%A1%A4%EB%B0%B1" aria-hidden="true" tabindex="-1">#</a>5.4 롤백</h3>
+<ul>
+<li>애플리케이션은 이전 빌드로 <code>pm2:reload</code>합니다.</li>
+<li><code>AddRoleToUsers</code>는 <code>npm run migration:revert:prod</code>로 되돌릴 수 있습니다(CI가 down/up을 매 PR 검증).</li>
+<li>그 이전 migration 중 <code>ArchiveLegacyMusicSchema</code>와 <code>RepairLegacyMariaDbSchema</code>는 down이 없으므로, 문제가 생기면 <strong>1번에서 만든 백업을 복원</strong>합니다.</li>
+</ul>
+<h2 id="6-로드맵"><a class="heading-anchor" href="#6-%EB%A1%9C%EB%93%9C%EB%A7%B5" aria-hidden="true" tabindex="-1">#</a>6. 로드맵</h2>
+<p>삭제한 Copilot 프롬프트 문서 2개의 미해결 요구사항도 이 목록으로 옮겼습니다.</p>
+<h3 id="p0-main-배포-전-결정-또는-확인"><a class="heading-anchor" href="#p0-main-%EB%B0%B0%ED%8F%AC-%EC%A0%84-%EA%B2%B0%EC%A0%95-%EB%98%90%EB%8A%94-%ED%99%95%EC%9D%B8" aria-hidden="true" tabindex="-1">#</a>P0: main 배포 전 결정 또는 확인</h3>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> <strong>Naver 토큰 치환 방어(SEC-3):</strong> accessToken 로그인을 기본 차단하고 code flow만 허용했습니다. SNS 전체도 현재 비활성입니다.</li>
+<li><input disabled="" type="checkbox"> 운영 서버에 <code>.env.production</code>을 작성하고 <code>npm run env:check:prod</code>가 OK인지 확인합니다(<a href="../deployment/database-environments.kr.html">환경별 DB 가이드</a>).</li>
+<li><input disabled="" type="checkbox"> 새 개발 서버 연결: <code>.env</code>·<code>.env.test.local</code>에 비밀번호를 입력하고 <code>npm run db:check</code> → <code>npm run db:setup</code> → <code>npm run db:setup:test</code> → <code>npm run test:e2e</code>를 실행합니다(<a href="#10-후속-조치-개발-db-연결과-스키마-관리-체계">10장</a>).</li>
+<li><input disabled="" type="checkbox"> main 운영 DB의 PostgreSQL 데이터 이전 필요 여부를 확인합니다(브레이킹 변경 1).</li>
+<li><input disabled="" type="checkbox"> 클라이언트에 로그인 body, 오류 envelope, <code>currentPassword</code> 변경을 공지하고 함께 배포합니다(브레이킹 변경 2–4).</li>
+<li><input disabled="" type="checkbox"> 운영 <code>JWT_SECRET</code> 길이를 점검하고, proxy 구성에 맞게 <code>TRUST_PROXY</code>를 설정합니다.</li>
+<li><input disabled="" type="checkbox"> GitHub 브랜치 보호: develop/main에 PR과 CI 통과를 필수로 합니다.</li>
+</ul>
+<h3 id="p1-다음-스프린트"><a class="heading-anchor" href="#p1-%EB%8B%A4%EC%9D%8C-%EC%8A%A4%ED%94%84%EB%A6%B0%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>P1: 다음 스프린트</h3>
+<ul>
+<li>인증·세션<ul>
+<li>refresh token(원문 미저장, rotation), logout/revoke</li>
+<li><del>비밀번호 변경 시 기존 토큰 무효화(AUTH-3)</del> → 2026-11-09 완료(<code>sessionVersion</code>)</li>
+</ul>
+</li>
+<li>OAuth<ul>
+<li>서버 저장형 state/nonce/PKCE 트랜잭션(SEC-5)</li>
+<li><code>exchange-code</code>·<code>verify-id-token</code> 공개 범위 재검토(SEC-6)</li>
+<li><del>redirect URI 허용 목록을 운영 필수로 전환(SEC-16)</del> → 2026-11-09 완료(목록이 비면 code flow 거부)</li>
+</ul>
+</li>
+<li>응답 계약: local과 SNS 로그인 응답 envelope 통일(AUTH-5)</li>
+<li>Playlist 정책<ul>
+<li>공개 상태 전이 규칙(CA-8)</li>
+<li>재정렬 트랜잭션 보강과 항목 수 상한(DB-8)</li>
+<li>날짜 중복·Track 중복 정책 확정(<a href="../music/decisions.html">결정 문서</a>)</li>
+</ul>
+</li>
+<li>운영<ul>
+<li>구조화 로그·액세스 로그, requestId 전파(OPS-6)</li>
+<li>로그인 감사 로그</li>
+</ul>
+</li>
+<li>의존성: NestJS 12·TypeORM 1.x 업그레이드 검토로 남은 audit 5건 해소(OPS-7)</li>
+<li>마이그레이션: migration 실패 정책과 백업 자동화</li>
+<li>테스트<ul>
+<li>e2e 시나리오 확장(CI <code>database</code> job에서 실행): provider disabled, DB down, UNIQUE/FK, 트랜잭션 rollback, 오류 envelope(T-3)</li>
+<li>entity·migration drift 해소 후 CI drift 단계를 필수로 전환(DB-12)</li>
+<li>legacy use-case와 catalog publish/reorder spec(T-2)</li>
+<li>SNS 어댑터 spec(T-4)</li>
+</ul>
+</li>
+</ul>
+<h3 id="p2-구조-성숙화"><a class="heading-anchor" href="#p2-%EA%B5%AC%EC%A1%B0-%EC%84%B1%EC%88%99%ED%99%94" aria-hidden="true" tabindex="-1">#</a>P2: 구조 성숙화</h3>
+<ul>
+<li>도메인 모델과 ORM entity 분리, port 시그니처를 도메인 타입으로 전환(CA-4)</li>
+<li><code>CatalogMusicService</code>를 use-case로 분해(CA-5), <code>MusicService</code> facade 제거(CA-6)</li>
+<li>kakao/naver/facebook 로그인 use-case를 공통 템플릿으로 통합(CA-7)</li>
+<li>나머지 use-case의 <code>DomainError</code> 전환(CA-2), DTO import 제거(CA-3)</li>
+<li>공유 커널 경계 정리(CA-9), session 모듈 의존 구조 정리(CA-10)</li>
+<li>legacy 음악 모듈 폐기 일정과 데이터 이전 결정</li>
+<li>Playlist 소유권(ownerId) 또는 editor 역할이 필요한지 제품 결정</li>
+<li>검색: LIKE 이스케이프, FULLTEXT 또는 별도 검색 인덱스(DB-9). 공개 목록 count 쿼리 최적화(DB-10)</li>
+<li><del><code>x-request-id</code> 형식 검증(SEC-14)</del>(2026-11-09 완료), Facebook <code>appsecret_proof</code>(SEC-15), JWT iss/aud(AUTH-6)</li>
+<li><code>GET /music/tracks/:trackId/audio-assets</code>가 없는 트랙에도 <code>[]</code>을 반환하는 문제를 404로 정리(스모크 테스트에서 발견)</li>
+<li>배포 경로를 하나로 통일(OPS-8), 의도된 503의 로그 등급 조정(OPS-9), <code>DB_POOL_MIN</code> 정리(DB-11)</li>
+<li><code>noImplicitAny</code> 활성화 등 tsconfig strict 강화</li>
+<li>S3/CloudFront 음원 업로드와 서명 URL(음원 보안 요구사항)</li>
+</ul>
+<h2 id="7-검증과-한계"><a class="heading-anchor" href="#7-%EA%B2%80%EC%A6%9D%EA%B3%BC-%ED%95%9C%EA%B3%84" aria-hidden="true" tabindex="-1">#</a>7. 검증과 한계</h2>
+<h3 id="71-실행-결과-감사-후"><a class="heading-anchor" href="#71-%EC%8B%A4%ED%96%89-%EA%B2%B0%EA%B3%BC-%EA%B0%90%EC%82%AC-%ED%9B%84" aria-hidden="true" tabindex="-1">#</a>7.1 실행 결과 (감사 후)</h3>
+<pre><code class="language-text">npm run lint:check    → 0 problems
+npm run format:check  → All matched files use Prettier code style
+npm run typecheck     → 0 errors
+npx jest              → 46 suites / 310 tests passed
+npm run build         → success
+npm audit --omit=dev  → 5 vulnerabilities (3 moderate, 2 high)
+</code></pre>
+<h3 id="72-dihttp-스모크-가짜-datasource로-appmodule-전체-기동"><a class="heading-anchor" href="#72-dihttp-%EC%8A%A4%EB%AA%A8%ED%81%AC-%EA%B0%80%EC%A7%9C-datasource%EB%A1%9C-appmodule-%EC%A0%84%EC%B2%B4-%EA%B8%B0%EB%8F%99" aria-hidden="true" tabindex="-1">#</a>7.2 DI·HTTP 스모크 (가짜 DataSource로 AppModule 전체 기동)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>요청</th>
+<th>기대</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>GET /health</code> (DB up / down)</td>
+<td>200 / 503 <code>degraded</code></td>
+<td>통과</td>
+</tr>
+<tr>
+<td><code>GET /music/tracks</code>, <code>?limit=101</code></td>
+<td>200 / 400</td>
+<td>통과</td>
+</tr>
+<tr>
+<td><code>POST /music/tracks</code> 토큰 없음 / <code>alg=none</code> 토큰 / user 토큰</td>
+<td>401 / 401 / 403</td>
+<td>통과</td>
+</tr>
+<tr>
+<td><code>DELETE /music/legacy/artists/1</code> user 토큰</td>
+<td>403</td>
+<td>통과</td>
+</tr>
+<tr>
+<td><code>GET /music/legacy/artists</code> user 토큰</td>
+<td>200</td>
+<td>통과</td>
+</tr>
+<tr>
+<td><code>GET /music/legacy/playlists/by-date</code> (date 없음)</td>
+<td>400</td>
+<td>통과</td>
+</tr>
+<tr>
+<td><code>GET /users/profile</code></td>
+<td>200, <code>role</code>·<code>providers</code> 포함</td>
+<td>통과</td>
+</tr>
+<tr>
+<td><code>POST /users/register</code> <code>google_123</code></td>
+<td>400</td>
+<td>통과</td>
+</tr>
+<tr>
+<td><code>POST /auth/kakao/login</code> (provider 비활성)</td>
+<td>503 <code>AUTH_KAKAO_DISABLED</code></td>
+<td>통과</td>
+</tr>
+<tr>
+<td><code>GET /music/tracks/1/audio-assets</code> admin 토큰</td>
+<td>가드 통과</td>
+<td>통과. 단, 없는 트랙도 <code>[]</code>을 반환함(📌 P2 404 처리)</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="73-검증하지-못한-항목"><a class="heading-anchor" href="#73-%EA%B2%80%EC%A6%9D%ED%95%98%EC%A7%80-%EB%AA%BB%ED%95%9C-%ED%95%AD%EB%AA%A9" aria-hidden="true" tabindex="-1">#</a>7.3 검증하지 못한 항목</h3>
+<ul>
+<li><del>실제 MariaDB 대상 migration 왕복</del> → 2026-11-09 CI <code>database</code> job에서 검증(빈 DB 전체 체인, <code>AddRoleToUsers</code> revert/재적용). 이 과정에서 DB-13을 발견해 수정했습니다.</li>
+<li><del>e2e</del> → 같은 job에서 MariaDB 10.11로 실행해 통과했습니다.</li>
+<li><strong>사용자 개발 서버 실접속:</strong> 비밀번호를 입력하기 전이라 실행하지 못했습니다. 로그인 없이 handshake만 확인했습니다(MariaDB 10.11.11, TLS 미지원). <a href="#10-후속-조치-개발-db-연결과-스키마-관리-체계">10장</a>의 명령으로 확인해야 합니다.</li>
+<li><strong>SNS provider 실연동</strong>(Kakao <code>access_token_info</code>의 <code>app_id</code> 응답 등): 외부 계정이 필요합니다. staging에서 확인해야 합니다.</li>
+</ul>
+<h2 id="8-커밋pr-컨벤션-권고"><a class="heading-anchor" href="#8-%EC%BB%A4%EB%B0%8Bpr-%EC%BB%A8%EB%B2%A4%EC%85%98-%EA%B6%8C%EA%B3%A0" aria-hidden="true" tabindex="-1">#</a>8. 커밋·PR 컨벤션 권고</h2>
+<ul>
+<li><strong>커밋 제목:</strong> Conventional Commits(<code>feat|fix|refactor|chore|docs|test(scope): 요약</code>). 이번 브랜치가 예시입니다.</li>
+<li><strong>브랜치 흐름:</strong> <code>feature/*</code> → PR → develop, develop → PR(<code>release: …</code>) → main. develop/main 직접 push 금지.</li>
+<li><strong>PR 본문:</strong> 변경 요약, 브레이킹 변경, 마이그레이션 여부, 검증 결과, 배포 메모.</li>
+<li><strong>merge 방식:</strong> squash 대신 merge commit을 쓰면 develop → main 릴리스 이력이 남습니다(현재 PR #2 방식).</li>
+</ul>
+<h2 id="9-후속-조치-환경별-db-설정과-sns-비활성화"><a class="heading-anchor" href="#9-%ED%9B%84%EC%86%8D-%EC%A1%B0%EC%B9%98-%ED%99%98%EA%B2%BD%EB%B3%84-db-%EC%84%A4%EC%A0%95%EA%B3%BC-sns-%EB%B9%84%ED%99%9C%EC%84%B1%ED%99%94" aria-hidden="true" tabindex="-1">#</a>9. 후속 조치: 환경별 DB 설정과 SNS 비활성화</h2>
+<p>같은 날 사용자 요청으로 추가로 반영한 내용입니다(PR #10에 커밋 추가).</p>
+<p><strong>환경별 env 파일 단일화</strong> (<code>src/config/env-files.ts</code>)</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>환경</th>
+<th>env 파일</th>
+<th>DB</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Dev</td>
+<td><code>.env</code></td>
+<td>외부 개발 서버 <code>app_db</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Test</td>
+<td><code>.env.test.local</code></td>
+<td>개발 서버 <code>app_db_test</code></td>
+<td>파일 필수, <code>*_test</code> 외 DB 거부(<code>app_db</code> 예외 제거)</td>
+</tr>
+<tr>
+<td>Prod</td>
+<td><code>.env.production</code></td>
+<td>EC2 localhost MariaDB</td>
+<td>PM2 <code>cwd</code> 고정</td>
+</tr>
+</tbody></table>
+</div>
+<ul>
+<li>앱, migration CLI, e2e가 같은 규칙을 씁니다. <code>ENV_FILE</code>로 재지정할 수 있습니다.</li>
+<li>셸 환경변수가 파일 값보다 우선합니다.</li>
+<li>상세: <a href="../deployment/database-environments.kr.html">환경별 DB·설정 가이드</a></li>
+</ul>
+<p><strong>명령 추가</strong></p>
+<ul>
+<li><code>env:check</code>·<code>env:check:test</code>·<code>env:check:prod</code>: DB에 접속하지 않고 기동 시와 같은 검증만 실행하며, 비밀번호·secret 값은 출력하지 않습니다.</li>
+<li><code>migration:*:test</code>, <code>migration:*:prod</code>: prod는 <code>dist</code> 기반이라 ts-node가 필요 없습니다.</li>
+</ul>
+<p><strong>SNS 로그인 비활성화</strong></p>
+<ul>
+<li>5종 모두 명시적 opt-in으로 바꿨습니다. credential 추론을 제거해 기본 비활성이고, 꺼진 provider는 설정 키가 없어도 빌드와 기동에 영향이 없습니다.</li>
+<li>Naver는 켜더라도 accessToken 로그인이 기본 차단됩니다.</li>
+<li>재활성화 조건: <a href="../auth/sns-reenable-checklist.kr.html">SNS 재활성화 체크리스트</a></li>
+</ul>
+<p><strong>기타</strong></p>
+<ul>
+<li><code>CORS_ORIGIN=none</code>으로 CORS를 명시적으로 끌 수 있습니다(모바일 전용).</li>
+<li>운영 <code>TRUST_PROXY</code> 기본값은 <code>loopback</code>입니다. 같은 호스트의 nginx만 신뢰하고, proxy가 없어도 안전합니다.</li>
+</ul>
+<p><strong>검증</strong></p>
+<ul>
+<li>품질 게이트: lint, format, typecheck, unit tests, build 모두 통과</li>
+<li>prod 설정 스모크(SNS 키 없음, <code>CORS_ORIGIN=none</code>, 가짜 DataSource)<ul>
+<li><code>/health</code> 200</li>
+<li>SNS 5종 503 <code>AUTH_*_DISABLED</code></li>
+<li><code>/api-docs</code> 404</li>
+</ul>
+</li>
+<li>prod 설정 실기동은 설정 검증을 통과한 뒤 DB 연결 단계에서 멈춤(의도한 결과)</li>
+<li>placeholder <code>JWT_SECRET</code>은 기동 즉시 실패</li>
+<li><code>migration:show:prod</code>는 <code>dist</code>의 <code>.js</code> migration 9개를 인식</li>
+<li>개발 DB <code>migration:show</code>(읽기 전용): 8개 적용, <code>AddRoleToUsers</code>만 대기</li>
+</ul>
+<h2 id="10-후속-조치-개발-db-연결과-스키마-관리-체계"><a class="heading-anchor" href="#10-%ED%9B%84%EC%86%8D-%EC%A1%B0%EC%B9%98-%EA%B0%9C%EB%B0%9C-db-%EC%97%B0%EA%B2%B0%EA%B3%BC-%EC%8A%A4%ED%82%A4%EB%A7%88-%EA%B4%80%EB%A6%AC-%EC%B2%B4%EA%B3%84" aria-hidden="true" tabindex="-1">#</a>10. 후속 조치: 개발 DB 연결과 스키마 관리 체계</h2>
+<p>2026-11-09, 사용자 요청으로 추가한 내용입니다(PR #10에 커밋 추가).</p>
+<p><strong>요청</strong></p>
+<ul>
+<li>새 외부 개발 DB 서버에 Dev와 Test를 연결하고, 비밀번호는 직접 입력합니다.</li>
+<li>DB나 테이블이 없으면 생성합니다.</li>
+<li>실무에서는 생성, 적용, 검증을 어떻게 하는지 정리합니다.</li>
+</ul>
+<p><strong>결정</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>항목</th>
+<th>결정</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>서버 용도</td>
+<td>Dev(<code>app_db</code>)와 Test(<code>app_db_test</code>) 모두 새 서버를 사용하고, 같은 개발 계정을 씁니다</td>
+</tr>
+<tr>
+<td>생성 시점</td>
+<td>명령으로 실행합니다(<code>db:setup</code>). 앱 기동 시 자동 실행은 하지 않습니다</td>
+</tr>
+<tr>
+<td>비밀번호</td>
+<td><code>.env</code>와 <code>.env.test.local</code>에 직접 입력합니다(Git 미추적, <code>chmod 600</code>)</td>
+</tr>
+</tbody></table>
+</div>
+<p>이유는 <a href="../learning/database-schema-management.kr.html">DB·스키마 관리 학습 가이드</a> 4장과 10장에 있습니다.</p>
+<p><strong>추가한 것</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>구분</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>명령</td>
+<td><code>db:check</code>(읽기 전용: 접속, 계정, TLS, DB, 테이블 수, pending, 권한)<br><code>db:setup</code>(DB가 없으면 utf8mb4로 생성한 뒤 migration 적용)<br><code>db:check:test</code>, <code>db:setup:test</code>, <code>db:reset:test</code><br><code>migration:revert:test</code>, <code>migration:check:test</code>(drift)<br><code>db:check:prod</code>(dist)</td>
+</tr>
+<tr>
+<td>안전장치</td>
+<td>운영에서는 <code>db:ensure</code>를 거부합니다(관리자 SQL로 생성)<br><code>db:reset</code>은 test의 <code>*_test</code> DB에서만 동작합니다<br>허용되지 않는 명령은 서버에 연결하기 전에 거부합니다<br>DB 이름 문자를 검증하고, 비밀번호와 <code>SHOW GRANTS</code> 해시는 출력하지 않습니다</td>
+</tr>
+<tr>
+<td>오류 안내</td>
+<td>1045, 1130, 1129, 1044/1227, 1049, TLS 미지원, ECONNREFUSED/ETIMEDOUT/ENOTFOUND를 조치 문장으로 바꿔 줍니다</td>
+</tr>
+<tr>
+<td>기동 시 점검</td>
+<td><code>MigrationStatusService</code>가 pending migration을 경고합니다(운영은 error 등급). 기동은 막지 않고 DB에 쓰지 않습니다</td>
+</tr>
+<tr>
+<td>migration 경로</td>
+<td>실행 중인 파일 기준으로 찾습니다(cwd와 무관하고 e2e에서도 인식)</td>
+</tr>
+<tr>
+<td>CI</td>
+<td><code>database</code> job(MariaDB 10.11)<br>빈 DB 전체 체인 → pending 없음(<code>--strict</code>) → 최신 revert/재적용 → drift(보고만) → e2e</td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>CI가 발견한 문제</strong></p>
+<ul>
+<li><strong>DB-13(수정):</strong> 빈 MariaDB에서 <code>1761</code>이 실패했고, <code>1762</code>도 같은 문제가 있었습니다. 새 개발 서버에 그대로 <code>db:setup</code>을 했다면 실패했을 결함입니다.</li>
+<li><strong>DB-12(보고):</strong> entity와 migration 결과가 다릅니다. 해결 방향을 결정해야 합니다(P1).</li>
+</ul>
+<p><strong>로컬 파일(사용자 PC, Git 미추적)</strong></p>
+<ul>
+<li><code>.env</code><ul>
+<li><code>DB_HOST</code>, <code>DB_PORT</code>, <code>DB_USERNAME</code>을 새 서버 값으로 바꿨습니다.</li>
+<li><code>DB_PASSWORD</code>는 비워 두었습니다.</li>
+<li>원본은 <code>.env.bak.2026-11-08</code>에 있습니다.</li>
+</ul>
+</li>
+<li><code>.env.test.local</code>(신규): <code>app_db_test</code>, 무작위 <code>JWT_SECRET</code>, <code>DB_PASSWORD</code>는 비워 두었습니다.</li>
+<li>위 파일과 백업은 모두 <code>chmod 600</code>입니다.</li>
+</ul>
+<p><strong>검증</strong></p>
+<ul>
+<li>로컬: lint, format, typecheck, unit tests(49 suites / 362 tests), build 통과</li>
+<li>비밀번호 없이 실행: <code>db:check</code>/<code>db:setup</code>/<code>db:check:test</code>가 <code>DB_PASSWORD is required.</code>로 중단(의도한 결과)</li>
+<li>닫힌 포트: <code>db:check:prod</code>가 <code>Connection refused</code> 안내 출력</li>
+<li>거부 동작: 운영 <code>db:ensure</code>, 개발 <code>db:reset</code>이 연결 전에 거부됨</li>
+<li>CI(PR #10): <code>verify</code>와 <code>database</code> job 모두 통과</li>
+</ul>
+<p><strong>사용자가 할 일</strong></p>
+<ol>
+<li><code>.env</code>와 <code>.env.test.local</code>의 <code>DB_PASSWORD=</code>에 비밀번호를 입력합니다.</li>
+<li><code>npm run db:check</code>로 접속, 권한, TLS를 확인합니다.</li>
+<li><code>npm run db:setup</code>으로 <code>app_db</code>를 만들고 테이블을 적용합니다.</li>
+<li><code>npm run db:setup:test</code> → <code>npm run test:e2e</code>를 실행합니다.</li>
+<li>개발 서버의 DB 포트를 개발자 IP로 제한하거나, SSH 터널을 사용합니다(TLS 미지원).</li>
+</ol>
+<h3 id="101-첫-연결-점검-db_password-is-required-와-권한-부족"><a class="heading-anchor" href="#101-%EC%B2%AB-%EC%97%B0%EA%B2%B0-%EC%A0%90%EA%B2%80-db_password-is-required-%EC%99%80-%EA%B6%8C%ED%95%9C-%EB%B6%80%EC%A1%B1" aria-hidden="true" tabindex="-1">#</a>10.1 첫 연결 점검: <code>DB_PASSWORD is required.</code>와 권한 부족</h3>
+<p><strong>증상</strong></p>
+<p><code>.env.test.local</code>에 비밀번호를 넣고 <code>npm run db:check</code>를 실행했는데 <code>FAIL DB_PASSWORD is required.</code>가 나왔습니다.</p>
+<p><strong>원인 (읽기 전용으로 확인)</strong></p>
+<ol>
+<li><code>npm run db:check</code>는 Dev 명령이라 <code>.env</code>를 읽습니다. <code>.env</code>의 <code>DB_PASSWORD</code>가 비어 있었습니다.<ul>
+<li><code>.env.test.local</code>의 값은 정상이었습니다(<code>#</code>, 따옴표, CRLF 문제 없음).</li>
+<li>셸에 export된 값도 없었습니다.</li>
+<li><strong>오류에 읽은 파일 정보가 없어</strong> 원인을 찾기 어려웠습니다.</li>
+</ul>
+</li>
+<li><code>db:check:test</code>로 접속해 보니 개발 계정의 권한은 서버의 기존 DB 하나에만 있었고, <code>DROP</code>이 없었습니다.<ul>
+<li><code>app_db</code>·<code>app_db_test</code>에는 권한이 없어 DB를 만들 수 없었습니다.</li>
+<li>그대로 migration을 실행하면 6번째(<code>RENAME TABLE</code>)에서 <strong>중간 실패</strong>했을 상태입니다.</li>
+</ul>
+</li>
+</ol>
+<p><strong>결정</strong></p>
+<p>Dev는 서버의 기존 빈 DB를 사용합니다. Test는 <code>app_db_test</code>를 유지합니다.</p>
+<p><strong>보완</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OPS-10 ✅</td>
+<td><strong>설정 오류에 맥락 추가</strong>(<code>src/config/env-diagnostics.ts</code>)<br>오류에 읽은 env 파일과 <code>NODE_ENV</code>를 붙입니다.<br>같은 키가 다른 환경 파일에 있으면 <code>Hint:</code>를 출력합니다(값은 출력하지 않음).<br>앱 기동, <code>env:check</code>, <code>db:*</code>에 적용했습니다</td>
+</tr>
+<tr>
+<td>DB-14 ✅</td>
+<td><strong>권한 사전 점검</strong>(<code>evaluatePrivileges</code>)<br><code>SHOW GRANTS</code>를 해석합니다(전역, DB 단위, 와일드카드, role이면 판정 보류).<br><code>db:check</code>는 부족한 권한과 GRANT SQL을 출력하고, <code>--strict</code>에서는 실패합니다.<br><code>db:setup</code>은 권한이 부족하면 <strong>아무것도 바꾸지 않고 멈춥니다</strong></td>
+</tr>
+<tr>
+<td>DB-15 ✅</td>
+<td>DB 이름에 <code>-</code>를 허용합니다(백틱으로 감싸 안전). 대상 DB가 없을 때 이 계정에서 보이는 DB 목록을 출력합니다</td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>검증 (실서버, 읽기 전용)</strong></p>
+<ul>
+<li><code>db:check</code>: 기존 DB에 0 tables, 9 pending, <code>missing DROP</code>, 그리고 <code>GRANT DROP …</code> 출력</li>
+<li><code>db:check:test</code>: <code>app_db_test</code> 없음, 보이는 DB 목록, 8개 권한 부족과 GRANT 출력</li>
+<li><code>db:setup</code>: 권한 점검에서 중단. 이후 <code>db:check</code>에서 0 applied가 유지됨(변경 없음)</li>
+<li>빈 비밀번호 파일을 지정한 재현에서 <code>env file</code>과 <code>Hint:</code> 출력</li>
+<li>로컬 게이트: lint, format, typecheck, 50 suites / 379 tests, build 통과</li>
+</ul>
+<p><strong>사용자가 할 일 (서버 관리자)</strong></p>
+<ol>
+<li><code>db:check</code>가 출력한 GRANT를 실행합니다(Dev DB에 <code>DROP</code>, <code>app_db_test</code>에 8개 권한).</li>
+<li><code>npm run db:setup</code> → <code>npm run db:setup:test</code> → <code>npm run test:e2e</code>를 실행합니다.</li>
+</ol>
+<h3 id="102-local--test--prod-정리와-다른-db-삭제-방지"><a class="heading-anchor" href="#102-local--test--prod-%EC%A0%95%EB%A6%AC%EC%99%80-%EB%8B%A4%EB%A5%B8-db-%EC%82%AD%EC%A0%9C-%EB%B0%A9%EC%A7%80" aria-hidden="true" tabindex="-1">#</a>10.2 Local / Test / Prod 정리와 다른 DB 삭제 방지</h3>
+<p><strong>요청</strong></p>
+<ul>
+<li>local, dev, prod 구분을 다시 정리합니다.</li>
+<li><strong>DB 서버에 이미 있는 다른 DB는 삭제하거나 변경하지 않습니다.</strong></li>
+<li>코드와 문서를 전체 점검해 최신화하고, 작업 내역을 학습 가이드에 포함합니다.</li>
+</ul>
+<p><strong>결정</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>항목</th>
+<th>결정</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>용어</td>
+<td><strong>Local</strong>(개발 PC + 개발 서버 DB), <strong>Test</strong>(Local 안의 e2e), <strong>Prod</strong>(EC2)로 통일. 파일과 명령은 유지</td>
+</tr>
+<tr>
+<td>Local DB</td>
+<td>앱 전용 새 DB <code>app_db_dev</code>. 10.1에서 정한 &quot;기존 DB 사용&quot;은 대체하고, 기존 DB는 사용하지 않음</td>
+</tr>
+<tr>
+<td>테스트 DB 초기화</td>
+<td>앱 소유가 확인될 때만 허용</td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>발견과 조치</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>등급</th>
+<th>발견 사항</th>
+<th>조치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DB-16</td>
+<td><strong>High</strong></td>
+<td><code>db:setup</code>은 다른 앱 객체가 있는 DB에서도 진행했고, <code>db:reset:test</code>는 이름(<code>*_test</code>)만 보고 DB 전체를 삭제함</td>
+<td>✅ <code>APP_TABLES</code>와 <code>inspectOwnership</code>(TABLES, 뷰, 시퀀스, ROUTINES, EVENTS)으로 소유를 판정합니다. 다른 객체가 있으면 아무것도 바꾸지 않고 거부하며, <code>db:check</code>는 <code>ownership: shared</code>로 경고합니다. spec으로 쓰기 SQL의 대상 범위와 <code>APP_TABLES</code>·entity·migration 일치를 고정했습니다</td>
+</tr>
+<tr>
+<td>DB-17</td>
+<td>Medium</td>
+<td><code>DB_SYNCHRONIZE=true</code>를 Prod에서만 막아, Local/Test에서 켜면 컬럼·데이터가 자동 삭제될 수 있음</td>
+<td>✅ 모든 환경에서 기동을 거부합니다</td>
+</tr>
+<tr>
+<td>CA-13</td>
+<td>Low</td>
+<td>쓰이지 않는 <code>AdminConnectionFactory</code> 타입</td>
+<td>✅ 삭제</td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>문서</strong></p>
+<ul>
+<li>환경별 가이드를 Local / Test / Prod 기준으로 재구성하고, &quot;DB 삭제 안전 원칙&quot;을 추가했습니다.</li>
+<li>새 문서: <a href="../learning/README.html">학습 로드맵</a>, <a href="../learning/work-history-2026-11.kr.html">작업 내역과 배운 점</a></li>
+<li>갱신: DB 가이드 8.3, 아키텍처·보안·시크릿·SNS 운영 가이드</li>
+<li>11-08 기준이던 문서를 모두 검토하고 오래된 서술을 고친 뒤 11-09로 다시 표기했습니다.</li>
+</ul>
+<p><strong>검증</strong></p>
+<ul>
+<li>로컬: lint, format, typecheck, 50 suites / 388 tests, build 통과. <code>npm audit --omit=dev</code>는 critical 0건(5건은 기존과 같음)</li>
+<li>실서버(사용자가 권한을 부여한 테스트 DB에만 씀)<ul>
+<li><code>db:setup:test</code>: <code>app_db_test</code> 생성과 9개 migration 적용(실제 개발 서버에서 처음 실행)</li>
+<li><code>db:check:test --strict</code>: privilege ok, ownership dedicated(11 app tables), 0 pending</li>
+<li><code>test:e2e</code>: 2/2 통과</li>
+<li><code>db:reset:test</code>: 소유 확인 후 초기화하고 다시 적용</li>
+</ul>
+</li>
+<li>같은 서버의 다른 DB: 작업 전후 모두 0 tables(변경 없음, 읽기 전용으로 확인)</li>
+<li>Local <code>app_db_dev</code>: 권한이 없어 대기 중. <code>db:check</code>가 GRANT를 안내합니다</li>
+</ul>
+<p><strong>사용자가 할 일</strong></p>
+<ol>
+<li>서버 관리자로 실행합니다: <code>GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX ON `app_db_dev`.* TO &#39;&lt;dev-user&gt;&#39;@&#39;%&#39;;</code></li>
+<li><code>npm run db:setup</code>을 실행합니다(<code>app_db_dev</code> 생성과 migration).</li>
+<li>예전에 기존 DB에 받은 권한은 이 앱에 필요 없으므로 회수해도 됩니다(선택).</li>
+</ol>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../learning/work-history-2026-11.kr.html"><span>이전</span>작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a><a class="pager-next" href="2026-09-02-project-audit.kr.html"><span>다음</span>NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/audit/2026-11-08-project-audit.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/audit/2026-11-08-project-audit.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#0-%EC%9A%94%EC%95%BD">0. 요약</a></li><li class="toc-3"><a href="#%EA%B2%B0%EB%A1%A0">결론</a></li><li class="toc-3"><a href="#%EC%9D%B4%EB%B2%88%EC%97%90-%EC%88%98%EC%A0%95%ED%95%9C-%EC%A3%BC%EC%9A%94-%EA%B2%B0%ED%95%A8">이번에 수정한 주요 결함</a></li><li class="toc-2"><a href="#1-%EB%B2%94%EC%9C%84%EC%99%80-%EB%B0%A9%EB%B2%95">1. 범위와 방법</a></li><li class="toc-2"><a href="#2-%EC%8B%AC%EA%B0%81%EB%8F%84-%EA%B8%B0%EC%A4%80">2. 심각도 기준</a></li><li class="toc-2"><a href="#3-%EB%B0%9C%EA%B2%AC-%EC%82%AC%ED%95%AD%EA%B3%BC-%EC%A1%B0%EC%B9%98">3. 발견 사항과 조치</a></li><li class="toc-3"><a href="#31-clean-architecture--ddd">3.1 Clean Architecture / DDD</a></li><li class="toc-3"><a href="#32-api-%EB%B3%B4%EC%95%88-%EC%9D%B8%EA%B0%80%EC%9E%85%EB%A0%A5%EB%85%B8%EC%B6%9C">3.2 API 보안 (인가·입력·노출)</a></li><li class="toc-3"><a href="#33-%EC%9D%B8%EC%A6%9D%EC%84%B8%EC%85%98">3.3 인증·세션</a></li><li class="toc-3"><a href="#34-db%EB%A7%88%EC%9D%B4%EA%B7%B8%EB%A0%88%EC%9D%B4%EC%85%98">3.4 DB·마이그레이션</a></li><li class="toc-3"><a href="#35-%EC%9A%B4%EC%98%81-%EC%84%A4%EC%A0%95%EB%B0%B0%ED%8F%AC%EA%B4%80%EC%B8%A1">3.5 운영 (설정·배포·관측)</a></li><li class="toc-3"><a href="#36-%ED%85%8C%EC%8A%A4%ED%8A%B8">3.6 테스트</a></li><li class="toc-3"><a href="#37-%EC%A0%80%EC%9E%A5%EC%86%8C-%EC%9C%84%EC%83%9D-gitignore-%EB%93%B1">3.7 저장소 위생 (.gitignore 등)</a></li><li class="toc-3"><a href="#38-%EB%AC%B8%EC%84%9C">3.8 문서</a></li><li class="toc-2"><a href="#4-%EC%9D%B4%EB%B2%88-%EB%B8%8C%EB%9E%9C%EC%B9%98%EC%9D%98-%EB%B3%80%EA%B2%BD-%EC%9A%94%EC%95%BD">4. 이번 브랜치의 변경 요약</a></li><li class="toc-2"><a href="#5-%EB%A6%B4%EB%A6%AC%EC%8A%A4-%EC%A0%90%EA%B2%80-develop--main">5. 릴리스 점검 (develop → main)</a></li><li class="toc-3"><a href="#51-%EB%B2%94%EC%9C%84">5.1 범위</a></li><li class="toc-3"><a href="#52-%EB%B8%8C%EB%A0%88%EC%9D%B4%ED%82%B9-%EB%B3%80%EA%B2%BD-main-%EA%B8%B0%EC%A4%80-%ED%81%B4%EB%9D%BC%EC%9D%B4%EC%96%B8%ED%8A%B8%EC%9A%B4%EC%98%81">5.2 브레이킹 변경 (main 기준 클라이언트·운영)</a></li><li class="toc-3"><a href="#53-%EB%B0%B0%ED%8F%AC-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8">5.3 배포 체크리스트</a></li><li class="toc-3"><a href="#54-%EB%A1%A4%EB%B0%B1">5.4 롤백</a></li><li class="toc-2"><a href="#6-%EB%A1%9C%EB%93%9C%EB%A7%B5">6. 로드맵</a></li><li class="toc-3"><a href="#p0-main-%EB%B0%B0%ED%8F%AC-%EC%A0%84-%EA%B2%B0%EC%A0%95-%EB%98%90%EB%8A%94-%ED%99%95%EC%9D%B8">P0: main 배포 전 결정 또는 확인</a></li><li class="toc-3"><a href="#p1-%EB%8B%A4%EC%9D%8C-%EC%8A%A4%ED%94%84%EB%A6%B0%ED%8A%B8">P1: 다음 스프린트</a></li><li class="toc-3"><a href="#p2-%EA%B5%AC%EC%A1%B0-%EC%84%B1%EC%88%99%ED%99%94">P2: 구조 성숙화</a></li><li class="toc-2"><a href="#7-%EA%B2%80%EC%A6%9D%EA%B3%BC-%ED%95%9C%EA%B3%84">7. 검증과 한계</a></li><li class="toc-3"><a href="#71-%EC%8B%A4%ED%96%89-%EA%B2%B0%EA%B3%BC-%EA%B0%90%EC%82%AC-%ED%9B%84">7.1 실행 결과 (감사 후)</a></li><li class="toc-3"><a href="#72-dihttp-%EC%8A%A4%EB%AA%A8%ED%81%AC-%EA%B0%80%EC%A7%9C-datasource%EB%A1%9C-appmodule-%EC%A0%84%EC%B2%B4-%EA%B8%B0%EB%8F%99">7.2 DI·HTTP 스모크 (가짜 DataSource로 AppModule 전체 기동)</a></li><li class="toc-3"><a href="#73-%EA%B2%80%EC%A6%9D%ED%95%98%EC%A7%80-%EB%AA%BB%ED%95%9C-%ED%95%AD%EB%AA%A9">7.3 검증하지 못한 항목</a></li><li class="toc-2"><a href="#8-%EC%BB%A4%EB%B0%8Bpr-%EC%BB%A8%EB%B2%A4%EC%85%98-%EA%B6%8C%EA%B3%A0">8. 커밋·PR 컨벤션 권고</a></li><li class="toc-2"><a href="#9-%ED%9B%84%EC%86%8D-%EC%A1%B0%EC%B9%98-%ED%99%98%EA%B2%BD%EB%B3%84-db-%EC%84%A4%EC%A0%95%EA%B3%BC-sns-%EB%B9%84%ED%99%9C%EC%84%B1%ED%99%94">9. 후속 조치: 환경별 DB 설정과 SNS 비활성화</a></li><li class="toc-2"><a href="#10-%ED%9B%84%EC%86%8D-%EC%A1%B0%EC%B9%98-%EA%B0%9C%EB%B0%9C-db-%EC%97%B0%EA%B2%B0%EA%B3%BC-%EC%8A%A4%ED%82%A4%EB%A7%88-%EA%B4%80%EB%A6%AC-%EC%B2%B4%EA%B3%84">10. 후속 조치: 개발 DB 연결과 스키마 관리 체계</a></li><li class="toc-3"><a href="#101-%EC%B2%AB-%EC%97%B0%EA%B2%B0-%EC%A0%90%EA%B2%80-db_password-is-required-%EC%99%80-%EA%B6%8C%ED%95%9C-%EB%B6%80%EC%A1%B1">10.1 첫 연결 점검: DB_PASSWORD is required. 와 권한 부족</a></li><li class="toc-3"><a href="#102-local--test--prod-%EC%A0%95%EB%A6%AC%EC%99%80-%EB%8B%A4%EB%A5%B8-db-%EC%82%AD%EC%A0%9C-%EB%B0%A9%EC%A7%80">10.2 Local / Test / Prod 정리와 다른 DB 삭제 방지</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

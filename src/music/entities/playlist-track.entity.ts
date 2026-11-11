@@ -1,0 +1,41 @@
+// src/music/entities/playlist-track.entity.ts
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Playlist } from './playlist.entity';
+import { Track } from './track.entity';
+
+@Entity('legacy_playlist_track')
+export class PlaylistTrack {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @ManyToOne(() => Playlist, (playlist) => playlist.playlistTracks, {
+    onDelete: 'CASCADE',
+    nullable: false,
+  })
+  playlist!: Playlist;
+
+  @ManyToOne(() => Track, (track) => track.playlistTracks, {
+    onDelete: 'CASCADE',
+    nullable: false,
+  })
+  track!: Track;
+
+  @Column()
+  seq!: number; // 재생 순서
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  note!: string | null;
+
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
+}

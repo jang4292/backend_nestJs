@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>NestJS 아키텍처·운영 안정성 학습 가이드 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section" open><summary>아키텍처</summary><ul class="nav-list"><li><a href="nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr" aria-current="page">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">아키텍처</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="nestjs-아키텍처운영-안정성-학습-가이드">NestJS 아키텍처·운영 안정성 학습 가이드</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code></p>
+</blockquote>
+<p>이 저장소의 구조를 NestJS와 Clean Architecture 관점에서 따라 읽기 위한 가이드입니다. &quot;무엇을 바꿨는가&quot;보다 &quot;왜 이렇게 나눴는가&quot;에 초점을 둡니다. 남은 구조 과제는 <a href="../audit/2026-11-08-project-audit.kr.html#31-clean-architecture--ddd">감사 리포트 3.1장</a>을 참고하세요.</p>
+<h2 id="1-학습-목표"><a class="heading-anchor" href="#1-%ED%95%99%EC%8A%B5-%EB%AA%A9%ED%91%9C" aria-hidden="true" tabindex="-1">#</a>1. 학습 목표</h2>
+<p>이 가이드를 읽고 나면 다음을 설명할 수 있어야 합니다.</p>
+<ul>
+<li><code>main.ts</code>와 <code>AppModule</code>의 책임 차이</li>
+<li>기동 시 환경변수 검증이 운영 안정성에 중요한 이유</li>
+<li>domain, application, infrastructure, interface 계층의 의존 방향과 포트·어댑터</li>
+<li>도메인 오류를 HTTP로 바꾸는 위치를 한 곳에 모으는 이유</li>
+<li>인증(JWT)과 인가(RBAC)의 분리</li>
+<li>테스트, lint, typecheck, build를 최소 품질 게이트로 보는 방법</li>
+</ul>
+<h2 id="2-전체-구조"><a class="heading-anchor" href="#2-%EC%A0%84%EC%B2%B4-%EA%B5%AC%EC%A1%B0" aria-hidden="true" tabindex="-1">#</a>2. 전체 구조</h2>
+<pre><code class="language-text">src/
+  main.ts                 HTTP 서버 기동: helmet, CORS, trust proxy, ValidationPipe, shutdown hooks, Swagger
+  app.module.ts           루트 조립: Config 검증, TypeORM, Throttler, 전역 interceptor/filter/guard
+  config/                 app-env.ts(환경변수 파싱·검증), duration.ts
+  database/               database-options.ts, data-source.ts(CLI), mariadb-errors.ts, migrations/
+  common/
+    errors/               DomainError 계층(프레임워크 무관)
+    filters/              GlobalExceptionFilter(DomainError·HttpException → 공통 envelope)
+    http/                 api-response.ts({ok, requestId, data|errorCode})
+    logging/              redact-sensitive-text.ts
+    request-id/           RequestIdInterceptor·Service
+    auth/                 ProviderReadinessGuard(AUTH_*_ENABLED, @SocialProviderRoute 메타데이터), AuthenticatedRequest
+  auth/
+    session/              JWT 발급(SessionIssuerPort)·검증(JwtStrategy), RolesGuard, @AdminOnly()
+    local/                로컬 로그인 use-case
+    shared/               SNS 공통: SocialAuthError, SocialAuthExceptionFilter, fetchWithTimeout
+    google|apple|kakao|naver|facebook/
+      domain/ application/{ports,use-cases}/ infrastructure/ interface/
+  users/
+    domain/               UserRole, SocialIdentity, 예약 username 규칙
+    application/          ports(UserRepository, PasswordHasher, SocialAccountLinker), use-cases
+    infrastructure/       TypeORM repository, bcrypt hasher, social account linker
+    interface/            UsersController, DTO, PublicUser presenter
+    users.service.ts      다른 모듈이 쓰는 공개 facade
+  music/
+    (legacy)              application/ infrastructure/ interface/ — /music/legacy
+    catalog/              CatalogMusicService, entities, interface — /music
+</code></pre>
+<h2 id="3-bootstrap-maints"><a class="heading-anchor" href="#3-bootstrap-maints" aria-hidden="true" tabindex="-1">#</a>3. Bootstrap: <code>main.ts</code></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>설정</th>
+<th>이유</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>app.set(&#39;trust proxy&#39;, TRUST_PROXY)</code></td>
+<td>proxy 뒤에서 <code>req.ip</code>가 실제 클라이언트가 되도록 합니다. Throttler가 IP 기준으로 집계하기 때문입니다</td>
+</tr>
+<tr>
+<td><code>enableShutdownHooks()</code></td>
+<td>SIGTERM 시 진행 중인 요청과 DB 풀을 정리합니다</td>
+</tr>
+<tr>
+<td><code>helmet()</code></td>
+<td>기본 보안 헤더</td>
+</tr>
+<tr>
+<td><code>enableCors({ origin: CORS_ORIGINS, credentials, exposedHeaders: [&#39;x-request-id&#39;] })</code></td>
+<td><code>*</code>는 <code>app-env.ts</code>에서 거부합니다</td>
+</tr>
+<tr>
+<td><code>ValidationPipe({ whitelist, forbidNonWhitelisted, transform })</code></td>
+<td>모든 DTO에 같은 입력 정책을 적용합니다. 컨트롤러마다 <code>@Body(ValidationPipe)</code>를 반복하지 않습니다</td>
+</tr>
+<tr>
+<td>Swagger(<code>NODE_ENV !== &#39;production&#39;</code>)</td>
+<td>운영에서는 스펙을 노출하지 않습니다</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="4-루트-조립-appmodule"><a class="heading-anchor" href="#4-%EB%A3%A8%ED%8A%B8-%EC%A1%B0%EB%A6%BD-appmodule" aria-hidden="true" tabindex="-1">#</a>4. 루트 조립: <code>AppModule</code></h2>
+<ul>
+<li><code>ConfigModule.forRoot({ validate: validateAppEnv })</code>: 잘못된 설정이면 DB 연결이나 외부 호출 전에 기동을 실패시킵니다.</li>
+<li><code>TypeOrmModule.forRootAsync</code>: <code>createDatabaseOptions()</code> 하나를 앱 런타임과 migration CLI가 공유합니다.</li>
+<li>전역 provider<ul>
+<li><code>RequestIdInterceptor</code></li>
+<li><code>GlobalExceptionFilter</code></li>
+<li><code>ThrottlerGuard</code></li>
+<li><code>ProviderReadinessGuard</code></li>
+</ul>
+</li>
+</ul>
+<p>학습 포인트: 설정은 한 곳에서 읽고 주입합니다. 코드 곳곳에서 <code>process.env</code>를 읽으면 검증과 테스트가 어려워집니다.</p>
+<h2 id="5-환경변수-검증-srcconfigapp-envts"><a class="heading-anchor" href="#5-%ED%99%98%EA%B2%BD%EB%B3%80%EC%88%98-%EA%B2%80%EC%A6%9D-srcconfigapp-envts" aria-hidden="true" tabindex="-1">#</a>5. 환경변수 검증: <code>src/config/app-env.ts</code></h2>
+<p><strong>어떤 파일을 읽는가</strong> (<code>src/config/env-files.ts</code>)</p>
+<ul>
+<li><code>NODE_ENV</code>에 따라 env 파일 하나를 고릅니다: Local(<code>development</code>) → <code>.env</code>, Test(<code>test</code>) → <code>.env.test.local</code>(필수), Prod(<code>production</code>) → <code>.env.production</code></li>
+<li><code>ENV_FILE</code>로 다른 파일을 지정할 수 있습니다.</li>
+<li>셸 환경변수가 파일 값보다 우선합니다.</li>
+<li>앱, migration CLI, DB 도구(<code>db:*</code>), e2e가 모두 이 규칙 하나를 씁니다. 환경별 절차는 <a href="../deployment/database-environments.kr.html">환경별 DB·설정 가이드</a>에 있습니다.</li>
+<li>검증에 실패하면 <code>src/config/env-diagnostics.ts</code>가 메시지에 **읽은 파일과 <code>NODE_ENV</code>**를 붙입니다. 같은 키가 다른 환경 파일에 있으면 <code>Hint:</code>도 붙입니다(값은 출력하지 않음).</li>
+</ul>
+<p>대표 규칙:</p>
+<ul>
+<li><strong>필수:</strong> <code>JWT_SECRET</code>, <code>DB_USERNAME</code>, <code>DB_PASSWORD</code>, <code>DB_DATABASE</code></li>
+<li><strong>SNS:</strong> 5종 모두 <code>AUTH_&lt;P&gt;_ENABLED=true</code>일 때만 켜지고(현재 전부 off), 켜진 provider만 자기 키를 요구합니다(Google이면 <code>GOOGLE_ALLOWED_AUDIENCES</code>)</li>
+<li><strong>test 전용:</strong> <code>DB_DATABASE</code>는 <code>*_test</code>만 허용</li>
+<li><strong>모든 환경:</strong> <code>DB_SYNCHRONIZE=true</code> 거부(스키마는 migration으로만 변경)</li>
+<li><strong>DB 타입:</strong> <code>DB_TYPE</code>은 <code>mariadb</code>만 허용</li>
+<li><strong>production 전용</strong><ul>
+<li><code>CORS_ORIGIN</code> 필수</li>
+<li><code>JWT_SECRET</code> 32자 이상, placeholder 금지</li>
+<li>활성 provider의 최소 설정(Kakao는 <code>KAKAO_APP_ID</code> 포함)</li>
+</ul>
+</li>
+<li><strong>환경 무관:</strong><ul>
+<li><code>JWT_EXPIRES_IN</code> 형식(<code>3600|30m|1h|7d</code>)</li>
+<li><code>CORS_ORIGIN</code>에 <code>*</code> 금지</li>
+<li>Apple이 활성이면 <code>APPLE_ALLOWED_AUDIENCES</code></li>
+</ul>
+</li>
+</ul>
+<p><code>AppEnv</code>에 키를 추가하면 <code>scripts/runtime-env-keys.cjs</code>에도 추가해야 PM2와 Secrets Manager 경로로 전달됩니다. 빠뜨리면 <code>src/config/runtime-env-keys.spec.ts</code>가 실패합니다.</p>
+<h2 id="6-계층과-포트어댑터-users-예시"><a class="heading-anchor" href="#6-%EA%B3%84%EC%B8%B5%EA%B3%BC-%ED%8F%AC%ED%8A%B8%EC%96%B4%EB%8C%91%ED%84%B0-users-%EC%98%88%EC%8B%9C" aria-hidden="true" tabindex="-1">#</a>6. 계층과 포트·어댑터 (Users 예시)</h2>
+<pre><code class="language-text">UsersController (interface)            ── DTO 검증, PublicUser로 변환
+  → UsersService (facade)               ── 다른 모듈에 공개하는 application API
+    → CreateUserUseCase / UpdateUserUseCase / VerifyCredentialsUseCase (application)
+        → USER_REPOSITORY_PORT          ← UserTypeOrmRepository (infrastructure)
+        → PASSWORD_HASHER_PORT          ← BcryptPasswordHasherAdapter (infrastructure)
+        → DomainError(Conflict/NotFound/…) 던짐 → GlobalExceptionFilter가 HTTP로 변환
+</code></pre>
+<ul>
+<li><strong>포트 구성 패턴:</strong> <code>Symbol</code> 토큰 + interface + <code>{ provide: TOKEN, useExisting: Adapter }</code>(<code>users.module.ts</code>, <code>music.module.ts</code>)</li>
+<li><strong>의존 방향:</strong> use-case는 TypeORM <code>Repository</code>, <code>bcrypt</code>, interface DTO를 import하지 않습니다. 테스트는 포트를 <code>jest.Mocked</code>로 대체해 DB 없이 작성합니다(<code>src/users/application/use-cases/*.spec.ts</code>).</li>
+<li><strong>보안 규칙의 위치</strong><ul>
+<li>비밀번호 해시는 entity에서 <code>select: false</code>로 숨깁니다.</li>
+<li>로그인 경로만 <code>findCredentialsByIdentifier()</code>로 명시적으로 조회합니다.</li>
+<li>계정이 없어도 해셔가 같은 비용의 비교를 하므로 응답 시간으로 계정 존재를 알 수 없습니다.</li>
+</ul>
+</li>
+<li><strong>현재 한계:</strong> 포트 시그니처가 아직 TypeORM entity(<code>User</code>)를 씁니다. 도메인 모델 분리는 로드맵 P2입니다.</li>
+</ul>
+<h2 id="7-오류-처리를-한-곳에-모으기"><a class="heading-anchor" href="#7-%EC%98%A4%EB%A5%98-%EC%B2%98%EB%A6%AC%EB%A5%BC-%ED%95%9C-%EA%B3%B3%EC%97%90-%EB%AA%A8%EC%9C%BC%EA%B8%B0" aria-hidden="true" tabindex="-1">#</a>7. 오류 처리를 한 곳에 모으기</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>오류 종류</th>
+<th>던지는 곳</th>
+<th>변환하는 곳</th>
+<th>응답</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>DomainError</code>(<code>InvalidArgument</code>/<code>Unauthorized</code>/<code>Forbidden</code>/<code>NotFound</code>/<code>Conflict</code>)</td>
+<td>application, infrastructure</td>
+<td><code>GlobalExceptionFilter</code></td>
+<td>400/401/403/404/409, <code>{ok:false, requestId, errorCode, message}</code></td>
+</tr>
+<tr>
+<td><code>HttpException</code></td>
+<td>Nest 내장(ValidationPipe, Guard)</td>
+<td><code>GlobalExceptionFilter</code></td>
+<td>상태 코드 그대로</td>
+</tr>
+<tr>
+<td><code>SocialAuthError</code>(<code>AUTH_&lt;PROVIDER&gt;_*</code>)</td>
+<td>SNS use-case, adapter</td>
+<td><code>SocialAuthExceptionFilter</code></td>
+<td>코드 접미사로 400/401/503/500</td>
+</tr>
+<tr>
+<td>그 밖의 오류(DB 등)</td>
+<td>어디서든</td>
+<td>두 필터 모두</td>
+<td>500, 메시지 <code>Internal server error</code>, 원인은 redaction 후 로그</td>
+</tr>
+</tbody></table>
+</div>
+<ul>
+<li><strong>DB 오류 판별:</strong> <code>src/database/mariadb-errors.ts</code>에서 MariaDB 코드(<code>ER_DUP_ENTRY</code>, <code>ER_ROW_IS_REFERENCED_2</code>)로 판별합니다. infrastructure가 이를 <code>ConflictError</code>/<code>ForeignKeyConstraintError</code>로 바꿉니다.</li>
+<li><strong>use-case의 역할:</strong> HTTP 상태를 알지 못합니다.</li>
+</ul>
+<h2 id="8-인증과-인가"><a class="heading-anchor" href="#8-%EC%9D%B8%EC%A6%9D%EA%B3%BC-%EC%9D%B8%EA%B0%80" aria-hidden="true" tabindex="-1">#</a>8. 인증과 인가</h2>
+<pre><code class="language-text">요청 → ThrottlerGuard → ProviderReadinessGuard(@SocialProviderRoute가 붙은 SNS 컨트롤러만)
+     → JwtAuthGuard (HS256만 허용, 토큰 검증 → DB에서 사용자 재조회 → sessionVersion 비교 → req.user = PublicUser{role, providers})
+     → RolesGuard (@Roles(UserRole.ADMIN) 메타데이터와 req.user.role 비교 → 아니면 403)
+</code></pre>
+<ul>
+<li><strong>라우트 데코레이터:</strong> <code>@Authenticated()</code>는 로그인, <code>@AdminOnly()</code>는 admin을 요구합니다(<code>src/auth/session/interface/auth-route.decorators.ts</code>).</li>
+<li><strong>역할 반영:</strong> 역할을 JWT에 넣지 않고 매 요청 DB에서 읽으므로, 권한 변경이 즉시 반영됩니다.</li>
+<li><strong>회귀 방지:</strong> 음악 쓰기 라우트에 <code>@AdminOnly()</code>가 빠지면 <code>src/music/music-authorization.spec.ts</code>가 실패합니다.</li>
+<li><strong>provider 판정은 메타데이터로:</strong> <code>ProviderReadinessGuard</code>는 요청 경로가 아니라 컨트롤러의 <code>@SocialProviderRoute()</code>를 읽습니다. Express 라우팅은 대소문자를 구분하지 않아 경로 검사로는 <code>/auth/GOOGLE/*</code>을 놓칩니다(<a href="api-security-guide.kr.html#8-%EC%82%AC%EB%A1%80-%EB%8C%80%EC%86%8C%EB%AC%B8%EC%9E%90-%EA%B2%BD%EB%A1%9C%EB%A1%9C-%EB%B9%84%ED%99%9C%EC%84%B1-provider-%EC%9A%B0%ED%9A%8C-sec-17">API 보안 가이드 8장</a>).</li>
+<li><strong>토큰 무효화:</strong> JWT의 <code>sv</code>가 <code>users.sessionVersion</code>과 다르면 401입니다. 비밀번호를 바꾸면 버전이 오릅니다.</li>
+<li><strong>계정 단위 로그인 제한:</strong> IP 단위 <code>@Throttle</code>과 별개로, 같은 식별자의 실패가 15분에 10회면 429입니다(<code>LoginAttemptLimiterPort</code>).</li>
+</ul>
+<h2 id="9-sns-로그인-provider별-모듈--공통-커널"><a class="heading-anchor" href="#9-sns-%EB%A1%9C%EA%B7%B8%EC%9D%B8-provider%EB%B3%84-%EB%AA%A8%EB%93%88--%EA%B3%B5%ED%86%B5-%EC%BB%A4%EB%84%90" aria-hidden="true" tabindex="-1">#</a>9. SNS 로그인: provider별 모듈 + 공통 커널</h2>
+<ul>
+<li>provider마다 <code>domain/application/infrastructure/interface</code>를 가지며, 외부 API는 포트 뒤에 둡니다. 예: <code>GoogleTokenVerifierPort</code>, <code>KakaoOAuthPort</code></li>
+<li>공통으로 쓰는 부분<ul>
+<li>계정 연결: <code>SocialAccountLinkerPort</code>(users)</li>
+<li>세션 발급: <code>SessionIssuerPort</code>(session)</li>
+<li>오류 처리: <code>src/auth/shared/</code></li>
+</ul>
+</li>
+<li>외부 호출은 <code>fetchWithTimeout</code>(5초)과 <code>readJsonSafely</code>를 거칩니다.</li>
+<li><strong>현재 한계:</strong> kakao/naver/facebook 로그인 use-case는 아직 거의 같은 코드입니다. 통합은 로드맵 P2입니다.</li>
+</ul>
+<p>자세한 내용은 <a href="../auth/sns-login-overview.kr.html">SNS 로그인 개요</a>를 참고하세요.</p>
+<h2 id="10-music-legacy와-catalog"><a class="heading-anchor" href="#10-music-legacy%EC%99%80-catalog" aria-hidden="true" tabindex="-1">#</a>10. Music: Legacy와 Catalog</h2>
+<ul>
+<li><code>/music/legacy</code><ul>
+<li>구조: 이전 Artist/Track/Playlist 모델. <code>MusicService</code> facade → use-case 20개 → repository port</li>
+<li>테이블: <code>legacy_*</code></li>
+</ul>
+</li>
+<li><code>/music</code><ul>
+<li>구조: 새 Catalog. <code>CatalogMusicService</code>, Track 1:N AudioAsset, Playlist 상태와 position</li>
+<li>테이블: <code>track</code>, <code>audio_asset</code>, <code>playlist</code>, <code>playlist_track</code></li>
+</ul>
+</li>
+<li>공개 응답은 presenter를 거쳐 음원 URL과 내부 정보를 제외합니다.</li>
+<li>현재 한계: <code>CatalogMusicService</code>는 use-case가 없는 큰 서비스이고, <code>MusicService</code>는 그대로 전달만 하는 facade입니다(로드맵 P2).</li>
+</ul>
+<p>자세한 내용은 <a href="../music/architecture.kr.html">Music 아키텍처</a>를 참고하세요.</p>
+<h2 id="11-dto-entity-presenter"><a class="heading-anchor" href="#11-dto-entity-presenter" aria-hidden="true" tabindex="-1">#</a>11. DTO, Entity, Presenter</h2>
+<ul>
+<li><strong>Entity:</strong> DB 테이블과 관계</li>
+<li><strong>DTO:</strong> HTTP 입력 계약(class-validator)</li>
+<li><strong>Command:</strong> use-case 입력. 예: <code>CreateUserCommand</code>, <code>UpdateProfileCommand</code>. use-case가 DTO에 의존하지 않게 합니다.</li>
+<li><strong>Presenter:</strong> entity를 공개 가능한 응답으로 변환합니다. 예: <code>toPublicUser</code>, <code>toPublicPlaylistResponse</code></li>
+</ul>
+<h2 id="12-db와-migration-srcdatabase"><a class="heading-anchor" href="#12-db%EC%99%80-migration-srcdatabase" aria-hidden="true" tabindex="-1">#</a>12. DB와 migration: <code>src/database/</code></h2>
+<p>스키마는 <strong>versioned migration으로만</strong> 바꾸고(<code>synchronize</code> 금지), 배포 단계의 명령으로 적용합니다. 앱 기동 시 자동 실행은 하지 않습니다. 개념, 방식 비교, 검증 계층은 <a href="database-schema-management.kr.html">DB·스키마 관리 학습 가이드</a>에서 자세히 다룹니다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>파일</th>
+<th>책임</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>database-options.ts</code></td>
+<td>TypeORM 옵션. migration 경로는 실행 중인 파일 기준(src면 <code>.ts</code>, dist면 <code>.js</code>)이라 cwd와 무관</td>
+</tr>
+<tr>
+<td><code>data-source.ts</code></td>
+<td>TypeORM CLI용 DataSource(앱과 같은 env 규칙)</td>
+</tr>
+<tr>
+<td><code>database-admin.ts</code></td>
+<td>DB 확인·생성·test DB 초기화, 권한 판정(<code>evaluatePrivileges</code>), 앱 소유 판정(<code>APP_TABLES</code>, <code>inspectOwnership</code>). 연결을 주입받아 unit test 가능</td>
+</tr>
+<tr>
+<td><code>cli/db-tool.ts</code></td>
+<td><code>db:check</code>(읽기 전용) / <code>db:ensure</code>(dev·test만) / <code>db:reset</code>(test만)</td>
+</tr>
+<tr>
+<td><code>migration-status.service.ts</code></td>
+<td>기동 시 pending migration을 경고(읽기 전용, 기동을 막지 않음)</td>
+</tr>
+<tr>
+<td><code>mariadb-errors.ts</code></td>
+<td>드라이버 오류 코드(<code>ER_DUP_ENTRY</code> 등) 판별</td>
+</tr>
+</tbody></table>
+</div>
+<p>볼 만한 설계 포인트:</p>
+<ul>
+<li><strong>연결 시점:</strong> 허용되지 않는 명령(운영에서 DB 생성 등)은 서버에 연결하기 전에 거부합니다.</li>
+<li><strong>SQL 식별자:</strong> DB 이름처럼 파라미터로 바인딩할 수 없는 값은 허용 문자로 먼저 검증합니다.</li>
+<li><strong>출력:</strong> 비밀번호는 어떤 출력에도 넣지 않습니다(<code>SHOW GRANTS</code>의 해시도 가림).</li>
+<li><strong>사전 점검:</strong> 쓰기 전에 권한과 소유를 읽기 전용으로 확인하고, 부족하거나 다른 앱의 객체가 있으면 아무것도 바꾸지 않습니다.</li>
+<li><strong>범위:</strong> 대상 DB 하나만 다룹니다. 다른 DB는 절대 바꾸지 않으며, spec이 쓰기 SQL의 대상을 검사합니다.</li>
+</ul>
+<h2 id="13-품질-게이트"><a class="heading-anchor" href="#13-%ED%92%88%EC%A7%88-%EA%B2%8C%EC%9D%B4%ED%8A%B8" aria-hidden="true" tabindex="-1">#</a>13. 품질 게이트</h2>
+<pre><code class="language-bash">npm run lint:check     # ESLint (수정 없이 검사; 로컬 자동 수정은 npm run lint)
+npm run format:check   # Prettier
+npm run typecheck      # spec 포함 전체 tsc
+npx jest               # 유닛 테스트
+npm run build          # nest build
+</code></pre>
+<ul>
+<li>GitHub Actions(<code>.github/workflows/ci.yml</code>)의 <code>verify</code> job이 PR과 push마다 위 순서로 실행하고, production critical 취약점 검사도 함께 합니다.</li>
+<li><strong><code>database</code> job</strong>은 MariaDB 10.11 서비스 컨테이너에서 다음을 실행합니다.<ol>
+<li>빈 DB에 전체 migration 적용</li>
+<li>pending이 없는지 확인</li>
+<li>최신 migration revert 후 재적용</li>
+<li>drift 검사(현재는 보고만, 감사 DB-12)</li>
+<li>e2e</li>
+</ol>
+</li>
+<li>Node 버전은 <code>.nvmrc</code>(24)로 고정합니다.</li>
+</ul>
+<h2 id="14-추천-읽기-순서"><a class="heading-anchor" href="#14-%EC%B6%94%EC%B2%9C-%EC%9D%BD%EA%B8%B0-%EC%88%9C%EC%84%9C" aria-hidden="true" tabindex="-1">#</a>14. 추천 읽기 순서</h2>
+<ol>
+<li><code>src/main.ts</code> → <code>src/app.module.ts</code> → <code>src/config/app-env.ts</code></li>
+<li><code>src/common/errors/domain-error.ts</code> → <code>src/common/filters/global-exception.filter.ts</code></li>
+<li><code>src/users/application/use-cases/update-user.use-case.ts</code>와 spec</li>
+<li><code>src/users/infrastructure/user-typeorm.repository.ts</code></li>
+<li><code>src/auth/session/interface/jwt.strategy.ts</code> → <code>roles.guard.ts</code> → <code>auth-route.decorators.ts</code></li>
+<li><code>src/auth/kakao/application/use-cases/kakao-login.use-case.ts</code> → <code>src/auth/shared/</code></li>
+<li><code>src/music/catalog/interface/catalog-music.controller.ts</code> → <code>src/music/music-authorization.spec.ts</code></li>
+<li><code>src/config/env-files.ts</code> → <code>src/database/database-options.ts</code> → <code>src/database/cli/db-tool.ts</code> → <code>src/database/migration-status.service.ts</code></li>
+</ol>
+<p>각 파일을 읽을 때 다음을 확인해 보세요.</p>
+<ul>
+<li>이 파일의 책임은 한 문장으로 무엇인가?</li>
+<li>이 파일이 알면 안 되는 것(프레임워크, DB, HTTP)을 알고 있지 않은가?</li>
+<li>그 책임은 어떤 테스트가 검증하는가?</li>
+</ul>
+<h2 id="15-실습-과제"><a class="heading-anchor" href="#15-%EC%8B%A4%EC%8A%B5-%EA%B3%BC%EC%A0%9C" aria-hidden="true" tabindex="-1">#</a>15. 실습 과제</h2>
+<ol>
+<li><strong>CA-2 이어서 하기:</strong> legacy music use-case의 <code>NotFoundException</code>을 <code>NotFoundError</code>로 바꾸고 spec을 고칩니다.</li>
+<li><strong>Playlist 상태 전이 규칙:</strong> <code>publishPlaylist</code>에 <code>archived → published</code> 금지 규칙을 도메인 함수로 추출하고 테스트합니다(결정 문서 확정 후).</li>
+<li><strong>SNS use-case 통합:</strong> kakao/naver/facebook 로그인 use-case를 하나의 공통 함수로 묶되, provider 오류 코드 계약은 유지합니다.</li>
+<li><strong>e2e 확장:</strong> <code>/users/register</code> → <code>/auth/login</code> → <code>/users/profile</code> 흐름을 <code>test/</code>에 추가합니다. CI <code>database</code> job이 MariaDB에서 실행합니다.</li>
+<li><strong>drift 해소(DB-12):</strong> entity에 FK·인덱스 이름과 <code>datetime</code> 정밀도를 선언해 <code>npm run migration:check:test</code>가 <code>No changes</code>를 출력하게 만들고, CI의 <code>continue-on-error</code>를 제거합니다.</li>
+<li><strong>스키마 변경 한 바퀴:</strong> <a href="database-schema-management.kr.html#12-%EC%8B%A4%EC%8A%B5-%EA%B3%BC%EC%A0%9C">DB·스키마 관리 학습 가이드 12장</a>의 과제를 따라 migration 생성 → 검증 → 되돌리기를 연습합니다.</li>
+</ol>
+<h2 id="16-기억할-원칙"><a class="heading-anchor" href="#16-%EA%B8%B0%EC%96%B5%ED%95%A0-%EC%9B%90%EC%B9%99" aria-hidden="true" tabindex="-1">#</a>16. 기억할 원칙</h2>
+<ul>
+<li>컨트롤러는 얇게, use-case는 프레임워크와 무관하게 유지합니다.</li>
+<li>설정은 기동 시점에 검증하고, 실패는 빠를수록 좋습니다.</li>
+<li>HTTP 변환은 필터 한 곳에서 합니다. 비밀번호, 토큰, DB 오류 원문은 응답과 로그에 그대로 내보내지 않습니다.</li>
+<li>인증(누구인가)과 인가(무엇을 할 수 있는가)는 별도 가드로 분리합니다.</li>
+<li>스키마는 migration으로만 바꾸고, 같은 파일을 CI(빈 DB) → Test → Local → Prod 순으로 명령으로 적용합니다.</li>
+<li>앱은 자기 전용 DB만 다룹니다. 같은 서버의 다른 DB와 객체는 지우거나 바꾸지 않습니다.</li>
+<li>모든 작업 내역과 교훈은 <a href="work-history-2026-11.kr.html">작업 내역과 배운 점</a>에 있습니다.</li>
+<li>완료 조건은 lint, format, typecheck, test, build, CI <code>database</code> job 통과입니다.</li>
+</ul>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../repo/API_EXAMPLES.html"><span>이전</span>API Usage Examples</a><a class="pager-next" href="../music/README.html"><span>다음</span>Music API 운영 개선 문서</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/learning/nestjs-operational-stability-guide.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/learning/nestjs-operational-stability-guide.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-%ED%95%99%EC%8A%B5-%EB%AA%A9%ED%91%9C">1. 학습 목표</a></li><li class="toc-2"><a href="#2-%EC%A0%84%EC%B2%B4-%EA%B5%AC%EC%A1%B0">2. 전체 구조</a></li><li class="toc-2"><a href="#3-bootstrap-maints">3. Bootstrap: main.ts</a></li><li class="toc-2"><a href="#4-%EB%A3%A8%ED%8A%B8-%EC%A1%B0%EB%A6%BD-appmodule">4. 루트 조립: AppModule</a></li><li class="toc-2"><a href="#5-%ED%99%98%EA%B2%BD%EB%B3%80%EC%88%98-%EA%B2%80%EC%A6%9D-srcconfigapp-envts">5. 환경변수 검증: src/config/app-env.ts</a></li><li class="toc-2"><a href="#6-%EA%B3%84%EC%B8%B5%EA%B3%BC-%ED%8F%AC%ED%8A%B8%EC%96%B4%EB%8C%91%ED%84%B0-users-%EC%98%88%EC%8B%9C">6. 계층과 포트·어댑터 (Users 예시)</a></li><li class="toc-2"><a href="#7-%EC%98%A4%EB%A5%98-%EC%B2%98%EB%A6%AC%EB%A5%BC-%ED%95%9C-%EA%B3%B3%EC%97%90-%EB%AA%A8%EC%9C%BC%EA%B8%B0">7. 오류 처리를 한 곳에 모으기</a></li><li class="toc-2"><a href="#8-%EC%9D%B8%EC%A6%9D%EA%B3%BC-%EC%9D%B8%EA%B0%80">8. 인증과 인가</a></li><li class="toc-2"><a href="#9-sns-%EB%A1%9C%EA%B7%B8%EC%9D%B8-provider%EB%B3%84-%EB%AA%A8%EB%93%88--%EA%B3%B5%ED%86%B5-%EC%BB%A4%EB%84%90">9. SNS 로그인: provider별 모듈 + 공통 커널</a></li><li class="toc-2"><a href="#10-music-legacy%EC%99%80-catalog">10. Music: Legacy와 Catalog</a></li><li class="toc-2"><a href="#11-dto-entity-presenter">11. DTO, Entity, Presenter</a></li><li class="toc-2"><a href="#12-db%EC%99%80-migration-srcdatabase">12. DB와 migration: src/database/</a></li><li class="toc-2"><a href="#13-%ED%92%88%EC%A7%88-%EA%B2%8C%EC%9D%B4%ED%8A%B8">13. 품질 게이트</a></li><li class="toc-2"><a href="#14-%EC%B6%94%EC%B2%9C-%EC%9D%BD%EA%B8%B0-%EC%88%9C%EC%84%9C">14. 추천 읽기 순서</a></li><li class="toc-2"><a href="#15-%EC%8B%A4%EC%8A%B5-%EA%B3%BC%EC%A0%9C">15. 실습 과제</a></li><li class="toc-2"><a href="#16-%EA%B8%B0%EC%96%B5%ED%95%A0-%EC%9B%90%EC%B9%99">16. 기억할 원칙</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

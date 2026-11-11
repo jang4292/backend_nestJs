@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # 이후 단계에서 GITHUB_TOKEN이 .git/config에 남지 않게 합니다.
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint:check
+
+      - name: Format
+        run: npm run format:check
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npx jest --ci
+
+      - name: Build
+        run: npm run build
+
+      # md 문서의 내부 링크·앵커 검사(docs/html/README.md). 파일을 쓰지 않으며, HTML 스냅샷 갱신은 강제하지 않습니다.
+      - name: Docs links and anchors
+        run: npm run docs:html:verify
+
+      - name: Audit production dependencies (critical)
+        run: npm audit --omit=dev --audit-level=critical
+
+  # 실제 MariaDB에서 스키마를 검증합니다(docs/learning/database-schema-management.kr.md).
+  # 빈 DB → 전체 migration → pending 없음 확인 → 최신 migration revert/재적용 → drift 검사 → e2e
+  database:
+    name: database (MariaDB 10.11)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: ci-root-password
+          MARIADB_DATABASE: app_db_test
+          MARIADB_USER: app_test
+          MARIADB_PASSWORD: ci-test-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=24
+    env:
+      # .env.test.local(템플릿 복사본)보다 셸 환경변수가 우선합니다. CI 전용 값입니다.
+      DB_HOST: 127.0.0.1
+      DB_PORT: '3306'
+      DB_USERNAME: app_test
+      DB_PASSWORD: ci-test-password
+      DB_DATABASE: app_db_test
+      JWT_SECRET: ci-only-test-secret-0123456789abcdefghijklmn
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # 이후 단계에서 GITHUB_TOKEN이 .git/config에 남지 않게 합니다.
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare test env file
+        run: cp .env.test.example .env.test.local
+
+      - name: Connection check
+        run: npm run db:check:test
+
+      - name: Run all migrations on an empty database
+        run: npm run db:reset:test
+
+      - name: No pending migrations
+        run: npm run db:check:test -- --strict
+
+      - name: Revert and re-apply the latest migration
+        run: npm run migration:revert:test && npm run migration:run:test
+
+      # 현재 entity 메타데이터(FK·인덱스 이름, datetime 정밀도 등)와 migration 결과가 달라 drift가 보고됩니다.
+      # 정렬 방향을 결정할 때까지 보고만 합니다(감사 리포트 DB-12). 해결 후 continue-on-error를 제거하세요.
+      - name: Schema drift (entities vs migrations, report only)
+        continue-on-error: true
+        run: npm run migration:check:test
+
+      - name: E2E tests
+        run: npm run test:e2e
