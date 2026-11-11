@@ -3,6 +3,7 @@ import type { PublicUser } from './presenters/public-user.presenter';
 import type { User } from '../entities/user.entity';
 import type { UsersService } from '../users.service';
 import type { AuthenticatedRequest } from '../../common/auth/authenticated-request';
+import { UserRole } from '../domain/user-role.enum';
 
 type UsersServiceMock = Pick<UsersService, 'create' | 'update'>;
 
@@ -13,10 +14,11 @@ describe('UsersController', () => {
   const user: User = {
     id: 1,
     username: 'testuser',
-    password: 'hashed-password',
     email: 'test@example.com',
     name: 'Test User',
-    socialAccounts: [],
+    role: UserRole.USER,
+    sessionVersion: 0,
+    socialAccounts: [{ provider: 'google' } as User['socialAccounts'][number]],
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     updatedAt: new Date('2026-01-01T00:00:00.000Z'),
   };
@@ -26,7 +28,8 @@ describe('UsersController', () => {
     username: 'testuser',
     email: 'test@example.com',
     name: 'Test User',
-    providers: [],
+    role: UserRole.USER,
+    providers: ['google'],
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };

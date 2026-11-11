@@ -1,38 +1,20 @@
 import { config } from 'dotenv';
-import { existsSync } from 'node:fs';
 import { DataSource } from 'typeorm';
 import { validateAppEnv } from '../config/app-env';
-import { createDatabaseOptions } from './database-options';
+import {
+  assertEnvFileAvailable,
+  resolveEnvFilePath,
+} from '../config/env-files';
+import { cliDatabaseConfig, createDatabaseOptions } from './database-options';
 
-const isTestEnvironment = process.env.NODE_ENV === 'test';
-const envFilePath = isTestEnvironment ? '.env.test.local' : '.env';
-if (isTestEnvironment && !existsSync(envFilePath)) {
-  throw new Error(
-    'Missing .env.test.local. Copy .env.test.example and enter dedicated test database credentials.',
-  );
-}
-config({ path: envFilePath });
+// 앱과 같은 규칙으로 env 파일을 고릅니다(NODE_ENV별, ENV_FILE 우선).
+const envFilePath = resolveEnvFilePath();
+assertEnvFileAvailable(envFilePath);
+config({ path: envFilePath, quiet: true });
 
-const appEnv = validateAppEnv(process.env);
-
+// ts-node(src/*.ts)와 빌드 결과(dist/*.js) 양쪽에서 같은 data-source를 씁니다.
 const dataSource = new DataSource(
-  createDatabaseOptions({
-    DB_TYPE: appEnv.DB_TYPE,
-    DB_HOST: appEnv.DB_HOST,
-    DB_PORT: appEnv.DB_PORT,
-    DB_USERNAME: appEnv.DB_USERNAME,
-    DB_PASSWORD: appEnv.DB_PASSWORD,
-    DB_DATABASE: appEnv.DB_DATABASE,
-    DATABASE_URL: appEnv.DATABASE_URL,
-    DB_SYNCHRONIZE: false,
-    DB_SSL: appEnv.DB_SSL,
-    DB_SSL_REJECT_UNAUTHORIZED: appEnv.DB_SSL_REJECT_UNAUTHORIZED,
-    DB_SSL_CA: appEnv.DB_SSL_CA,
-    DB_POOL_MIN: appEnv.DB_POOL_MIN,
-    DB_POOL_MAX: appEnv.DB_POOL_MAX,
-    DB_CONNECT_TIMEOUT_MS: appEnv.DB_CONNECT_TIMEOUT_MS,
-    migrations: ['src/database/migrations/*.ts'],
-  }),
+  createDatabaseOptions(cliDatabaseConfig(validateAppEnv(process.env))),
 );
 
 export default dataSource;

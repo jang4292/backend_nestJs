@@ -14,7 +14,7 @@ import { AppleJwksVerifierAdapter } from './infrastructure/apple-jwks-verifier.a
 import { AppleOAuthClientAdapter } from './infrastructure/apple-oauth-client.adapter';
 
 import { AuthAppleController } from './interface/auth-apple.controller';
-import { AppleAuthExceptionFilter } from './interface/apple-auth-exception.filter';
+import { SocialAuthExceptionFilter } from '../shared/interface/social-auth-exception.filter';
 
 @Module({
   imports: [CommonModule, UsersModule, SessionModule],
@@ -22,7 +22,7 @@ import { AppleAuthExceptionFilter } from './interface/apple-auth-exception.filte
   providers: [
     AppleJwksVerifierAdapter,
     AppleOAuthClientAdapter,
-    AppleAuthExceptionFilter,
+    SocialAuthExceptionFilter,
 
     {
       provide: APPLE_TOKEN_VERIFIER_PORT,

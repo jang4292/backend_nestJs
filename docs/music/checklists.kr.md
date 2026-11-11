@@ -1,5 +1,7 @@
 # Music 체크리스트
 
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
+
 ## 학습 체크리스트
 
 - [ ] 요청 route가 Legacy인지 Catalog인지 확인했다.
@@ -10,13 +12,14 @@
 - [ ] Controller, service/facade, use case, repository의 책임을 구분했다.
 - [ ] Entity와 public presenter의 차이를 이해했다.
 - [ ] 공개 API와 JWT 보호 API를 구분했다.
-- [ ] Migration 상태를 `npm run migration:show`로 확인했다.
+- [ ] DB 상태를 `npm run db:check`(또는 `npm run migration:show`)로 확인했다.
 
 ## 기능 개발 체크리스트
 
 - [ ] 새 DTO에 `class-validator` 검증을 추가했다.
 - [ ] 공개 route와 관리 route를 분리했다.
-- [ ] 관리 route에 JWT 보호를 추가했다.
+- [ ] 관리(쓰기) route에 `@AdminOnly()`를 붙였다. 빠지면 `music-authorization.spec.ts`가 실패한다.
+- [ ] 삭제할 때 FK 위반은 infrastructure에서 `ForeignKeyConstraintError`(409)로 변환했다(`src/database/mariadb-errors.ts`).
 - [ ] 공개 Playlist query가 `status = published`를 강제한다.
 - [ ] 공개 응답은 presenter/response DTO를 통과한다.
 - [ ] 공개 응답에 `url`, object key, token이 없다.

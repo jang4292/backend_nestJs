@@ -3,9 +3,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from '../../users/users.module';
+import { parseDurationSeconds } from '../../config/duration';
 
 import { SESSION_ISSUER_PORT } from './application/ports/session-issuer.port';
 import { SessionIssuerJwtAdapter } from './infrastructure/session-issuer-jwt.adapter';
+import { JWT_ALGORITHM } from './interface/jwt.constants';
 import { JwtStrategy } from './interface/jwt.strategy';
 
 /**
@@ -28,7 +30,12 @@ import { JwtStrategy } from './interface/jwt.strategy';
         return {
           secret,
           signOptions: {
-            expiresIn: configService.get('JWT_EXPIRES_IN') || '1h',
+            algorithm: JWT_ALGORITHM,
+            // 숫자(초)로 전달해 응답의 expiresIn과 실제 exp 클레임을 일치시킵니다.
+            expiresIn:
+              parseDurationSeconds(
+                configService.get<string>('JWT_EXPIRES_IN', '1h'),
+              ) ?? 3600,
           },
         };
       },

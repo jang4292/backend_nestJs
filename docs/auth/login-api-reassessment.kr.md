@@ -1,5 +1,13 @@
 # 로그인 API 서버 로직 재점검 및 구조 재정리 보고서
 
+> 이력 문서 — 기준 시점 2026-09-12. 본문은 당시 상태 그대로입니다.
+> 이후 2026-11-08 감사에서 다음 항목이 바뀌었습니다([감사 리포트](../audit/2026-11-08-project-audit.kr.md)).
+> - provider별 exception filter 5개를 공통 `SocialAuthExceptionFilter`로 통합했습니다. 내부 오류는 마스킹하고 로그에 남깁니다.
+> - 로컬 로그인 비밀번호 검증을 `UsersService.verifyCredentials()`로 일원화했습니다(타이밍 균등화). 비밀번호 변경 시 `currentPassword`가 필요합니다.
+> - Kakao accessToken은 발급 앱(`KAKAO_APP_ID`)을 검증합니다. Apple은 활성화되면 `APPLE_ALLOWED_AUDIENCES`가 필수입니다.
+> - 외부 provider 호출에 5초 타임아웃을 적용했습니다. `/health`는 DB 장애 시 503을 반환합니다.
+> - 남은 항목(refresh/revoke, 서버 저장형 state, health의 provider 상태 노출)은 감사 로드맵에 있습니다.
+
 작성일: 2026-09-12  
 점검 범위: 로컬 로그인, Google, Apple, Kakao, Naver, Facebook SNS 로그인과 공용 세션 발급/계정 연결 구조
 

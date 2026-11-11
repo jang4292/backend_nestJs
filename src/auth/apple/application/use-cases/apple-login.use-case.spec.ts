@@ -73,8 +73,30 @@ describe('AppleLoginUseCase', () => {
       expect(exchanger.exchange.mock.calls).toHaveLength(0);
     });
 
-    it('should prefer client-supplied user info on first login', async () => {
-      verifier.verifyIdToken.mockResolvedValue(identity);
+    it('should use the client-supplied name but keep the signed token email', async () => {
+      verifier.verifyIdToken.mockResolvedValue({
+        ...identity,
+        emailVerified: true,
+      });
+      userRepo.upsert.mockResolvedValue(userRecord);
+      sessionIssuer.issue.mockResolvedValue(tokens);
+
+      await useCase.execute({
+        idToken: 'valid.token',
+        user: { name: 'First Login Name', email: 'attacker@example.com' },
+      });
+      expect(userRepo.upsert.mock.calls[0][0]).toMatchObject({
+        name: 'First Login Name',
+        email: 'user@example.com',
+        emailVerified: true,
+      });
+    });
+
+    it('should fall back to the client email as unverified when the token has none', async () => {
+      verifier.verifyIdToken.mockResolvedValue({
+        provider: 'apple',
+        sub: '001234.abcdef.5678',
+      });
       userRepo.upsert.mockResolvedValue(userRecord);
       sessionIssuer.issue.mockResolvedValue(tokens);
 
@@ -83,8 +105,8 @@ describe('AppleLoginUseCase', () => {
         user: { name: 'First Login Name', email: 'first@example.com' },
       });
       expect(userRepo.upsert.mock.calls[0][0]).toMatchObject({
-        name: 'First Login Name',
         email: 'first@example.com',
+        emailVerified: false,
       });
     });
   });

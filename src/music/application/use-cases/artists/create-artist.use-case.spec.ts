@@ -21,7 +21,7 @@ describe('CreateArtistUseCase', () => {
     artistRepo.save.mockResolvedValue(created as never);
     const useCase = new CreateArtistUseCase(artistRepo);
 
-    const result = await useCase.execute(dto as never);
+    const result = await useCase.execute(dto);
 
     expect(artistRepo.create).toHaveBeenCalledWith({
       name: 'Artist X',
@@ -32,11 +32,14 @@ describe('CreateArtistUseCase', () => {
 
   it('throws ConflictException when creating duplicate artist', async () => {
     const artistRepo = buildRepo();
-    artistRepo.findByName.mockResolvedValue({ id: 1, name: 'Artist X' } as never);
+    artistRepo.findByName.mockResolvedValue({
+      id: 1,
+      name: 'Artist X',
+    } as never);
     const useCase = new CreateArtistUseCase(artistRepo);
 
-    await expect(
-      useCase.execute({ name: 'Artist X' } as never),
-    ).rejects.toThrow(ConflictException);
+    await expect(useCase.execute({ name: 'Artist X' })).rejects.toThrow(
+      ConflictException,
+    );
   });
 });

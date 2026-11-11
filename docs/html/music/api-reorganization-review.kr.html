@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/music/api-reorganization-review.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>Music API 서버 로직 재점검 및 구조 재정리 보고서 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section" open><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr" aria-current="page">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">아키텍처</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="music-api-서버-로직-재점검-및-구조-재정리-보고서">Music API 서버 로직 재점검 및 구조 재정리 보고서</h1>
+<blockquote>
+<p>작성일: 2026-09-12 · 최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code>
+본문은 2026-09-12 검토 내용입니다. 이후 상태는 <a href="#12-2026-11-08-이후-상태">12장</a>에 정리했고, 남은 과제의 우선순위는 <a href="../audit/2026-11-08-project-audit.kr.html#6-%EB%A1%9C%EB%93%9C%EB%A7%B5">감사 로드맵</a>을 따릅니다.</p>
+</blockquote>
+<h2 id="1-목적과-검토-범위"><a class="heading-anchor" href="#1-%EB%AA%A9%EC%A0%81%EA%B3%BC-%EA%B2%80%ED%86%A0-%EB%B2%94%EC%9C%84" aria-hidden="true" tabindex="-1">#</a>1. 목적과 검토 범위</h2>
+<p>이 문서는 <code>src/music</code> 모듈의 현재 구현을 재점검하고, 다음 개발자 또는 AI가 안전하게 설계 보완과 구현을 이어갈 수 있도록 현재 상태, 확인된 리스크, 목표 구조, 작업 순서를 정리한 인수인계 문서다.</p>
+<p>검토 대상은 Artist, Track, Playlist, PlaylistTrack API와 이들이 사용하는 DTO, 유스케이스, repository port, TypeORM adapter, 엔티티, 마이그레이션, 테스트다. 인증 모듈과 사용자 도메인은 연동 지점만 검토했으며 변경하지 않았다.</p>
+<h2 id="2-검증-결과"><a class="heading-anchor" href="#2-%EA%B2%80%EC%A6%9D-%EA%B2%B0%EA%B3%BC" aria-hidden="true" tabindex="-1">#</a>2. 검증 결과</h2>
+<p>2026-09-12 기준 아래 명령을 실행했다.</p>
+<pre><code class="language-bash">npm test -- --runInBand src/music --passWithNoTests
+</code></pre>
+<p>결과는 8개 테스트 스위트, 44개 테스트 통과다. 현재 단위 테스트 범위에서는 Artist/Track CRUD, 트랙 목록 필터와 페이지네이션, Playlist CRUD의 주요 성공 및 일부 Not Found 경로가 정상 동작한다.</p>
+<p>다만 이 결과는 HTTP 계약, 인증된 사용자의 권한, 실제 MariaDB 제약, 동시 요청, 트랜잭션을 검증하지 않는다. 따라서 &quot;테스트 통과&quot;는 기본 로직의 회귀가 없다는 근거이지, 운영 준비 완료 판정은 아니다.</p>
+<h2 id="3-현재-구조와-요청-흐름"><a class="heading-anchor" href="#3-%ED%98%84%EC%9E%AC-%EA%B5%AC%EC%A1%B0%EC%99%80-%EC%9A%94%EC%B2%AD-%ED%9D%90%EB%A6%84" aria-hidden="true" tabindex="-1">#</a>3. 현재 구조와 요청 흐름</h2>
+<p>현재 모듈은 이미 다음과 같은 헥사고날 구조를 사용한다.</p>
+<pre><code class="language-text">HTTP Controller
+  -&gt; MusicService facade
+    -&gt; Use case
+      -&gt; Repository port
+        -&gt; TypeORM repository adapter
+          -&gt; MariaDB entities/tables
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>계층</th>
+<th>현재 위치</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Interface</td>
+<td><code>src/music/interface</code></td>
+<td><code>MusicController</code>, request DTO</td>
+</tr>
+<tr>
+<td>Facade</td>
+<td><code>src/music/music.service.ts</code></td>
+<td>20개 유스케이스 호출을 controller에 노출</td>
+</tr>
+<tr>
+<td>Application</td>
+<td><code>src/music/application/use-cases</code></td>
+<td>Artist, Track, Playlist, PlaylistTrack 유스케이스</td>
+</tr>
+<tr>
+<td>Port</td>
+<td><code>src/music/application/ports</code></td>
+<td>영속성 추상화와 DI token</td>
+</tr>
+<tr>
+<td>Infrastructure</td>
+<td><code>src/music/infrastructure</code></td>
+<td>TypeORM repository adapter</td>
+</tr>
+<tr>
+<td>Persistence model</td>
+<td><code>src/music/entities</code></td>
+<td>Artist, Track, Playlist, PlaylistTrack 엔티티</td>
+</tr>
+<tr>
+<td>Composition root</td>
+<td><code>src/music/music.module.ts</code></td>
+<td>TypeORM entity, adapter, port, use case DI 등록</td>
+</tr>
+</tbody></table>
+</div>
+<p>(2026-09-12 당시) 공개 API는 모두 <code>JwtAuthGuard</code> 보호 아래에 있었다. 제공 기능은 아래와 같다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>리소스</th>
+<th>제공 기능</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Artist</td>
+<td>목록, 단건, 생성, 수정, 삭제</td>
+</tr>
+<tr>
+<td>Track</td>
+<td>생성, 단건, 수정, 삭제, 검색/artist/BPM/정렬/페이지네이션 목록</td>
+</tr>
+<tr>
+<td>Playlist</td>
+<td>생성, 단건, 수정, 삭제, 목록, 날짜별 단건 조회</td>
+</tr>
+<tr>
+<td>PlaylistTrack</td>
+<td>플레이리스트 트랙 목록, 추가, 순서/메모 수정, 제거</td>
+</tr>
+</tbody></table>
+</div>
+<p>Artist 정규화는 <code>1760000001000-NormalizeArtists.ts</code>에서 수행되었고, Track은 이제 Artist를 필수 <code>ManyToOne</code>으로 참조한다. Artist 삭제는 Track 참조가 있을 때 DB의 <code>RESTRICT</code>를 <code>409 Conflict</code>로 변환하도록 구현되어 있다.</p>
+<h2 id="4-확인된-리스크와-개선-우선순위"><a class="heading-anchor" href="#4-%ED%99%95%EC%9D%B8%EB%90%9C-%EB%A6%AC%EC%8A%A4%ED%81%AC%EC%99%80-%EA%B0%9C%EC%84%A0-%EC%9A%B0%EC%84%A0%EC%88%9C%EC%9C%84" aria-hidden="true" tabindex="-1">#</a>4. 확인된 리스크와 개선 우선순위</h2>
+<h3 id="p0-변경-권한과-소유권-모델-부재"><a class="heading-anchor" href="#p0-%EB%B3%80%EA%B2%BD-%EA%B6%8C%ED%95%9C%EA%B3%BC-%EC%86%8C%EC%9C%A0%EA%B6%8C-%EB%AA%A8%EB%8D%B8-%EB%B6%80%EC%9E%AC" aria-hidden="true" tabindex="-1">#</a>P0: 변경 권한과 소유권 모델 부재</h3>
+<p>모든 Music API가 JWT 인증은 요구하지만, 생성/수정/삭제 시 요청 사용자가 해당 리소스의 소유자인지 또는 관리자/편집자인지를 판정하지 않는다. 현재 <code>Playlist</code>와 <code>Track</code>에는 <code>ownerId</code>, <code>createdBy</code>, <code>visibility</code>, 역할 정보가 없다. 로그인한 모든 사용자가 모든 음악 데이터를 변경할 수 있는 계약이다.</p>
+<p>권장 결정:</p>
+<ol>
+<li>데이터가 전역 카탈로그라면 Track/Artist의 쓰기를 <code>admin</code> 또는 <code>editor</code> role로 제한한다.</li>
+<li>사용자별 플레이리스트라면 Playlist에 <code>ownerId</code> FK를 추가하고, 조회 범위와 수정/삭제 권한을 <code>ownerId</code>로 강제한다.</li>
+<li>공유 플레이리스트가 필요하면 별도 <code>playlist_member</code> 테이블과 <code>owner/editor/viewer</code> 역할을 추가한다.</li>
+</ol>
+<h3 id="p0-playlisttrack-무결성과-동시성-보장-부재"><a class="heading-anchor" href="#p0-playlisttrack-%EB%AC%B4%EA%B2%B0%EC%84%B1%EA%B3%BC-%EB%8F%99%EC%8B%9C%EC%84%B1-%EB%B3%B4%EC%9E%A5-%EB%B6%80%EC%9E%AC" aria-hidden="true" tabindex="-1">#</a>P0: PlaylistTrack 무결성과 동시성 보장 부재</h3>
+<p><code>playlist_track</code>에는 <code>(playlistId, seq)</code> 인덱스만 있고 유니크 제약이 없다. 따라서 동일한 재생 순서가 여러 건 저장될 수 있다. 또한 <code>(playlistId, trackId)</code> 제약도 없어 같은 트랙의 중복 삽입을 금지할 수 없다. <code>AddTrackToPlaylistUseCase</code>는 사전 존재 확인 후 저장하지만 두 요청이 동시에 실행될 때 중복을 막지 못한다.</p>
+<p>권장 결정:</p>
+<ol>
+<li>제품 규칙을 먼저 확정한다: 한 플레이리스트에서 동일 Track을 여러 번 허용하는지, <code>seq</code>가 연속 정수여야 하는지.</li>
+<li>중복 Track을 허용하지 않는다면 <code>UNIQUE (playlistId, trackId)</code>를 추가한다.</li>
+<li>각 순서가 하나여야 한다면 <code>UNIQUE (playlistId, seq)</code>를 추가한다.</li>
+<li>순서 변경, 삽입, 삭제, 일괄 재정렬은 하나의 transaction 안에서 수행한다.</li>
+<li>DB unique violation은 application 계층에서 일관된 <code>409 Conflict</code> API 오류로 매핑한다.</li>
+</ol>
+<h3 id="p1-musicservice-facade와-musicmodule-의-높은-집결도"><a class="heading-anchor" href="#p1-musicservice-facade%EC%99%80-musicmodule-%EC%9D%98-%EB%86%92%EC%9D%80-%EC%A7%91%EA%B2%B0%EB%8F%84" aria-hidden="true" tabindex="-1">#</a>P1: <code>MusicService</code> facade와 <code>MusicModule</code>의 높은 집결도</h3>
+<p><code>MusicService</code>는 20개 유스케이스를 생성자 주입하고 동일한 수의 단순 위임 메서드를 제공한다. <code>MusicModule</code>도 네 도메인의 adapter, port, use case를 모두 한 배열에 등록한다. 실제 도메인 로직은 유스케이스로 잘 분리되어 있지만, 새로운 기능을 추가할 때 두 개의 대형 파일을 항상 수정하게 된다.</p>
+<p>이는 즉시 장애를 일으키는 문제는 아니다. 그러나 Artist/Track/Playlist 기능이 더 늘어날수록 의존성 그래프와 테스트 fixture가 커지고, controller가 어떤 유스케이스에 실제 의존하는지 흐려진다.</p>
+<h3 id="p1-http-응답-및-오류-계약의-불균일-위험"><a class="heading-anchor" href="#p1-http-%EC%9D%91%EB%8B%B5-%EB%B0%8F-%EC%98%A4%EB%A5%98-%EA%B3%84%EC%95%BD%EC%9D%98-%EB%B6%88%EA%B7%A0%EC%9D%BC-%EC%9C%84%ED%97%98" aria-hidden="true" tabindex="-1">#</a>P1: HTTP 응답 및 오류 계약의 불균일 위험</h3>
+<p>성공 응답은 TypeORM entity를 직접 반환한다. 도메인 변경이나 relation/eager 설정 변경이 API JSON을 바꿀 수 있다. 예를 들어 Track의 <code>artist</code>는 eager relation이고 PlaylistTrack 조회는 <code>track.artist</code> relation을 명시적으로 적재한다.</p>
+<p><code>NotFoundException</code>, <code>ConflictException</code>은 사용하지만 리소스별 오류 코드, 응답 DTO, 목록 메타데이터 표준은 문서화되어 있지 않다. 다른 AI가 기능을 추가할 때 데이터베이스 모델을 HTTP API에 직접 노출할 가능성이 높다.</p>
+<h3 id="p1-날짜-기반-playlist-계약의-모호성"><a class="heading-anchor" href="#p1-%EB%82%A0%EC%A7%9C-%EA%B8%B0%EB%B0%98-playlist-%EA%B3%84%EC%95%BD%EC%9D%98-%EB%AA%A8%ED%98%B8%EC%84%B1" aria-hidden="true" tabindex="-1">#</a>P1: 날짜 기반 Playlist 계약의 모호성</h3>
+<p><code>GET /music/playlists/by-date?date=...</code>는 한 건을 반환하고, <code>GET /music/playlists?date=...</code>는 목록을 반환한다. 하지만 <code>playlist.playDate</code>에 유니크 제약이 없으므로 같은 날짜의 Playlist가 여러 개면 <code>findByPlayDate</code>가 어떤 한 건을 선택하는지 repository 구현과 DB 정렬에 의존한다.</p>
+<p>&quot;하루 한 플레이리스트&quot;가 규칙이면 DB <code>UNIQUE (playDate)</code>와 생성/수정 충돌 처리가 필요하다. 여러 개를 허용하는 규칙이면 단건 날짜 API는 제거하거나 명시적 식별자/정렬 기준을 추가해야 한다.</p>
+<h3 id="p2-테스트-공백"><a class="heading-anchor" href="#p2-%ED%85%8C%EC%8A%A4%ED%8A%B8-%EA%B3%B5%EB%B0%B1" aria-hidden="true" tabindex="-1">#</a>P2: 테스트 공백</h3>
+<p>유스케이스 테스트는 Artist에 집중되어 있으며, PlaylistTrack 유스케이스는 전용 spec이 없다. <code>MusicService</code> 테스트는 adapter와 use case를 실제로 조립하는 방식이라 facade 위임 이상의 여러 구현을 한 테스트에서 함께 검증한다. HTTP controller/E2E 테스트는 없어서 guard, <code>ValidationPipe</code>, path parameter 변환, Swagger/응답 계약을 확인하지 못한다.</p>
+<h2 id="5-목표-구조"><a class="heading-anchor" href="#5-%EB%AA%A9%ED%91%9C-%EA%B5%AC%EC%A1%B0" aria-hidden="true" tabindex="-1">#</a>5. 목표 구조</h2>
+<p>기존 port/adapter 방향은 유지한다. 대규모 재작성보다 도메인 경계를 드러내고, 정책과 데이터 무결성을 application 계층과 DB 제약에 함께 배치한다.</p>
+<pre><code class="language-text">src/music/
+  artist/
+    interface/                 # artist.controller.ts, DTO, response DTO
+    application/               # artist command/query use case
+    domain/                    # Artist 정책 및 domain error
+    infrastructure/            # TypeORM adapter
+  track/
+    interface/
+    application/
+    domain/
+    infrastructure/
+  playlist/
+    interface/                 # playlist + playlist-item API
+    application/               # 편집 transaction orchestration
+    domain/                    # 순서/중복/공유 규칙
+    infrastructure/
+  shared/
+    application/ports/
+    interface/auth/            # current user, role guard/decorator
+  music.module.ts              # 하위 provider 배열을 조합만 수행
+</code></pre>
+<p>작은 단계로 진행한다면 물리적 폴더 이동은 마지막에 한다. 먼저 controller가 facade 대신 각 도메인 application service 또는 개별 use case를 직접 주입하도록 바꾸고, <code>MusicService</code>를 제거한다. controller가 너무 많은 use case를 직접 의존하게 되면 <code>ArtistApplicationService</code>, <code>TrackApplicationService</code>, <code>PlaylistApplicationService</code>처럼 도메인별 facade만 유지한다. 단일 전역 facade는 유지하지 않는다.</p>
+<p><code>PlaylistApplicationService</code> 또는 command use case는 다음처럼 transaction boundary를 소유해야 한다.</p>
+<pre><code class="language-text">Controller -&gt; Playlist command use case
+  -&gt; authorize(currentUser, playlist)
+  -&gt; transaction
+       -&gt; validate tracks and sequence
+       -&gt; persist playlist items
+       -&gt; reorder items when needed
+  -&gt; response mapper
+</code></pre>
+<p>Repository port는 entity CRUD의 단순 복사보다 유스케이스가 필요한 원자 연산을 표현해야 한다. 예: <code>replaceItems(playlistId, items)</code>, <code>moveItem(playlistId, itemId, targetSeq)</code>, <code>findOwnedById(playlistId, userId)</code>.</p>
+<h2 id="6-권장-api-계약"><a class="heading-anchor" href="#6-%EA%B6%8C%EC%9E%A5-api-%EA%B3%84%EC%95%BD" aria-hidden="true" tabindex="-1">#</a>6. 권장 API 계약</h2>
+<h3 id="리소스-경계"><a class="heading-anchor" href="#%EB%A6%AC%EC%86%8C%EC%8A%A4-%EA%B2%BD%EA%B3%84" aria-hidden="true" tabindex="-1">#</a>리소스 경계</h3>
+<ol>
+<li>Artist: 운영 카탈로그 메타데이터. 일반 사용자는 읽기만, 운영 역할만 쓰기.</li>
+<li>Track: Artist에 속하는 전역 카탈로그. Artist와 같은 쓰기 정책 적용.</li>
+<li>Playlist: <code>ownerId</code>를 가진 사용자 리소스 또는 명시적 공유 리소스.</li>
+<li>Playlist item: 독립 CRUD보다 Playlist aggregate 내부의 순서 있는 항목으로 취급.</li>
+</ol>
+<h3 id="응답과-오류"><a class="heading-anchor" href="#%EC%9D%91%EB%8B%B5%EA%B3%BC-%EC%98%A4%EB%A5%98" aria-hidden="true" tabindex="-1">#</a>응답과 오류</h3>
+<ol>
+<li>entity 대신 <code>ArtistResponseDto</code>, <code>TrackResponseDto</code>, <code>PlaylistResponseDto</code>, <code>PlaylistItemResponseDto</code>를 반환한다.</li>
+<li>목록 응답은 <code>{ items, page, limit, total }</code> 형식으로 통일한다. Playlist 목록도 pagination 도입 여부를 명시한다.</li>
+<li>오류 본문에 안정적인 machine-readable code를 둔다. 예: <code>PLAYLIST_NOT_FOUND</code>, <code>PLAYLIST_FORBIDDEN</code>, <code>DUPLICATE_PLAYLIST_SEQUENCE</code>, <code>PLAYLIST_DATE_CONFLICT</code>.</li>
+<li><code>POST /playlists/:playlistId/tracks</code>의 <code>seq</code> 충돌 정책을 API 문서에 명시한다. 권장안은 지정 위치 삽입 후 기존 항목의 <code>seq</code>를 뒤로 이동시키는 방식이다.</li>
+</ol>
+<h3 id="날짜-api-결정-사항"><a class="heading-anchor" href="#%EB%82%A0%EC%A7%9C-api-%EA%B2%B0%EC%A0%95-%EC%82%AC%ED%95%AD" aria-hidden="true" tabindex="-1">#</a>날짜 API 결정 사항</h3>
+<p>아래 중 하나를 확정해야 한다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>선택지</th>
+<th>DB/API 조치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>날짜당 한 Playlist</td>
+<td><code>playlist.playDate</code> unique migration, 중복 생성/수정 시 <code>409</code>, <code>by-date</code> 단건 API 유지</td>
+</tr>
+<tr>
+<td>날짜당 여러 Playlist</td>
+<td><code>by-date</code>를 목록 API로 통합하거나 정렬/페이지네이션 추가, 단건 API 제거</td>
+</tr>
+<tr>
+<td>날짜는 단순 태그</td>
+<td><code>by-date</code> 단건 API 제거, 목록 필터만 유지</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="7-구현-순서"><a class="heading-anchor" href="#7-%EA%B5%AC%ED%98%84-%EC%88%9C%EC%84%9C" aria-hidden="true" tabindex="-1">#</a>7. 구현 순서</h2>
+<h3 id="1단계-정책과-db-제약-확정"><a class="heading-anchor" href="#1%EB%8B%A8%EA%B3%84-%EC%A0%95%EC%B1%85%EA%B3%BC-db-%EC%A0%9C%EC%95%BD-%ED%99%95%EC%A0%95" aria-hidden="true" tabindex="-1">#</a>1단계: 정책과 DB 제약 확정</h3>
+<ol>
+<li>Playlist의 소유/공유 모델과 Track/Artist의 쓰기 role을 결정한다.</li>
+<li>중복 Track 및 <code>seq</code> 규칙, 날짜당 Playlist 개수 규칙을 결정한다.</li>
+<li>결정된 규칙에 맞춰 TypeORM migration을 추가한다. 기존 migration은 수정하지 않는다.</li>
+<li>운영 데이터에 제약 위반 행이 있는지 사전 쿼리로 확인하고 정리 계획을 만든다.</li>
+</ol>
+<h3 id="2단계-application-경계-정리"><a class="heading-anchor" href="#2%EB%8B%A8%EA%B3%84-application-%EA%B2%BD%EA%B3%84-%EC%A0%95%EB%A6%AC" aria-hidden="true" tabindex="-1">#</a>2단계: application 경계 정리</h3>
+<ol>
+<li><code>CurrentUser</code>를 유스케이스 입력으로 전달한다.</li>
+<li>Playlist 생성/수정/삭제/item 편집에 authorization policy를 추가한다.</li>
+<li>여러 item을 변경하는 작업에 transaction-capable port 또는 unit of work를 도입한다.</li>
+<li><code>MusicService</code> facade를 도메인별 application service로 대체한 뒤 제거한다.</li>
+<li>module provider 등록을 <code>artistProviders</code>, <code>trackProviders</code>, <code>playlistProviders</code> 같은 도메인별 배열로 분리한다.</li>
+</ol>
+<h3 id="3단계-interface-계약-정리"><a class="heading-anchor" href="#3%EB%8B%A8%EA%B3%84-interface-%EA%B3%84%EC%95%BD-%EC%A0%95%EB%A6%AC" aria-hidden="true" tabindex="-1">#</a>3단계: interface 계약 정리</h3>
+<ol>
+<li>controller를 Artist/Track/Playlist controller로 분리한다.</li>
+<li>request DTO에 Swagger decorator와 값 제약을 일관되게 추가한다.</li>
+<li>response DTO와 mapper를 도입하고 entity 직접 반환을 중단한다.</li>
+<li>API examples와 Swagger 설명을 새로운 오류 코드 및 순서 정책에 맞춘다.</li>
+</ol>
+<h3 id="4단계-테스트와-관측성-보강"><a class="heading-anchor" href="#4%EB%8B%A8%EA%B3%84-%ED%85%8C%EC%8A%A4%ED%8A%B8%EC%99%80-%EA%B4%80%EC%B8%A1%EC%84%B1-%EB%B3%B4%EA%B0%95" aria-hidden="true" tabindex="-1">#</a>4단계: 테스트와 관측성 보강</h3>
+<ol>
+<li>각 PlaylistTrack 유스케이스의 성공, 부모/트랙 없음, 소속 불일치, 중복, 순서 충돌 테스트를 추가한다.</li>
+<li>권한 거부와 owner isolation 테스트를 추가한다.</li>
+<li>MariaDB 기반 integration test로 FK/unique constraint와 transaction rollback을 검증한다.</li>
+<li>Supertest E2E로 guard, validation, status code, response schema를 검증한다.</li>
+<li>변경/삭제, 재정렬, 권한 거부에 구조화된 audit log를 추가한다.</li>
+</ol>
+<h2 id="8-최소-테스트-매트릭스"><a class="heading-anchor" href="#8-%EC%B5%9C%EC%86%8C-%ED%85%8C%EC%8A%A4%ED%8A%B8-%EB%A7%A4%ED%8A%B8%EB%A6%AD%EC%8A%A4" aria-hidden="true" tabindex="-1">#</a>8. 최소 테스트 매트릭스</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>시나리오</th>
+<th>계층</th>
+<th>기대 결과</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>유효하지 않은 DTO</td>
+<td>E2E</td>
+<td><code>400</code>, 허용되지 않은 필드는 거부</td>
+</tr>
+<tr>
+<td>미인증 요청</td>
+<td>E2E</td>
+<td><code>401</code></td>
+</tr>
+<tr>
+<td>타 사용자의 Playlist 수정/삭제</td>
+<td>E2E</td>
+<td><code>403</code> 또는 정보 은닉 정책에 따른 <code>404</code></td>
+</tr>
+<tr>
+<td>없는 Artist로 Track 생성/변경</td>
+<td>Use case + E2E</td>
+<td><code>404</code></td>
+</tr>
+<tr>
+<td>Track이 있는 Artist 삭제</td>
+<td>Integration</td>
+<td><code>409</code></td>
+</tr>
+<tr>
+<td>같은 Playlist의 중복 <code>seq</code></td>
+<td>Integration</td>
+<td>DB 제약 및 <code>409</code></td>
+</tr>
+<tr>
+<td>같은 Playlist에 동일 Track 추가</td>
+<td>Integration</td>
+<td>제품 규칙에 따른 성공 또는 <code>409</code></td>
+</tr>
+<tr>
+<td>item 중간 삽입/이동/삭제</td>
+<td>Use case + Integration</td>
+<td>순서가 유일하고 연속적</td>
+</tr>
+<tr>
+<td>날짜 기반 Playlist 조회</td>
+<td>E2E</td>
+<td>확정한 단건/목록 계약과 일치</td>
+</tr>
+<tr>
+<td>트랙 목록 경계값</td>
+<td>E2E</td>
+<td><code>limit</code> 1~100, 정렬 whitelist, page metadata 일치</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="9-다음-ai-또는-개발자에게-전달할-결정-질문"><a class="heading-anchor" href="#9-%EB%8B%A4%EC%9D%8C-ai-%EB%98%90%EB%8A%94-%EA%B0%9C%EB%B0%9C%EC%9E%90%EC%97%90%EA%B2%8C-%EC%A0%84%EB%8B%AC%ED%95%A0-%EA%B2%B0%EC%A0%95-%EC%A7%88%EB%AC%B8" aria-hidden="true" tabindex="-1">#</a>9. 다음 AI 또는 개발자에게 전달할 결정 질문</h2>
+<p>구현을 시작하기 전에 아래 질문에 답해야 한다.</p>
+<ol>
+<li>Music 데이터는 전역 카탈로그인가, 사용자별 개인 데이터인가?</li>
+<li>Artist와 Track을 수정할 수 있는 역할은 무엇인가?</li>
+<li>Playlist는 개인 소유, 완전 공개, 멤버 기반 공유 중 어느 모델인가?</li>
+<li>동일 Track을 하나의 Playlist에 반복 삽입할 수 있는가?</li>
+<li><code>seq</code>는 단순 표시 값인가, 유일하고 연속적인 재생 순서인가?</li>
+<li>하나의 <code>playDate</code>에 Playlist를 몇 개까지 허용하는가?</li>
+<li>기존 클라이언트가 entity 그대로의 응답 JSON에 의존하는가? 응답 DTO 전환의 호환성 기간이 필요한가?</li>
+<li><del>운영 DB를 하나로 고정할 수 있는가?</del> → MariaDB 전용으로 확정. unique/FK 변환은 <code>src/database/mariadb-errors.ts</code> 기준으로 작성한다.</li>
+</ol>
+<h2 id="10-현재-결론"><a class="heading-anchor" href="#10-%ED%98%84%EC%9E%AC-%EA%B2%B0%EB%A1%A0" aria-hidden="true" tabindex="-1">#</a>10. 현재 결론</h2>
+<p>기본적인 도메인 분리와 CRUD 유스케이스는 이미 갖춰져 있고, 집중 단위 테스트도 통과한다. 다음 투자 우선순위는 새 CRUD를 더 추가하는 것이 아니라 권한, Playlist 항목의 DB 무결성, transaction, HTTP 응답 계약을 확정하는 일이다. 이 네 가지를 먼저 고정한 뒤 facade/module을 도메인 단위로 정리하면 기능 확장과 AI 협업 모두에서 변경 충돌과 운영 리스크를 크게 줄일 수 있다.</p>
+<h2 id="11-이후-catalog-playlist-구현-반영"><a class="heading-anchor" href="#11-%EC%9D%B4%ED%9B%84-catalog-playlist-%EA%B5%AC%ED%98%84-%EB%B0%98%EC%98%81" aria-hidden="true" tabindex="-1">#</a>11. 이후 Catalog Playlist 구현 반영</h2>
+<p>위 검토 이후 Catalog 영역에 다음 구현이 추가되었다.</p>
+<ul>
+<li><code>/music/public/playlists</code>와 <code>/music/public/playlists/:id</code> 공개 조회</li>
+<li><code>draft</code>/<code>published</code>/<code>archived</code> Playlist 상태</li>
+<li><code>playlist_track.position</code> 기반 순서와 <code>(playlistId, position)</code> unique index</li>
+<li>인증된 Playlist 생성, publish, Track 추가, 전체 순서 변경 API</li>
+<li>공개 presenter를 통한 AudioAsset URL 비노출</li>
+<li>MariaDB용 <code>CreateCatalogPlaylistSchema</code> Migration</li>
+</ul>
+<p>이 구현은 기존 Legacy API를 제거하지 않는다. Legacy API는 <code>/music/legacy</code>와 <code>legacy_*</code> 테이블에 남아 있으며, Catalog는 <code>/music</code> 및 <code>/music/public</code> 경로를 사용한다. 따라서 이 문서의 기존 위험 분석 중 owner/role, presigned playback, Legacy-to-Catalog 이관은 여전히 후속 과제다.</p>
+<h2 id="12-2026-11-08-이후-상태"><a class="heading-anchor" href="#12-2026-11-08-%EC%9D%B4%ED%9B%84-%EC%83%81%ED%83%9C" aria-hidden="true" tabindex="-1">#</a>12. 2026-11-08 이후 상태</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>이 문서의 과제</th>
+<th>상태</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>P0 변경 권한·소유권 모델 부재</td>
+<td><strong>부분 해결</strong>: <code>users.role</code> + <code>@AdminOnly()</code>로 모든 음악 쓰기를 admin으로 제한. 사용자별 ownerId는 제품 결정 대기</td>
+</tr>
+<tr>
+<td>DB unique/FK 위반의 일관된 409</td>
+<td><strong>해결</strong>: <code>mariadb-errors.ts</code>, <code>DomainError</code>, <code>GlobalExceptionFilter</code> 중앙 매핑. Artist 삭제 500 버그(PostgreSQL 코드 판별) 수정</td>
+</tr>
+<tr>
+<td>PostgreSQL 기준 가정</td>
+<td><strong>정리</strong>: MariaDB 전용. 본문의 PostgreSQL 서술은 MariaDB로 교체</td>
+</tr>
+<tr>
+<td>Playlist 날짜·Track 중복 정책</td>
+<td>미결(<a href="decisions.html">결정 문서</a>)</td>
+</tr>
+<tr>
+<td>transaction boundary·use-case 분리, presigned playback, Legacy→Catalog 이관</td>
+<td>미결(로드맵 P1/P2)</td>
+</tr>
+</tbody></table>
+</div>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="decisions.html"><span>이전</span>Music API 결정 및 보류 항목</a><a class="pager-next" href="checklists.kr.html"><span>다음</span>Music 체크리스트</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/music/api-reorganization-review.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/music/api-reorganization-review.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-%EB%AA%A9%EC%A0%81%EA%B3%BC-%EA%B2%80%ED%86%A0-%EB%B2%94%EC%9C%84">1. 목적과 검토 범위</a></li><li class="toc-2"><a href="#2-%EA%B2%80%EC%A6%9D-%EA%B2%B0%EA%B3%BC">2. 검증 결과</a></li><li class="toc-2"><a href="#3-%ED%98%84%EC%9E%AC-%EA%B5%AC%EC%A1%B0%EC%99%80-%EC%9A%94%EC%B2%AD-%ED%9D%90%EB%A6%84">3. 현재 구조와 요청 흐름</a></li><li class="toc-2"><a href="#4-%ED%99%95%EC%9D%B8%EB%90%9C-%EB%A6%AC%EC%8A%A4%ED%81%AC%EC%99%80-%EA%B0%9C%EC%84%A0-%EC%9A%B0%EC%84%A0%EC%88%9C%EC%9C%84">4. 확인된 리스크와 개선 우선순위</a></li><li class="toc-3"><a href="#p0-%EB%B3%80%EA%B2%BD-%EA%B6%8C%ED%95%9C%EA%B3%BC-%EC%86%8C%EC%9C%A0%EA%B6%8C-%EB%AA%A8%EB%8D%B8-%EB%B6%80%EC%9E%AC">P0: 변경 권한과 소유권 모델 부재</a></li><li class="toc-3"><a href="#p0-playlisttrack-%EB%AC%B4%EA%B2%B0%EC%84%B1%EA%B3%BC-%EB%8F%99%EC%8B%9C%EC%84%B1-%EB%B3%B4%EC%9E%A5-%EB%B6%80%EC%9E%AC">P0: PlaylistTrack 무결성과 동시성 보장 부재</a></li><li class="toc-3"><a href="#p1-musicservice-facade%EC%99%80-musicmodule-%EC%9D%98-%EB%86%92%EC%9D%80-%EC%A7%91%EA%B2%B0%EB%8F%84">P1: MusicService facade와 MusicModule 의 높은 집결도</a></li><li class="toc-3"><a href="#p1-http-%EC%9D%91%EB%8B%B5-%EB%B0%8F-%EC%98%A4%EB%A5%98-%EA%B3%84%EC%95%BD%EC%9D%98-%EB%B6%88%EA%B7%A0%EC%9D%BC-%EC%9C%84%ED%97%98">P1: HTTP 응답 및 오류 계약의 불균일 위험</a></li><li class="toc-3"><a href="#p1-%EB%82%A0%EC%A7%9C-%EA%B8%B0%EB%B0%98-playlist-%EA%B3%84%EC%95%BD%EC%9D%98-%EB%AA%A8%ED%98%B8%EC%84%B1">P1: 날짜 기반 Playlist 계약의 모호성</a></li><li class="toc-3"><a href="#p2-%ED%85%8C%EC%8A%A4%ED%8A%B8-%EA%B3%B5%EB%B0%B1">P2: 테스트 공백</a></li><li class="toc-2"><a href="#5-%EB%AA%A9%ED%91%9C-%EA%B5%AC%EC%A1%B0">5. 목표 구조</a></li><li class="toc-2"><a href="#6-%EA%B6%8C%EC%9E%A5-api-%EA%B3%84%EC%95%BD">6. 권장 API 계약</a></li><li class="toc-3"><a href="#%EB%A6%AC%EC%86%8C%EC%8A%A4-%EA%B2%BD%EA%B3%84">리소스 경계</a></li><li class="toc-3"><a href="#%EC%9D%91%EB%8B%B5%EA%B3%BC-%EC%98%A4%EB%A5%98">응답과 오류</a></li><li class="toc-3"><a href="#%EB%82%A0%EC%A7%9C-api-%EA%B2%B0%EC%A0%95-%EC%82%AC%ED%95%AD">날짜 API 결정 사항</a></li><li class="toc-2"><a href="#7-%EA%B5%AC%ED%98%84-%EC%88%9C%EC%84%9C">7. 구현 순서</a></li><li class="toc-3"><a href="#1%EB%8B%A8%EA%B3%84-%EC%A0%95%EC%B1%85%EA%B3%BC-db-%EC%A0%9C%EC%95%BD-%ED%99%95%EC%A0%95">1단계: 정책과 DB 제약 확정</a></li><li class="toc-3"><a href="#2%EB%8B%A8%EA%B3%84-application-%EA%B2%BD%EA%B3%84-%EC%A0%95%EB%A6%AC">2단계: application 경계 정리</a></li><li class="toc-3"><a href="#3%EB%8B%A8%EA%B3%84-interface-%EA%B3%84%EC%95%BD-%EC%A0%95%EB%A6%AC">3단계: interface 계약 정리</a></li><li class="toc-3"><a href="#4%EB%8B%A8%EA%B3%84-%ED%85%8C%EC%8A%A4%ED%8A%B8%EC%99%80-%EA%B4%80%EC%B8%A1%EC%84%B1-%EB%B3%B4%EA%B0%95">4단계: 테스트와 관측성 보강</a></li><li class="toc-2"><a href="#8-%EC%B5%9C%EC%86%8C-%ED%85%8C%EC%8A%A4%ED%8A%B8-%EB%A7%A4%ED%8A%B8%EB%A6%AD%EC%8A%A4">8. 최소 테스트 매트릭스</a></li><li class="toc-2"><a href="#9-%EB%8B%A4%EC%9D%8C-ai-%EB%98%90%EB%8A%94-%EA%B0%9C%EB%B0%9C%EC%9E%90%EC%97%90%EA%B2%8C-%EC%A0%84%EB%8B%AC%ED%95%A0-%EA%B2%B0%EC%A0%95-%EC%A7%88%EB%AC%B8">9. 다음 AI 또는 개발자에게 전달할 결정 질문</a></li><li class="toc-2"><a href="#10-%ED%98%84%EC%9E%AC-%EA%B2%B0%EB%A1%A0">10. 현재 결론</a></li><li class="toc-2"><a href="#11-%EC%9D%B4%ED%9B%84-catalog-playlist-%EA%B5%AC%ED%98%84-%EB%B0%98%EC%98%81">11. 이후 Catalog Playlist 구현 반영</a></li><li class="toc-2"><a href="#12-2026-11-08-%EC%9D%B4%ED%9B%84-%EC%83%81%ED%83%9C">12. 2026-11-08 이후 상태</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 # SNS 로그인 빌드·동작·운영·학습 가이드
 
-작성일: 2026-09-12
+작성일: 2026-09-12  
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 이 문서는 현재 NestJS 프로젝트의 Google, Apple, Kakao, Naver, Facebook 로그인 흐름을 빌드하고 검증하며 운영하는 절차를 정리합니다. 실제 provider credential을 문서나 저장소에 기록하지 않고, 환경변수와 운영 secret 저장소를 통해 주입합니다.
 
@@ -43,11 +44,11 @@ npx eslint \
   src/config/app-env.spec.ts
 ```
 
-MariaDB와 전용 테스트 계정이 준비된 환경에서는 다음을 추가 실행합니다.
+개발 서버의 `app_db_test` 권한이 준비되어 있으면 다음을 추가 실행합니다(Test 환경, `.env.test.local`).
 
 ```bash
-npm run migration:show
-npm run migration:run
+npm run db:check:test
+npm run db:setup:test
 npm run test:e2e
 ```
 
@@ -82,15 +83,16 @@ AUTH_FACEBOOK_ENABLED=false
 
 `false`인 provider는 route가 제거되지 않지만 controller와 외부 provider API를 실행하지 않고 `503`을 반환합니다.
 
-Google은 기존 환경과의 호환성을 위해 flag를 생략하면 활성화로 추론됩니다. Google을 사용하지 않으면 반드시 `AUTH_GOOGLE_ENABLED=false`를 지정합니다.
+모든 provider는 명시적 opt-in입니다. flag를 생략하면 Google을 포함해 비활성이며, credential 키가 있어도 자동으로 켜지지 않습니다. 현재 운영은 로컬 로그인만 사용하므로 5종 모두 `false`입니다. 켜기 전에는 `docs/auth/sns-reenable-checklist.kr.md`를 완료하세요.
 
 ### flow 설정
 
 - Google ID token: `GOOGLE_ALLOWED_AUDIENCES`
 - Google code: `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URIS`
-- Apple ID token: `APPLE_ALLOWED_AUDIENCES`
+- Apple ID token: `APPLE_ALLOWED_AUDIENCES`(Apple이 활성화되면 모든 환경에서 필수)
 - Apple code: `APPLE_SERVICE_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`, `APPLE_REDIRECT_URIS`
-- Kakao: `KAKAO_REST_API_KEY`; code flow는 `KAKAO_REDIRECT_URIS`를 함께 관리
+- Kakao: `KAKAO_REST_API_KEY`, `KAKAO_APP_ID`(클라이언트 accessToken의 발급 앱 검증, production 필수); code flow는 `KAKAO_REDIRECT_URIS`를 함께 관리
+- Naver: ⚠ accessToken의 발급 앱을 검증할 방법이 없으므로 accessToken 로그인은 기본 차단됩니다(`AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=false`). code flow만 사용합니다
 - Naver: `NAVER_CLIENT_ID`; code flow는 `NAVER_CLIENT_SECRET`, `NAVER_REDIRECT_URIS`를 함께 관리
 - Facebook: `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`; code flow는 `FACEBOOK_REDIRECT_URIS`를 함께 관리
 
@@ -147,12 +149,12 @@ HTTP status는 `503`입니다. `x-request-id`는 응답 헤더와 envelope에 �
 
 ## 5. EC2 + MariaDB 운영 순서
 
-1. `/etc/backend-nestjs/backend-nestjs.env`에 환경변수를 주입합니다.
-2. 파일 권한을 `root:root`, `600`으로 제한합니다.
+1. 프로젝트 루트의 `.env.production`에 환경변수를 넣습니다(템플릿 `.env.production.example`).
+2. 파일 권한을 `600`으로 제한하고 `npm run build && npm run env:check:prod`로 검증합니다.
 3. MariaDB는 애플리케이션과 같은 EC2라면 `127.0.0.1:3306`으로 연결합니다.
 4. Security Group에서 3306을 인터넷에 공개하지 않습니다.
 5. `DB_SYNCHRONIZE=false`를 확인합니다.
-6. build 후 migration 상태를 확인하고 migration을 실행합니다.
+6. build 후 `npm run migration:show:prod` → `npm run migration:run:prod`를 실행합니다.
 7. systemd 또는 PM2로 애플리케이션을 재시작합니다.
 8. `/health`와 비활성 provider 503 응답을 확인합니다.
 
@@ -161,8 +163,10 @@ HTTP status는 `503`입니다. `x-request-id`는 응답 헤더와 envelope에 �
 ```bash
 npm ci
 npm run build
-npm run migration:show
-npm run migration:run
+npm run env:check:prod
+npm run db:check:prod
+npm run migration:show:prod
+npm run migration:run:prod
 npm run pm2:reload
 curl -i http://127.0.0.1:3000/health
 ```

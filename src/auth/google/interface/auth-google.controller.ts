@@ -5,13 +5,10 @@ import {
   Req,
   HttpCode,
   HttpStatus,
-  ValidationPipe,
   UseFilters,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { successResponse } from '../../../common/http/api-response';
-import { RequestIdInterceptor } from '../../../common/request-id/request-id.interceptor';
 import { RequestIdService } from '../../../common/request-id/request-id.service';
 import type { RequestWithId } from '../../../common/request-id/request-with-id';
 import type { SocialIdentity } from '../../../users/domain/social-identity';
@@ -23,7 +20,9 @@ import type { GoogleLoginOutput } from '../application/use-cases/google-login.us
 import { VerifyIdTokenDto } from './dto/verify-id-token.dto';
 import { ExchangeCodeDto } from './dto/exchange-code.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
-import { GoogleAuthExceptionFilter } from './google-auth-exception.filter';
+import { SocialAuthExceptionFilter } from '../../shared/interface/social-auth-exception.filter';
+import { SocialProviderRoute } from '../../../common/auth/social-provider-route.decorator';
+import { toSocialAuthError } from '../../shared/interface/to-social-auth-error';
 import {
   GoogleAuthError,
   GoogleAuthErrorCode,
@@ -39,10 +38,18 @@ type GoogleLoginResponseData = {
   };
 };
 
+/** 예상하지 못한 오류(DB 오류 등)는 메시지를 노출하지 않는 INTERNAL_ERROR로 감쌉니다. */
+const wrapUnexpected = (cause: unknown) =>
+  new GoogleAuthError(
+    GoogleAuthErrorCode.AUTH_GOOGLE_INTERNAL_ERROR,
+    'Unexpected error during Google authentication.',
+    { cause },
+  );
+
 @Controller('auth/google')
 @ApiTags('auth/google')
-@UseInterceptors(RequestIdInterceptor)
-@UseFilters(GoogleAuthExceptionFilter)
+@UseFilters(SocialAuthExceptionFilter)
+@SocialProviderRoute('google')
 export class AuthGoogleController {
   constructor(
     private readonly verifyIdTokenUseCase: VerifyGoogleIdTokenUseCase,
@@ -59,7 +66,7 @@ export class AuthGoogleController {
   @ApiOperation({ summary: 'Google ID token 검증' })
   @HttpCode(HttpStatus.OK)
   async verifyIdToken(
-    @Body(ValidationPipe) dto: VerifyIdTokenDto,
+    @Body() dto: VerifyIdTokenDto,
     @Req() req: RequestWithId,
   ) {
     const requestId = this.getRequestId(req);
@@ -70,11 +77,7 @@ export class AuthGoogleController {
         nonce: dto.nonce,
       });
     } catch (err) {
-      if (err instanceof GoogleAuthError) throw err;
-      throw new GoogleAuthError(
-        GoogleAuthErrorCode.AUTH_GOOGLE_INTERNAL_ERROR,
-        err instanceof Error ? err.message : String(err),
-      );
+      throw toSocialAuthError(err, wrapUnexpected);
     }
     return successResponse(requestId, identity);
   }
@@ -82,10 +85,7 @@ export class AuthGoogleController {
   @Post('exchange-code')
   @ApiOperation({ summary: 'Google authorization code 교환' })
   @HttpCode(HttpStatus.OK)
-  async exchangeCode(
-    @Body(ValidationPipe) dto: ExchangeCodeDto,
-    @Req() req: RequestWithId,
-  ) {
+  async exchangeCode(@Body() dto: ExchangeCodeDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);
     let tokenSet: TokenSet;
     try {
@@ -97,11 +97,7 @@ export class AuthGoogleController {
         expectedState: dto.expectedState,
       });
     } catch (err) {
-      if (err instanceof GoogleAuthError) throw err;
-      throw new GoogleAuthError(
-        GoogleAuthErrorCode.AUTH_GOOGLE_INTERNAL_ERROR,
-        err instanceof Error ? err.message : String(err),
-      );
+      throw toSocialAuthError(err, wrapUnexpected);
     }
     return successResponse(requestId, tokenSet);
   }
@@ -109,10 +105,7 @@ export class AuthGoogleController {
   @Post('login')
   @ApiOperation({ summary: 'Google social login' })
   @HttpCode(HttpStatus.OK)
-  async login(
-    @Body(ValidationPipe) dto: GoogleLoginDto,
-    @Req() req: RequestWithId,
-  ) {
+  async login(@Body() dto: GoogleLoginDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);
     let result: GoogleLoginOutput;
     try {
@@ -126,11 +119,7 @@ export class AuthGoogleController {
         expectedState: dto.expectedState,
       });
     } catch (err) {
-      if (err instanceof GoogleAuthError) throw err;
-      throw new GoogleAuthError(
-        GoogleAuthErrorCode.AUTH_GOOGLE_INTERNAL_ERROR,
-        err instanceof Error ? err.message : String(err),
-      );
+      throw toSocialAuthError(err, wrapUnexpected);
     }
     const data: GoogleLoginResponseData = {
       accessToken: result.session.accessToken,

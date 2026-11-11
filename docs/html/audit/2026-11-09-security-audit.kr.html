@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/audit/2026-11-09-security-audit.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>보안 전수 감사 리포트 (2026-11-09) · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section" open><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr" aria-current="page">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">보안</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="보안-전수-감사-리포트-2026-11-09">보안 전수 감사 리포트 (2026-11-09)</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code>
+이전 감사: <a href="2026-11-08-project-audit.kr.html">2026-11-08 프로젝트 감사</a>. ID 체계(SEC, AUTH, DB, OPS, R)를 이어서 씁니다.
+개념 설명과 실습: <a href="../learning/api-security-guide.kr.html">API 보안 학습 가이드</a> · DB 후속 과제: <a href="../learning/database-improvement-guide.kr.html">DB 개선 가이드</a></p>
+</blockquote>
+<h2 id="0-요약"><a class="heading-anchor" href="#0-%EC%9A%94%EC%95%BD" aria-hidden="true" tabindex="-1">#</a>0. 요약</h2>
+<p><strong>감사 대상:</strong> <code>chore/project-audit-2026-11</code>(PR #10) 전체 코드, 설정, 스크립트, CI, 배포 예시, Git 이력</p>
+<p><strong>결론</strong></p>
+<ul>
+<li>High 1건(SEC-17)을 새로 발견해 수정했습니다. 비활성 SNS provider가 대소문자를 바꾼 경로로 열렸고, 다른 앱에서 발급된 토큰으로 로그인할 수 있는 상태였습니다.</li>
+<li>Medium 4건(SEC-18, SEC-19, SEC-21, AUTH-3)을 수정했습니다. AUTH-3을 고치면서 migration <code>1766000000000-AddSessionVersionToUsers</code>가 추가되었습니다.</li>
+<li>남은 위험은 <a href="#7-로드맵">7장 로드맵</a>에 정리했습니다. 저장소 설정처럼 사용자가 직접 해야 하는 일은 <a href="#9-사용자가-할-일">9장</a>에 있습니다.</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>지표</th>
+<th>감사 시작 (<code>532ccc7</code>)</th>
+<th>감사 후</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>유닛 테스트</td>
+<td>50 suites / 388 tests</td>
+<td><strong>58 suites / 442 tests</strong></td>
+</tr>
+<tr>
+<td>e2e (MariaDB <code>app_db_test</code>)</td>
+<td>2 tests</td>
+<td><strong>5 tests</strong> (대소문자 경로 3건 추가)</td>
+</tr>
+<tr>
+<td>HTTP 스모크 (빌드 결과 + <code>app_db_test</code>)</td>
+<td>—</td>
+<td><strong>16/16 통과</strong> (<a href="#8-검증">8장</a>)</td>
+</tr>
+<tr>
+<td>migration</td>
+<td>9개</td>
+<td><strong>10개</strong> (<code>AddSessionVersionToUsers</code> 추가, revert/재적용 검증)</td>
+</tr>
+<tr>
+<td><code>npm audit --omit=dev</code></td>
+<td>5건 (high 2, moderate 3)</td>
+<td>5건 (변화 없음. 모두 메이저 업그레이드 필요, <a href="#35-공급망저장소운영">OPS-14</a>)</td>
+</tr>
+<tr>
+<td>Git 이력 비밀값 검색</td>
+<td>—</td>
+<td>이상 없음 (<a href="#35-공급망저장소운영">R-8</a>)</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="이번에-수정한-주요-결함"><a class="heading-anchor" href="#%EC%9D%B4%EB%B2%88%EC%97%90-%EC%88%98%EC%A0%95%ED%95%9C-%EC%A3%BC%EC%9A%94-%EA%B2%B0%ED%95%A8" aria-hidden="true" tabindex="-1">#</a>이번에 수정한 주요 결함</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>결함</th>
+<th>수정 전 동작</th>
+<th>수정 후</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>비활성 provider 우회 (SEC-17)</td>
+<td><code>POST /auth/GOOGLE/verify-id-token</code>이 컨트롤러까지 실행됨(수정 전 커밋에서 500으로 재현). Google·Apple은 audience 없이, Kakao는 <code>app_id</code> 확인 없이 토큰을 받음</td>
+<td>경로 철자와 무관하게 503. 설정이 비면 검증을 생략하지 않고 거부</td>
+</tr>
+<tr>
+<td>비밀번호를 바꿔도 기존 토큰 유효 (AUTH-3)</td>
+<td>탈취된 토큰이 만료(기본 1시간)까지 계속 동작</td>
+<td>비밀번호를 바꾸면 그 전에 발급된 토큰이 즉시 401</td>
+</tr>
+<tr>
+<td>계정 단위 무차별 대입 (SEC-19)</td>
+<td>IP당 5회/분만 제한. IP를 바꾸면 한 계정에 무제한 시도</td>
+<td>같은 계정 실패 10회/15분이면 429와 <code>Retry-After</code></td>
+</tr>
+<tr>
+<td>bcrypt 72바이트 절단과 입력 길이 무제한 (SEC-18)</td>
+<td>73바이트 이상 비밀번호는 앞 72바이트만 비교. 긴 username은 DB 오류로 500</td>
+<td>새 비밀번호 8자 이상·72바이트 이하, 모든 입력에 상한</td>
+</tr>
+<tr>
+<td>비로그인 검색 패턴 조작 (SEC-21)</td>
+<td><code>%</code>, <code>_</code>를 그대로 LIKE에 넣고 길이 제한 없음</td>
+<td>100자 상한, 와일드카드 이스케이프</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="1-범위와-방법"><a class="heading-anchor" href="#1-%EB%B2%94%EC%9C%84%EC%99%80-%EB%B0%A9%EB%B2%95" aria-hidden="true" tabindex="-1">#</a>1. 범위와 방법</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>영역</th>
+<th>확인한 것</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>인증</td>
+<td>로컬 로그인, 비밀번호 저장·비교, 세션 JWT 발급·검증, 비밀번호 변경</td>
+</tr>
+<tr>
+<td>인가</td>
+<td><code>@AdminOnly</code>·<code>RolesGuard</code>, 라우트별 권한, provider 활성 가드</td>
+</tr>
+<tr>
+<td>외부 IdP</td>
+<td>Google·Apple ID Token 검증(aud, iss, nonce), Kakao·Naver·Facebook 토큰의 발급 앱 검증, code 교환과 redirect URI</td>
+</tr>
+<tr>
+<td>입력</td>
+<td>전역 <code>ValidationPipe</code>, DTO 상한, LIKE 쿼리, URL 필드</td>
+</tr>
+<tr>
+<td>오류·로그</td>
+<td>응답 마스킹, 로그 redaction, <code>x-request-id</code></td>
+</tr>
+<tr>
+<td>설정</td>
+<td><code>app-env.ts</code> 검증 규칙, CORS, helmet, trust proxy, Swagger 노출</td>
+</tr>
+<tr>
+<td>DB</td>
+<td>계정 권한, TLS, 백업 파일, migration</td>
+</tr>
+<tr>
+<td>공급망</td>
+<td><code>npm audit</code>, GitHub Actions, Dependabot, Claude Code 공유 설정</td>
+</tr>
+<tr>
+<td>저장소</td>
+<td>추적 파일, Git 이력 비밀값 패턴</td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>실행 검증</strong></p>
+<ol>
+<li><strong>라우팅 동작 확인:</strong> Express 5.2.1의 <code>case sensitive routing</code> 기본값이 꺼져 있습니다(<code>node_modules/express/lib/application.js</code>). Nest 11.2.8은 이 설정을 그대로 따릅니다(<code>getRouteMatchingOptions</code>).</li>
+<li><strong>수정 전 재현:</strong> <code>532ccc7</code>을 별도 worktree에서 빌드해 실행했습니다. <code>/auth/google/verify-id-token</code>은 503이었지만 <code>/auth/GOOGLE/verify-id-token</code>은 500 <code>AUTH_GOOGLE_INTERNAL_ERROR</code>였습니다. 500은 컨트롤러와 Google 검증기까지 실행됐다는 뜻입니다.</li>
+<li><strong>품질 게이트, e2e, 스모크:</strong> <a href="#8-검증">8장</a></li>
+<li><strong>이력 검색:</strong> <code>git log --all -p</code>에서 <code>AKIA…</code>, <code>ghp_…</code>, <code>xox?-</code>, <code>PRIVATE KEY</code>를 검색했습니다. 값은 출력하지 않았습니다.</li>
+</ol>
+<h3 id="owasp-api-security-top-10-2023-대응"><a class="heading-anchor" href="#owasp-api-security-top-10-2023-%EB%8C%80%EC%9D%91" aria-hidden="true" tabindex="-1">#</a>OWASP API Security Top 10 (2023) 대응</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>항목</th>
+<th>이 프로젝트의 상태</th>
+<th>관련 ID</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>API1 객체 수준 인가</td>
+<td>사용자 소유 리소스는 프로필뿐이고 <code>req.user.id</code>로만 접근합니다. 음악 쓰기는 admin 전용입니다</td>
+<td>SEC-1</td>
+</tr>
+<tr>
+<td>API2 인증 결함</td>
+<td><strong>우회와 무차별 대입을 수정</strong>했고, 토큰 폐기 수단을 추가했습니다</td>
+<td>SEC-17, SEC-19, AUTH-3</td>
+</tr>
+<tr>
+<td>API3 객체 속성 수준 인가</td>
+<td><code>whitelist</code> + <code>forbidNonWhitelisted</code>로 <code>role</code> 같은 필드를 요청으로 바꿀 수 없습니다. 비밀번호 해시는 <code>select: false</code>입니다</td>
+<td>DB-5</td>
+</tr>
+<tr>
+<td>API4 무제한 자원 소비</td>
+<td><strong>입력 상한과 검색 패턴 제한을 추가</strong>했습니다. <code>/health</code>는 남은 과제입니다</td>
+<td>SEC-18, SEC-21, SEC-20</td>
+</tr>
+<tr>
+<td>API5 기능 수준 인가</td>
+<td>쓰기 라우트에 <code>@AdminOnly</code>가 빠지면 spec이 실패합니다</td>
+<td>SEC-1</td>
+</tr>
+<tr>
+<td>API6 민감한 비즈니스 흐름</td>
+<td>가입 자동화 방지(CAPTCHA 등)는 없습니다. IP당 전역 제한만 있습니다</td>
+<td>SEC-25</td>
+</tr>
+<tr>
+<td>API7 SSRF</td>
+<td>외부 호출 URL은 상수입니다. Facebook Graph 버전만 설정값입니다</td>
+<td>—</td>
+</tr>
+<tr>
+<td>API8 보안 설정 오류</td>
+<td>CORS <code>*</code> 금지, helmet, 운영 Swagger 비노출, trust proxy. <strong>systemd 샌드박스를 추가</strong>했습니다</td>
+<td>OPS-15</td>
+</tr>
+<tr>
+<td>API9 API 목록 관리</td>
+<td>legacy 라우트(<code>/music/legacy</code>)가 아직 열려 있습니다. 라우트 표는 <a href="../product/api-spec.kr.html">API 명세</a>에 있습니다</td>
+<td>—</td>
+</tr>
+<tr>
+<td>API10 외부 API 안전하지 않은 사용</td>
+<td>타임아웃, JSON 파싱 실패 처리가 있습니다. provider 오류 원문이 응답에 나가는 문제는 남은 과제입니다</td>
+<td>SEC-24</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="2-심각도와-조치-표기"><a class="heading-anchor" href="#2-%EC%8B%AC%EA%B0%81%EB%8F%84%EC%99%80-%EC%A1%B0%EC%B9%98-%ED%91%9C%EA%B8%B0" aria-hidden="true" tabindex="-1">#</a>2. 심각도와 조치 표기</h2>
+<p><a href="2026-11-08-project-audit.kr.html#2-%EC%8B%AC%EA%B0%81%EB%8F%84-%EA%B8%B0%EC%A4%80">2026-11-08 감사 2장</a>과 같습니다.</p>
+<ul>
+<li><strong>High:</strong> 권한 우회, 비밀 노출, 데이터 손상, 운영 중단으로 이어질 수 있음</li>
+<li><strong>Medium:</strong> 특정 조건에서 보안 수준을 낮춤</li>
+<li><strong>Low:</strong> 심층 방어, 관측성</li>
+</ul>
+<p>조치 표기: ✅ 수정 · 📌 로드맵 · 📝 문서·운영 절차로 대응</p>
+<h2 id="3-발견-사항과-조치"><a class="heading-anchor" href="#3-%EB%B0%9C%EA%B2%AC-%EC%82%AC%ED%95%AD%EA%B3%BC-%EC%A1%B0%EC%B9%98" aria-hidden="true" tabindex="-1">#</a>3. 발견 사항과 조치</h2>
+<h3 id="31-인증세션"><a class="heading-anchor" href="#31-%EC%9D%B8%EC%A6%9D%EC%84%B8%EC%85%98" aria-hidden="true" tabindex="-1">#</a>3.1 인증·세션</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>등급</th>
+<th>발견 사항</th>
+<th>조치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SEC-17</td>
+<td><strong>High</strong></td>
+<td><code>ProviderReadinessGuard</code>가 요청 경로를 대소문자 구분 정규식(<code>^/auth/([^/]+)</code>)으로 검사했습니다. Express 라우팅은 대소문자를 구분하지 않아 <code>/auth/GOOGLE/*</code>, <code>/auth/Kakao/*</code>가 가드를 통과해 컨트롤러에 도달합니다. 꺼진 provider는 설정이 비어 있어, 검증이 다음처럼 <strong>fail-open</strong>이었습니다.<br>· Google: <code>audience: undefined</code> → 다른 OAuth client용 ID Token도 통과<br>· Apple: <code>audience: undefined</code><br>· Kakao: <code>KAKAO_APP_ID</code>가 없으면 경고 후 <code>app_id</code> 검증 생략<br>결과적으로 &quot;SNS 비활성&quot; 상태에서도 다른 앱에서 발급된 토큰으로 <code>&lt;provider&gt;_&lt;sub&gt;</code> 계정이 생기고 세션 JWT가 발급됩니다. <code>verify-id-token</code>은 공개 검증기로 동작합니다</td>
+<td>✅ 가드가 경로 대신 <code>@SocialProviderRoute()</code> 메타데이터로 판정합니다(<code>src/common/auth/social-provider-route.decorator.ts</code>). 5개 컨트롤러에 메타데이터가 빠지면 spec이 실패합니다<br>✅ <strong>fail-closed:</strong> Google·Apple은 audience가 비면 <code>*_CONFIG_MISSING</code>(503)을 반환합니다. Kakao는 <code>KAKAO_APP_ID</code>가 없으면 거부하며, Kakao가 켜져 있으면 모든 환경에서 필수입니다<br>✅ e2e에 <code>/auth/GOOGLE/login</code>, <code>/auth/Kakao/login</code> 503 확인 추가</td>
+</tr>
+<tr>
+<td>AUTH-3</td>
+<td>Medium</td>
+<td>(11-08 감사에서 로드맵) 비밀번호를 바꿔도 기존 JWT가 만료까지 유효했습니다. 토큰이 탈취되면 비밀번호를 바꿔도 막을 수 없습니다</td>
+<td>✅ <code>users.sessionVersion</code>(migration 1766)을 추가했습니다. JWT에 <code>sv</code>를 넣고 <code>JwtStrategy</code>가 매 요청 DB 값과 비교합니다. 비밀번호를 바꾸면 버전이 1 오릅니다. 배포 전에 발급된 토큰은 <code>sv</code>가 없어 0으로 간주하므로 배포 직후에도 유효합니다</td>
+</tr>
+<tr>
+<td>SEC-19</td>
+<td>Medium</td>
+<td>로그인 제한이 IP당 5회/분뿐이었습니다. IP를 바꾸며 한 계정을 공격하는 무차별 대입을 막지 못합니다</td>
+<td>✅ 정규화한 식별자(<code>username:alice</code>)마다 실패 10회/15분이면 비밀번호를 검사하기 전에 429 <code>RATE_LIMITED</code>와 <code>Retry-After</code>를 반환합니다. 성공하면 초기화합니다. 없는 계정도 같은 방식으로 세어 계정 존재가 드러나지 않습니다. 저장소는 프로세스 메모리(상한 1만 키)이며 PM2 단일 인스턴스 기준입니다</td>
+</tr>
+<tr>
+<td>SEC-18</td>
+<td>Medium</td>
+<td>계정 DTO에 길이 상한이 없었습니다.<br>· bcrypt는 72바이트 이후를 무시하므로 앞 72바이트가 같으면 같은 비밀번호로 취급<br>· 256자 username은 <code>Data too long</code> DB 오류로 500<br>· 최소 비밀번호 길이 6자</td>
+<td>✅ 새 비밀번호 8자 이상·UTF-8 72바이트 이하, username 4~50, email 255, name 100(<code>src/users/domain/user-input-policy.ts</code>)<br>✅ 로그인과 <code>currentPassword</code>는 기존 비밀번호 호환을 위해 1024자 상한만 둡니다<br>✅ SNS DTO 12개에 token·code·state·nonce·PKCE·redirectUri 상한</td>
+</tr>
+<tr>
+<td>SEC-16</td>
+<td>Low</td>
+<td>(11-08 로드맵) redirect URI 허용 목록이 비면 검사를 생략했습니다</td>
+<td>✅ 5개 provider 모두 목록이 비면 code flow를 거부합니다(<code>*_CONFIG_MISSING</code>)</td>
+</tr>
+<tr>
+<td>SEC-25</td>
+<td>Low</td>
+<td>가입 응답(<code>Username already exists</code>, <code>Email already exists</code>)으로 계정 존재 여부를 알 수 있습니다</td>
+<td>📝 가입 UX와의 절충입니다. IP당 전역 제한(10회/60초)으로 대량 조회 비용을 높입니다. 필요하면 가입 email 인증 흐름과 함께 메시지를 통일합니다(📌 P2)</td>
+</tr>
+<tr>
+<td>SEC-26</td>
+<td>Low</td>
+<td>프로필 email 변경에 소유 확인이 없습니다. 다른 사람의 email을 먼저 등록해 둘 수 있습니다(계정 병합은 하지 않으므로 탈취로 이어지지는 않음)</td>
+<td>📌 P2 email 인증</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="32-입력오류로그"><a class="heading-anchor" href="#32-%EC%9E%85%EB%A0%A5%EC%98%A4%EB%A5%98%EB%A1%9C%EA%B7%B8" aria-hidden="true" tabindex="-1">#</a>3.2 입력·오류·로그</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>등급</th>
+<th>발견 사항</th>
+<th>조치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SEC-21</td>
+<td>Medium</td>
+<td>비로그인 <code>GET /music/legacy/tracks</code>의 <code>search</code>·<code>title</code>·<code>artistName</code>이 길이 제한 없이 <code>LIKE &#39;%…%&#39;</code>로 들어갑니다. <code>%</code>, <code>_</code>도 이스케이프하지 않아 사용자가 패턴을 조작할 수 있습니다. 인덱스를 쓰지 못하는 쿼리라 비용이 큽니다</td>
+<td>✅ 100자 상한, <code>escapeLike</code>로 <code>\ % _</code> 이스케이프 / 📌 검색 구조 개선은 <a href="../learning/database-improvement-guide.kr.html#db-9-%EA%B2%80%EC%83%89-%EC%BF%BC%EB%A6%AC">DB 가이드 DB-9</a></td>
+</tr>
+<tr>
+<td>SEC-22</td>
+<td>Low</td>
+<td>AudioAsset <code>url</code>이 <code>ftp:</code> 등 다른 scheme을 받고, 2000자 컬럼 상한을 DTO에서 검사하지 않았습니다(admin 전용)</td>
+<td>✅ http(s) 절대 URL만, <code>@MaxLength(2000)</code>. 음악 쓰기 DTO 전체를 컬럼 길이에 맞춤</td>
+</tr>
+<tr>
+<td>SEC-14</td>
+<td>Low</td>
+<td>(11-08 로드맵) 클라이언트가 보낸 <code>x-request-id</code>를 검사 없이 로그와 응답 헤더에 씁니다. 공백과 탭으로 가짜 로그 줄을 만들 수 있습니다</td>
+<td>✅ <code>^[A-Za-z0-9._:=+/-]{1,128}$</code>일 때만 사용하고, 아니면 UUID를 새로 만듭니다</td>
+</tr>
+<tr>
+<td>SEC-23</td>
+<td>Low</td>
+<td>오류 로그의 <code>path</code>에 query string이 그대로 남습니다</td>
+<td>✅ <code>redactSensitiveText</code> 적용(<code>token=…</code> 등 가림)</td>
+</tr>
+<tr>
+<td>SEC-24</td>
+<td>Low</td>
+<td>provider 오류 원문(<code>error_description</code>, Apple의 <code>Invalid token audience: …</code>, Google의 <code>Invalid token issuer: &lt;iss&gt;</code>)이 401 응답 메시지로 나갑니다</td>
+<td>📌 P2 401 메시지를 고정 문구로 바꾸고 원문은 로그로만</td>
+</tr>
+<tr>
+<td>SEC-20</td>
+<td>Low</td>
+<td><code>/health</code>는 rate limit 없이 매 요청 <code>SELECT 1</code>을 실행합니다</td>
+<td>📌 P2 1~2초 결과 캐시, 또는 nginx에서 내부망만 허용</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="33-db"><a class="heading-anchor" href="#33-db" aria-hidden="true" tabindex="-1">#</a>3.3 DB</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>등급</th>
+<th>발견 사항</th>
+<th>조치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DB-18</td>
+<td>Medium</td>
+<td>런타임 앱 계정이 migration용 DDL 권한(<code>CREATE, ALTER, DROP, INDEX</code>)까지 갖고 있습니다. 앱이 탈취되면 테이블을 지울 수 있습니다</td>
+<td>📌 P1 계정 분리(migrator / runtime). 셸 환경변수가 env 파일보다 우선하므로 코드 변경 없이 적용할 수 있습니다. 절차: <a href="../learning/database-improvement-guide.kr.html#db-18-migration-%EA%B3%84%EC%A0%95%EA%B3%BC-%EB%9F%B0%ED%83%80%EC%9E%84-%EA%B3%84%EC%A0%95-%EB%B6%84%EB%A6%AC">DB 가이드</a></td>
+</tr>
+<tr>
+<td>DB-19</td>
+<td>Medium</td>
+<td>개발 DB 서버에 TLS가 없습니다. <code>db:check:test</code>가 <code>tls: off</code>를 표시하며, 계정 정보와 데이터가 평문으로 오갑니다</td>
+<td>📝 SSH 터널 또는 서버 TLS 설정. 절차: <a href="../learning/database-improvement-guide.kr.html#db-19-%EC%A0%84%EC%86%A1-%EA%B5%AC%EA%B0%84-%EB%B3%B4%ED%98%B8">DB 가이드</a></td>
+</tr>
+<tr>
+<td>DB-20</td>
+<td>Low</td>
+<td>배포 문서의 백업 명령이 프로젝트 루트에 기본 umask로 덤프를 만듭니다(사용자 데이터·비밀번호 해시 포함). <code>.gitignore</code>에 <code>*.sql</code>이 없었습니다</td>
+<td>✅ <code>.gitignore</code>에 <code>*.sql</code>, <code>*.sql.gz</code>, <code>*.dump</code> 추가. 백업 명령을 <code>umask 077</code> + 저장소 밖 경로로 변경</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="34-sns-설정-규칙-재활성화-조건"><a class="heading-anchor" href="#34-sns-%EC%84%A4%EC%A0%95-%EA%B7%9C%EC%B9%99-%EC%9E%AC%ED%99%9C%EC%84%B1%ED%99%94-%EC%A1%B0%EA%B1%B4" aria-hidden="true" tabindex="-1">#</a>3.4 SNS 설정 규칙 (재활성화 조건)</h3>
+<p>SEC-17 수정으로 provider를 다시 켤 때의 조건이 강해졌습니다. 지금은 모든 provider가 꺼져 있어 런타임 영향은 없습니다. 자세한 내용은 <a href="../auth/sns-reenable-checklist.kr.html">SNS 재활성화 체크리스트</a>를 봅니다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>provider</th>
+<th>새로 필수가 된 것</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Google</td>
+<td><code>GOOGLE_ALLOWED_AUDIENCES</code>(기동 검증은 기존과 같고, 비어 있으면 런타임에도 거부), code flow면 <code>GOOGLE_OAUTH_REDIRECT_URIS</code></td>
+</tr>
+<tr>
+<td>Apple</td>
+<td>code flow면 <code>APPLE_REDIRECT_URIS</code></td>
+</tr>
+<tr>
+<td>Kakao</td>
+<td><code>KAKAO_APP_ID</code>: <strong>모든 환경에서 필수</strong>(이전에는 운영만). code flow면 <code>KAKAO_REDIRECT_URIS</code></td>
+</tr>
+<tr>
+<td>Naver</td>
+<td>code flow는 <code>NAVER_REDIRECT_URIS</code> 필수</td>
+</tr>
+<tr>
+<td>Facebook</td>
+<td>code flow는 <code>FACEBOOK_REDIRECT_URIS</code> 필수</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="35-공급망저장소운영"><a class="heading-anchor" href="#35-%EA%B3%B5%EA%B8%89%EB%A7%9D%EC%A0%80%EC%9E%A5%EC%86%8C%EC%9A%B4%EC%98%81" aria-hidden="true" tabindex="-1">#</a>3.5 공급망·저장소·운영</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>등급</th>
+<th>발견 사항</th>
+<th>조치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OPS-12</td>
+<td>Low</td>
+<td>의존성·Actions 업데이트 자동화가 없습니다. <code>actions/checkout</code>이 <code>GITHUB_TOKEN</code>을 <code>.git/config</code>에 남깁니다. Actions가 tag(<code>@v4</code>)로 참조됩니다</td>
+<td>✅ <code>.github/dependabot.yml</code>(npm 주간, minor/patch 묶음, github-actions 주간), <code>persist-credentials: false</code> / 📌 Actions SHA 고정</td>
+</tr>
+<tr>
+<td>OPS-13</td>
+<td>Medium</td>
+<td>공개 저장소인데 secret scanning push protection, CodeQL, 브랜치 보호 설정 여부를 코드로 확인할 수 없습니다</td>
+<td>📝 <a href="#9-사용자가-할-일">9장</a>의 GitHub 설정</td>
+</tr>
+<tr>
+<td>OPS-14</td>
+<td>Low</td>
+<td>CI audit 기준이 <code>critical</code>입니다. 남은 high 2건은 multer(파일 업로드 미사용)이고, NestJS 12 업그레이드가 필요합니다</td>
+<td>📌 P1 업그레이드 후 <code>--audit-level=high</code></td>
+</tr>
+<tr>
+<td>OPS-15</td>
+<td>Low</td>
+<td>systemd 예시에 샌드박스 지시어가 없습니다</td>
+<td>✅ <code>NoNewPrivileges</code>, <code>ProtectSystem=strict</code>, <code>PrivateTmp</code>, <code>ProtectHome</code> 등 추가</td>
+</tr>
+<tr>
+<td>R-7</td>
+<td>Low</td>
+<td>추적 중인 <code>.claude/settings.json</code>이 <code>Bash(npm run *)</code>를 허용합니다. Claude Code를 쓰는 사람의 PC에서 <code>migration:run:prod</code>, <code>db:reset:test</code>가 확인 없이 실행될 수 있습니다</td>
+<td>✅ lint, format, typecheck, build, test, <code>env:check*</code>, <code>db:check*</code>, <code>docs:html*</code>만 허용</td>
+</tr>
+<tr>
+<td>R-8</td>
+<td>Info</td>
+<td>Git 이력 비밀값 재검색 결과, <code>PRIVATE KEY</code>는 <code>.env.example</code>의 자리표시자(<code>\n...\n</code>)와 문서 속 검색 명령뿐이었습니다. AWS·GitHub·Slack 토큰 패턴은 없었습니다</td>
+<td>이상 없음</td>
+</tr>
+<tr>
+<td>R-9</td>
+<td>Info</td>
+<td>개발 PC의 <code>.env.bak*</code> 백업 4개에 과거 비밀값이 있을 수 있습니다(Git 미추적, chmod 600)</td>
+<td>📝 필요 없으면 삭제(<a href="#9-사용자가-할-일">9장</a>)</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="4-이전-감사-항목-재확인"><a class="heading-anchor" href="#4-%EC%9D%B4%EC%A0%84-%EA%B0%90%EC%82%AC-%ED%95%AD%EB%AA%A9-%EC%9E%AC%ED%99%95%EC%9D%B8" aria-hidden="true" tabindex="-1">#</a>4. 이전 감사 항목 재확인</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>내용</th>
+<th>상태</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SEC-1</td>
+<td>음악 쓰기 admin 전용</td>
+<td>✅ 유지. 메타데이터 spec(<code>music-authorization.spec.ts</code>)</td>
+</tr>
+<tr>
+<td>SEC-2</td>
+<td>trust proxy</td>
+<td>✅ 운영 기본 <code>loopback</code></td>
+</tr>
+<tr>
+<td>SEC-3</td>
+<td>Kakao·Naver 토큰 치환</td>
+<td>✅ 유지. Kakao는 이번에 fail-closed로 강화</td>
+</tr>
+<tr>
+<td>SEC-4</td>
+<td>SNS 내부 오류 노출</td>
+<td>✅ 유지</td>
+</tr>
+<tr>
+<td>SEC-5</td>
+<td>서버 측 state 비교가 CSRF 방어가 안 됨</td>
+<td>📌 P1 서버 저장형 state/PKCE</td>
+</tr>
+<tr>
+<td>SEC-6</td>
+<td><code>exchange-code</code>·<code>verify-id-token</code> 공개 범위</td>
+<td>📌 P1. SEC-17로 비활성 상태에서는 확실히 막힘</td>
+</tr>
+<tr>
+<td>SEC-7~13</td>
+<td>Apple email, email 덮어쓰기, 타이밍, <code>currentPassword</code>, Apple aud, 예약 username, CORS</td>
+<td>✅ 유지</td>
+</tr>
+<tr>
+<td>SEC-14, SEC-16</td>
+<td>request id, redirect 허용 목록</td>
+<td>✅ <strong>이번에 수정</strong></td>
+</tr>
+<tr>
+<td>SEC-15</td>
+<td>Facebook <code>appsecret_proof</code></td>
+<td>📌 P2</td>
+</tr>
+<tr>
+<td>AUTH-1, 2, 4</td>
+<td>HS256 고정, 만료 해석, providers 로드</td>
+<td>✅ 유지</td>
+</tr>
+<tr>
+<td>AUTH-3</td>
+<td>토큰 폐기</td>
+<td>✅ <strong>이번에 수정</strong>(비밀번호 변경 시). refresh token과 로그아웃은 📌 P1</td>
+</tr>
+<tr>
+<td>AUTH-5</td>
+<td>local·SNS 응답 형식 불일치</td>
+<td>📌 P1</td>
+</tr>
+<tr>
+<td>AUTH-6</td>
+<td>JWT iss/aud</td>
+<td>📌 P2</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="5-변경-요약"><a class="heading-anchor" href="#5-%EB%B3%80%EA%B2%BD-%EC%9A%94%EC%95%BD" aria-hidden="true" tabindex="-1">#</a>5. 변경 요약</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>커밋</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>1aa4946</code> <code>fix(auth)</code></td>
+<td>provider 가드를 메타데이터로 판정, Google·Apple·Kakao fail-closed, redirect 허용 목록 필수, <code>KAKAO_APP_ID</code> 모든 환경 필수, e2e</td>
+</tr>
+<tr>
+<td><code>cc31e95</code> <code>feat(auth)</code></td>
+<td><code>sessionVersion</code>(migration 1766)과 JWT <code>sv</code>, 계정 단위 로그인 실패 제한, <code>RateLimitedError</code>(429)</td>
+</tr>
+<tr>
+<td><code>09c8e0b</code> <code>fix(api)</code></td>
+<td>입력 상한과 비밀번호 정책, LIKE 이스케이프, request id 검증, 로그 path redaction</td>
+</tr>
+<tr>
+<td><code>610078f</code> <code>chore(security)</code></td>
+<td>Dependabot, checkout 자격 증명 비보존, systemd 샌드박스, Claude Code 허용 목록 축소, DB 덤프 ignore</td>
+</tr>
+<tr>
+<td><code>docs</code></td>
+<td>이 리포트, <a href="../learning/api-security-guide.kr.html">API 보안 가이드</a>, <a href="../learning/database-improvement-guide.kr.html">DB 개선 가이드</a>, <a href="../learning/glossary.kr.html">용어집</a>, 작업 내역, 관련 문서 최신화</td>
+</tr>
+<tr>
+<td><code>docs(html)</code></td>
+<td><a href="../site-maintenance.html">학습 사이트</a> 생성기와 첫 스냅샷</td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>새 migration:</strong> <code>1766000000000-AddSessionVersionToUsers</code>. <code>users.sessionVersion INT UNSIGNED NOT NULL DEFAULT 0</code>을 추가하고, <code>down()</code>은 컬럼을 삭제합니다. 기존 데이터는 바꾸지 않는 추가 전용(expand) 변경입니다.</p>
+<h2 id="6-배포-영향-develop--main"><a class="heading-anchor" href="#6-%EB%B0%B0%ED%8F%AC-%EC%98%81%ED%96%A5-develop--main" aria-hidden="true" tabindex="-1">#</a>6. 배포 영향 (develop → main)</h2>
+<p><a href="2026-11-08-project-audit.kr.html#52-%EB%B8%8C%EB%A0%88%EC%9D%B4%ED%82%B9-%EB%B3%80%EA%B2%BD-main-%EA%B8%B0%EC%A4%80-%ED%81%B4%EB%9D%BC%EC%9D%B4%EC%96%B8%ED%8A%B8%EC%9A%B4%EC%98%81">11-08 감사 5.2 브레이킹 변경</a>에 다음이 더해집니다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>변경</th>
+<th>영향</th>
+<th>대응</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>10</td>
+<td>비밀번호를 바꾸면 <strong>현재 토큰도 무효</strong></td>
+<td><code>PATCH /users/profile</code> 성공 후 같은 토큰으로 보낸 요청이 401</td>
+<td>클라이언트는 비밀번호 변경 후 다시 로그인 화면으로 이동</td>
+</tr>
+<tr>
+<td>11</td>
+<td>새 비밀번호 8자 이상, UTF-8 72바이트 이하</td>
+<td>가입·비밀번호 변경 400</td>
+<td>클라이언트 입력 검증과 안내 문구</td>
+</tr>
+<tr>
+<td>12</td>
+<td>같은 계정 로그인 실패 10회/15분이면 429</td>
+<td>로그인 화면</td>
+<td><code>Retry-After</code>(초)를 읽어 안내</td>
+</tr>
+<tr>
+<td>13</td>
+<td>AudioAsset <code>url</code>은 http(s) 절대 URL만</td>
+<td>관리 도구</td>
+<td>—</td>
+</tr>
+<tr>
+<td>14</td>
+<td><code>x-request-id</code>가 허용 형식이 아니면 서버가 새 값으로 바꿈</td>
+<td>로그 추적</td>
+<td>UUID 사용 권장</td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>배포 순서:</strong> 백업 → <code>npm run migration:show:prod</code>(1766 pending 확인) → <code>npm run migration:run:prod</code> → <code>npm run pm2:reload</code>.</p>
+<p><strong>롤백</strong></p>
+<ul>
+<li>앱만 되돌릴 때: 이전 빌드로 <code>pm2:reload</code>합니다. 이전 코드는 <code>sessionVersion</code> 컬럼을 읽지 않으므로 컬럼이 남아 있어도 동작합니다.</li>
+<li>컬럼까지 되돌릴 때: <strong>먼저 앱을 이전 빌드로 되돌린 뒤</strong> <code>migration:revert:prod</code>를 실행합니다. 새 코드는 entity가 이 컬럼을 조회하므로, 순서가 바뀌면 모든 사용자 조회가 실패합니다.</li>
+</ul>
+<h2 id="7-로드맵"><a class="heading-anchor" href="#7-%EB%A1%9C%EB%93%9C%EB%A7%B5" aria-hidden="true" tabindex="-1">#</a>7. 로드맵</h2>
+<h3 id="p1"><a class="heading-anchor" href="#p1" aria-hidden="true" tabindex="-1">#</a>P1</h3>
+<ul>
+<li>인증<ul>
+<li>refresh token(해시 저장, rotation, 재사용 탐지)과 로그아웃·전체 세션 폐기(<a href="../learning/database-improvement-guide.kr.html#refresh-token-%ED%85%8C%EC%9D%B4%EB%B8%94-%EC%84%A4%EA%B3%84">DB 가이드</a>)</li>
+<li>서버 저장형 OAuth state/PKCE(SEC-5), <code>exchange-code</code>·<code>verify-id-token</code> 범위 재검토(SEC-6)</li>
+<li>응답 envelope 통일(AUTH-5)</li>
+</ul>
+</li>
+<li>DB: 계정 분리(DB-18), 전송 구간 보호(DB-19), drift 해소(DB-12)</li>
+<li>공급망: NestJS 12·TypeORM 1.x 업그레이드 후 CI audit 기준을 high로(OPS-14), Actions SHA 고정(OPS-12)</li>
+<li>로그인 실패 제한 저장소를 Redis로(인스턴스를 늘릴 때)</li>
+</ul>
+<h3 id="p2"><a class="heading-anchor" href="#p2" aria-hidden="true" tabindex="-1">#</a>P2</h3>
+<ul>
+<li>provider 오류 메시지 고정(SEC-24), <code>/health</code> 캐시(SEC-20)</li>
+<li>email 인증(SEC-26)과 가입 응답 통일(SEC-25)</li>
+<li>JWT iss/aud(AUTH-6), Facebook <code>appsecret_proof</code>(SEC-15)</li>
+<li>의도된 503을 ERROR로 남기는 로그 등급 조정(OPS-9). e2e 출력에서도 확인됨</li>
+</ul>
+<h2 id="8-검증"><a class="heading-anchor" href="#8-%EA%B2%80%EC%A6%9D" aria-hidden="true" tabindex="-1">#</a>8. 검증</h2>
+<pre><code class="language-text">npm run lint:check     → 0 problems
+npm run format:check   → All matched files use Prettier code style
+npm run typecheck      → 0 errors
+npx jest               → 58 suites / 442 tests passed
+npm run build          → success
+npm audit --omit=dev   → 5 (3 moderate, 2 high), critical 0
+</code></pre>
+<p><strong>Test DB (<code>app_db_test</code>, 사용자 개발 서버. 다른 DB는 건드리지 않음)</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>단계</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>db:check:test</code> (읽기 전용)</td>
+<td>ownership dedicated(11 app tables), 9 applied, 1 pending</td>
+</tr>
+<tr>
+<td><code>db:setup:test</code></td>
+<td><code>AddSessionVersionToUsers1766000000000</code> 적용</td>
+</tr>
+<tr>
+<td><code>db:check:test --strict</code></td>
+<td>10 applied, 0 pending</td>
+</tr>
+<tr>
+<td><code>migration:revert:test</code> → <code>migration:run:test</code></td>
+<td>down/up 모두 성공</td>
+</tr>
+<tr>
+<td><code>migration:check:test</code></td>
+<td><code>sessionVersion</code> 관련 차이 없음(새 drift 없음). 기존 DB-12 drift 49문은 그대로</td>
+</tr>
+<tr>
+<td><code>test:e2e</code></td>
+<td>5/5 통과</td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>HTTP 스모크 (빌드 결과 + <code>app_db_test</code>, 임시 사용자 생성 후 삭제)</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>요청</th>
+<th>기대</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>POST /auth/GOOGLE/login</code>, <code>/auth/Kakao/login</code>, <code>/auth/apple/login</code></td>
+<td>503 <code>AUTH_*_DISABLED</code></td>
+<td>통과</td>
+</tr>
+<tr>
+<td>가입: 7자 비밀번호, 73바이트 비밀번호, 51자 username</td>
+<td>400</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>가입 → 로그인 → 프로필</td>
+<td>201 → 201 → 200</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>비밀번호 변경 후 이전 토큰</td>
+<td>401</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>새 비밀번호로 로그인한 토큰</td>
+<td>200</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>서로 다른 IP 10개에서 틀린 비밀번호 10회</td>
+<td>401 × 10</td>
+<td>통과</td>
+</tr>
+<tr>
+<td>11번째(올바른 비밀번호, 새 IP)</td>
+<td>429 <code>RATE_LIMITED</code>, <code>Retry-After: 900</code></td>
+<td>통과</td>
+</tr>
+<tr>
+<td><code>x-request-id: trace-123</code> / <code>bad id with spaces</code></td>
+<td>그대로 / 새 UUID</td>
+<td>통과</td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>CI:</strong> PR #10에 push한 뒤 <code>verify</code>와 <code>database</code> job 결과를 PR에서 확인합니다.</p>
+<p><strong>검증하지 못한 것:</strong> SNS provider 실연동(외부 계정 필요). 운영 DB 적용(사용자가 배포할 때).</p>
+<h2 id="9-사용자가-할-일"><a class="heading-anchor" href="#9-%EC%82%AC%EC%9A%A9%EC%9E%90%EA%B0%80-%ED%95%A0-%EC%9D%BC" aria-hidden="true" tabindex="-1">#</a>9. 사용자가 할 일</h2>
+<ol>
+<li><strong>GitHub 저장소 설정</strong>(Settings)<ul>
+<li>Code security: <strong>Secret scanning</strong>과 <strong>Push protection</strong> 켜기(공개 저장소 무료)</li>
+<li><strong>Dependabot alerts</strong>와 security updates 켜기. 버전 업데이트는 이번에 추가한 <code>.github/dependabot.yml</code>이 담당합니다</li>
+<li><strong>CodeQL default setup</strong> 켜기</li>
+<li>Branches: <code>develop</code>, <code>main</code>에 PR 필수와 status check(<code>verify</code>, <code>database (MariaDB 10.11)</code>) 필수</li>
+</ul>
+</li>
+<li><strong>클라이언트 공지:</strong> <a href="#6-배포-영향-develop--main">6장</a>의 10~13번</li>
+<li><strong>Local DB:</strong> <code>app_db_dev</code> GRANT를 받은 뒤 <code>npm run db:setup</code>을 실행하면 10개 migration이 모두 적용됩니다</li>
+<li><strong>운영 배포:</strong> 백업 후 1766 migration 적용(<a href="../deployment/mariadb-systemd.kr.html">EC2 배포 가이드</a>)</li>
+<li><strong>개발 PC 정리(선택):</strong> 프로젝트 루트의 <code>.env.bak</code>, <code>.env.bak.2026-11-08</code>, <code>.env.bak.2026-11-09</code>, <code>.env.bak.2026-11-09-2</code>가 더 필요 없으면 삭제합니다</li>
+<li><strong>DB 계정 분리(P1):</strong> <a href="../learning/database-improvement-guide.kr.html#db-18-migration-%EA%B3%84%EC%A0%95%EA%B3%BC-%EB%9F%B0%ED%83%80%EC%9E%84-%EA%B3%84%EC%A0%95-%EB%B6%84%EB%A6%AC">DB 가이드 DB-18</a>의 SQL을 운영 MariaDB에서 실행합니다</li>
+</ol>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../learning/security-guide.kr.html"><span>이전</span>시크릿 관리와 GitHub Push 보안 학습 가이드</a><a class="pager-next" href="../auth/sns-login-overview.kr.html"><span>다음</span>SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/audit/2026-11-09-security-audit.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/audit/2026-11-09-security-audit.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#0-%EC%9A%94%EC%95%BD">0. 요약</a></li><li class="toc-3"><a href="#%EC%9D%B4%EB%B2%88%EC%97%90-%EC%88%98%EC%A0%95%ED%95%9C-%EC%A3%BC%EC%9A%94-%EA%B2%B0%ED%95%A8">이번에 수정한 주요 결함</a></li><li class="toc-2"><a href="#1-%EB%B2%94%EC%9C%84%EC%99%80-%EB%B0%A9%EB%B2%95">1. 범위와 방법</a></li><li class="toc-3"><a href="#owasp-api-security-top-10-2023-%EB%8C%80%EC%9D%91">OWASP API Security Top 10 (2023) 대응</a></li><li class="toc-2"><a href="#2-%EC%8B%AC%EA%B0%81%EB%8F%84%EC%99%80-%EC%A1%B0%EC%B9%98-%ED%91%9C%EA%B8%B0">2. 심각도와 조치 표기</a></li><li class="toc-2"><a href="#3-%EB%B0%9C%EA%B2%AC-%EC%82%AC%ED%95%AD%EA%B3%BC-%EC%A1%B0%EC%B9%98">3. 발견 사항과 조치</a></li><li class="toc-3"><a href="#31-%EC%9D%B8%EC%A6%9D%EC%84%B8%EC%85%98">3.1 인증·세션</a></li><li class="toc-3"><a href="#32-%EC%9E%85%EB%A0%A5%EC%98%A4%EB%A5%98%EB%A1%9C%EA%B7%B8">3.2 입력·오류·로그</a></li><li class="toc-3"><a href="#33-db">3.3 DB</a></li><li class="toc-3"><a href="#34-sns-%EC%84%A4%EC%A0%95-%EA%B7%9C%EC%B9%99-%EC%9E%AC%ED%99%9C%EC%84%B1%ED%99%94-%EC%A1%B0%EA%B1%B4">3.4 SNS 설정 규칙 (재활성화 조건)</a></li><li class="toc-3"><a href="#35-%EA%B3%B5%EA%B8%89%EB%A7%9D%EC%A0%80%EC%9E%A5%EC%86%8C%EC%9A%B4%EC%98%81">3.5 공급망·저장소·운영</a></li><li class="toc-2"><a href="#4-%EC%9D%B4%EC%A0%84-%EA%B0%90%EC%82%AC-%ED%95%AD%EB%AA%A9-%EC%9E%AC%ED%99%95%EC%9D%B8">4. 이전 감사 항목 재확인</a></li><li class="toc-2"><a href="#5-%EB%B3%80%EA%B2%BD-%EC%9A%94%EC%95%BD">5. 변경 요약</a></li><li class="toc-2"><a href="#6-%EB%B0%B0%ED%8F%AC-%EC%98%81%ED%96%A5-develop--main">6. 배포 영향 (develop → main)</a></li><li class="toc-2"><a href="#7-%EB%A1%9C%EB%93%9C%EB%A7%B5">7. 로드맵</a></li><li class="toc-3"><a href="#p1">P1</a></li><li class="toc-3"><a href="#p2">P2</a></li><li class="toc-2"><a href="#8-%EA%B2%80%EC%A6%9D">8. 검증</a></li><li class="toc-2"><a href="#9-%EC%82%AC%EC%9A%A9%EC%9E%90%EA%B0%80-%ED%95%A0-%EC%9D%BC">9. 사용자가 할 일</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

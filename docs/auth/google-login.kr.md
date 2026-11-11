@@ -1,4 +1,6 @@
-# Google SNS 로그인 – 구현 가이드 (한국어)
+# Google SNS 로그인 – 구현 가이드
+
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
 
 ## 개요
 
@@ -157,7 +159,8 @@ Google 인증 코드를 토큰으로 교환합니다 (네이티브 / 인증 코�
 | `AUTH_GOOGLE_NONCE_MISMATCH` | 401 | 토큰의 nonce가 제공된 nonce와 불일치 |
 | `AUTH_GOOGLE_STATE_MISMATCH` | 401 | state 파라미터 불일치 (CSRF 가능성) |
 | `AUTH_GOOGLE_EXCHANGE_FAILED` | 401 | Google 인증 코드 교환 실패 |
-| `AUTH_GOOGLE_INTERNAL_ERROR` | 500 | 예기치 않은 서버 오류 |
+| `AUTH_GOOGLE_INTERNAL_ERROR` | 500 | 예기치 않은 서버 오류. 응답 메시지는 `Internal server error`로 고정되고 원인은 서버 로그에만 남습니다 |
+| `AUTH_GOOGLE_DISABLED` | 503 | `AUTH_GOOGLE_ENABLED=false` (외부 호출 없음) |
 
 ---
 
@@ -165,7 +168,8 @@ Google 인증 코드를 토큰으로 교환합니다 (네이티브 / 인증 코�
 
 | 변수명 | 필수 | 기본값 | 설명 |
 |--------|------|--------|------|
-| `GOOGLE_ALLOWED_AUDIENCES` | ✅ | — | 허용된 `aud` 값 목록 (쉼표 구분, OAuth 클라이언트 ID) |
+| `AUTH_GOOGLE_ENABLED` | ❌ | `true` | `false`이면 모든 Google 라우트가 503 `AUTH_GOOGLE_DISABLED` |
+| `GOOGLE_ALLOWED_AUDIENCES` | ✅ (활성 시) | — | 허용된 `aud` 값 목록 (쉼표 구분, OAuth 클라이언트 ID) |
 | `GOOGLE_ALLOWED_ISSUERS` | ❌ | `accounts.google.com,https://accounts.google.com` | 허용된 발급자 목록 (쉼표 구분) |
 | `GOOGLE_OAUTH_CLIENT_ID` | ✅ (코드 플로우) | — | OAuth 2.0 클라이언트 ID |
 | `GOOGLE_OAUTH_CLIENT_SECRET` | ✅ (코드 플로우) | — | OAuth 2.0 클라이언트 시크릿 |
@@ -177,33 +181,32 @@ Google 인증 코드를 토큰으로 교환합니다 (네이티브 / 인증 코�
 
 ```
 인터페이스 레이어   src/auth/google/interface/
-  AuthGoogleController        ← HTTP 어댑터; DTO → 유스케이스 매핑
-  GoogleAuthExceptionFilter   ← GoogleAuthError → HTTP envelope 응답 매핑
+  AuthGoogleController        ← HTTP 어댑터; DTO → use-case 입력, 예상 못한 오류는 toSocialAuthError로 감쌈
+  dto/                        ← VerifyIdTokenDto, ExchangeCodeDto, GoogleLoginDto
+  (공용) src/auth/shared/interface/SocialAuthExceptionFilter ← SocialAuthError → HTTP envelope
 
 애플리케이션 레이어 src/auth/google/application/
   use-cases/                  ← 오케스트레이션; Port에만 의존
     VerifyGoogleIdTokenUseCase
     ExchangeGoogleAuthCodeUseCase
-    UpsertSocialUserUseCase
-    IssueSessionTokenUseCase
     GoogleLoginUseCase
-  ports/                      ← 인터페이스 (구현 세부사항 없음)
+  ports/
     GoogleTokenVerifierPort
     GoogleAuthCodeExchangerPort
-    SocialUserRepositoryPort
-    SessionIssuerPort
+  (공용) src/users/application/ports/SocialAccountLinkerPort  ← SNS 계정 생성·연결
+  (공용) src/auth/session/application/ports/SessionIssuerPort ← JWT 발급
 
 도메인 레이어       src/auth/google/domain/
-  SocialIdentity              ← 순수 타입 (프레임워크 의존성 없음)
-  GoogleAuthError / GoogleAuthErrorCode ← 안정적인 에러 열거형
+  GoogleAuthError / GoogleAuthErrorCode ← SocialAuthError 상속, 안정적인 오류 코드
+  (공용) src/users/domain/SocialIdentity ← 순수 타입
 
 인프라스트럭처 레이어 src/auth/google/infrastructure/
-  GoogleOAuthClientAdapter    ← google-auth-library를 통해 TokenVerifier + CodeExchanger 구현
-  SocialUserTypeOrmAdapter    ← TypeORM/UsersService를 통해 SocialUserRepositoryPort 구현
-  SessionIssuerJwtAdapter     ← @nestjs/jwt를 통해 SessionIssuerPort 구현
+  GoogleOAuthClientAdapter    ← google-auth-library로 TokenVerifier + CodeExchanger 구현
+  (공용) src/users/infrastructure/SocialAccountLinkerTypeOrmAdapter
+  (공용) src/auth/session/infrastructure/SessionIssuerJwtAdapter
 
 공통 레이어         src/common/
-  RequestIdInterceptor        ← Google 응답의 x-request-id 생성/반영
+  RequestIdInterceptor        ← 전역 등록, 모든 응답의 x-request-id 생성/반영
   RequestIdService            ← crypto.randomUUID()로 request id 생성
 ```
 
@@ -233,20 +236,10 @@ npm test
 
 ---
 
-## 마이그레이션 안내
+## 데이터 모델
 
-`users` 테이블에 두 개의 nullable 컬럼이 추가되고, `password` 컬럼이 nullable로 변경됩니다:
+Google 계정 연결은 `social_accounts(provider='google', providerUserId=<sub>)`에 저장되고 `users.id`를 FK로 참조합니다.
 
-| 컬럼 | 타입 | 제약조건 |
-|------|------|---------|
-| `provider` | varchar | nullable |
-| `googleId` | varchar | nullable, unique |
-| `password` | varchar | **nullable**로 변경 (소셜 사용자는 비밀번호 없음) |
-
-공유 DB와 프로덕션에서는 `DB_SYNCHRONIZE=false`를 유지하세요. 스키마 변경은
-TypeORM 마이그레이션을 생성하여 실행합니다:
-
-```bash
-npm run migration:generate -- src/database/migrations/AddGoogleSocialLogin
-npm run migration:run
-```
+- 과거 `users.provider`·`users.googleId` 컬럼은 `1762000000000-CreateSocialAccounts` migration이 `social_accounts`로 이관한 뒤 삭제했습니다.
+- 스키마 변경은 `DB_SYNCHRONIZE=false`를 유지한 채 migration으로만 합니다.
+- email 정책과 계정 병합 금지 규칙은 [SNS 로그인 개요](sns-login-overview.kr.md#계정-연결과-보안-정책)를 참고하세요.

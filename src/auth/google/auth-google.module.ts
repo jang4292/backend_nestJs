@@ -13,14 +13,14 @@ import { GoogleLoginUseCase } from './application/use-cases/google-login.use-cas
 import { GoogleOAuthClientAdapter } from './infrastructure/google-oauth-client.adapter';
 
 import { AuthGoogleController } from './interface/auth-google.controller';
-import { GoogleAuthExceptionFilter } from './interface/google-auth-exception.filter';
+import { SocialAuthExceptionFilter } from '../shared/interface/social-auth-exception.filter';
 
 @Module({
   imports: [CommonModule, UsersModule, SessionModule],
   controllers: [AuthGoogleController],
   providers: [
     GoogleOAuthClientAdapter,
-    GoogleAuthExceptionFilter,
+    SocialAuthExceptionFilter,
 
     {
       provide: GOOGLE_TOKEN_VERIFIER_PORT,

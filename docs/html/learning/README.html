@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/learning/README">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>학습 로드맵 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section" open><summary>시작하기</summary><ul class="nav-list"><li><a href="README.html" data-page-id="docs/learning/README" aria-current="page">학습 로드맵</a></li><li><a href="glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">시작하기</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="학습-로드맵">학습 로드맵</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code>
+이 저장소의 학습 자료를 한곳에 모았습니다. 위에서부터 순서대로 읽으면 &quot;구조 → 데이터 → 운영 → 보안&quot; 흐름으로 이해할 수 있습니다.
+같은 내용을 웹사이트로 보려면 <code>docs/html/index.html</code>을 브라우저로 엽니다(<a href="../site-maintenance.html">학습 사이트 관리 가이드</a>).</p>
+</blockquote>
+<h2 id="1-읽는-순서"><a class="heading-anchor" href="#1-%EC%9D%BD%EB%8A%94-%EC%88%9C%EC%84%9C" aria-hidden="true" tabindex="-1">#</a>1. 읽는 순서</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>순서</th>
+<th>문서</th>
+<th>무엇을 배우나</th>
+<th>먼저 알면 좋은 것</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><a href="../product/overview.kr.html">서비스 개요</a> → <a href="../product/features.kr.html">기능 명세</a></td>
+<td>이 서버가 하는 일, 기능 규칙</td>
+<td>없음</td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="nestjs-operational-stability-guide.kr.html">아키텍처·운영 안정성 가이드</a></td>
+<td>NestJS 모듈 구조, 계층과 포트·어댑터, 오류 처리, 인증·인가, 품질 게이트</td>
+<td>TypeScript, NestJS 기본</td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="../music/learning-guide.kr.html">Music 학습 가이드</a></td>
+<td>도메인(Artist·Track·Playlist), 요청 흐름, presenter, 트랜잭션</td>
+<td>2번</td>
+</tr>
+<tr>
+<td>4</td>
+<td><a href="database-schema-management.kr.html">DB·스키마 관리 가이드</a></td>
+<td>DB·테이블은 누가 언제 만드나, migration 적용과 검증, 롤백, 다른 DB 보호</td>
+<td>SQL 기본</td>
+</tr>
+<tr>
+<td>5</td>
+<td><a href="../deployment/database-environments.kr.html">환경별 DB·설정 가이드</a></td>
+<td>Local / Test / Prod 설정과 명령, 권한, 자주 나는 오류(실행 절차)</td>
+<td>4번</td>
+</tr>
+<tr>
+<td>6</td>
+<td><a href="security-guide.kr.html">시크릿 관리 가이드</a> → <a href="api-security-guide.kr.html">API 보안 학습 가이드</a></td>
+<td>비밀 관리와 push 전 점검 → 위협 모델, 비밀번호·세션·인가, 외부 IdP 검증, <strong>대소문자 경로 우회 사례</strong>, 직접 점검하는 방법</td>
+<td>2번</td>
+</tr>
+<tr>
+<td>7</td>
+<td><a href="sns-login-operational-guide.kr.html">SNS 로그인 운영 가이드</a> → <a href="../auth/sns-reenable-checklist.kr.html">SNS 재활성화 체크리스트</a></td>
+<td>provider 구조, opt-in 정책, 다시 켤 때 점검</td>
+<td>2번</td>
+</tr>
+<tr>
+<td>8</td>
+<td><a href="deployment-secrets-checklist.kr.html">배포 시크릿 체크리스트</a> → <a href="../deployment/mariadb-systemd.kr.html">EC2 배포 가이드</a></td>
+<td>운영 배포 순서, 시크릿 회전, 롤백</td>
+<td>5번</td>
+</tr>
+<tr>
+<td>9</td>
+<td><a href="work-history-2026-11.kr.html">작업 내역과 배운 점</a></td>
+<td>2026-11 감사와 후속 작업 전체(1~7단계): 문제, 원인, 조치, 교훈</td>
+<td>1~8번</td>
+</tr>
+<tr>
+<td>10</td>
+<td><a href="database-improvement-guide.kr.html">DB 개선 가이드</a></td>
+<td>남은 DB 과제의 우선순위와 단계: drift, 계정 분리, 백업, 전송 구간, refresh token</td>
+<td>4~5번</td>
+</tr>
+<tr>
+<td>참고</td>
+<td><a href="glossary.kr.html">용어집</a></td>
+<td>aud, iss, PKCE, fail-closed, drift, expand/contract 등</td>
+<td>—</td>
+</tr>
+<tr>
+<td>참고</td>
+<td><a href="runtime-troubleshooting-history.kr.html">실행 오류 이력</a> (이력 문서)</td>
+<td>과거 로컬 실행 오류와 해결 과정</td>
+<td>—</td>
+</tr>
+<tr>
+<td>참고</td>
+<td><a href="../audit/2026-11-08-project-audit.kr.html">감사 리포트</a>, <a href="../audit/2026-11-09-security-audit.kr.html">보안 감사</a></td>
+<td>발견 사항 전체(ID), 로드맵, 릴리스 체크리스트, 배포 영향</td>
+<td>—</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="2-주제별-찾아보기"><a class="heading-anchor" href="#2-%EC%A3%BC%EC%A0%9C%EB%B3%84-%EC%B0%BE%EC%95%84%EB%B3%B4%EA%B8%B0" aria-hidden="true" tabindex="-1">#</a>2. 주제별 찾아보기</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>궁금한 것</th>
+<th>문서</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>계층(controller → use-case → port → adapter)을 어떻게 나눴나</td>
+<td><a href="nestjs-operational-stability-guide.kr.html#6-%EA%B3%84%EC%B8%B5%EA%B3%BC-%ED%8F%AC%ED%8A%B8%EC%96%B4%EB%8C%91%ED%84%B0-users-%EC%98%88%EC%8B%9C">아키텍처 가이드 6장</a></td>
+</tr>
+<tr>
+<td>오류를 HTTP 응답으로 바꾸는 곳</td>
+<td><a href="nestjs-operational-stability-guide.kr.html#7-%EC%98%A4%EB%A5%98-%EC%B2%98%EB%A6%AC%EB%A5%BC-%ED%95%9C-%EA%B3%B3%EC%97%90-%EB%AA%A8%EC%9C%BC%EA%B8%B0">아키텍처 가이드 7장</a></td>
+</tr>
+<tr>
+<td>admin만 쓸 수 있는 API는 어떻게 막나</td>
+<td><a href="nestjs-operational-stability-guide.kr.html#8-%EC%9D%B8%EC%A6%9D%EA%B3%BC-%EC%9D%B8%EA%B0%80">아키텍처 가이드 8장</a></td>
+</tr>
+<tr>
+<td>명령마다 어떤 env 파일을 읽나</td>
+<td><a href="../deployment/database-environments.kr.html#%EB%AA%85%EB%A0%B9%EA%B3%BC-env-%ED%8C%8C%EC%9D%BC">환경별 가이드 1장</a></td>
+</tr>
+<tr>
+<td>DB·테이블은 언제 만드나, 왜 기동 시 자동 실행을 안 하나</td>
+<td><a href="database-schema-management.kr.html#4-%EC%A0%81%EC%9A%A9-%EB%B0%A9%EC%8B%9D-%EB%B9%84%EA%B5%90-%EC%A7%81%EC%A0%91-sql--%EB%AA%85%EB%A0%B9--%EA%B8%B0%EB%8F%99-%EC%8B%9C-%EC%9E%90%EB%8F%99">DB 가이드 3~4장</a></td>
+</tr>
+<tr>
+<td>Test에서 되던 스키마를 Local·Prod에 반영하기</td>
+<td><a href="database-schema-management.kr.html#5-test%EC%97%90%EC%84%9C-%EB%90%98%EB%8D%98-%EA%B2%83%EC%9D%B4-localprod%EC%97%90-%EC%97%86%EC%9C%BC%EB%A9%B4">DB 가이드 5장</a></td>
+</tr>
+<tr>
+<td>migration에 필요한 권한, 중간 실패 방지</td>
+<td><a href="database-schema-management.kr.html#82-%EC%82%AC%EB%A1%80-%EC%8B%A4%EC%A0%9C-%EA%B0%9C%EB%B0%9C-%EC%84%9C%EB%B2%84%EC%97%90-%EC%B2%98%EC%9D%8C-%EC%97%B0%EA%B2%B0%ED%95%A0-%EB%95%8C-2026-11-09">DB 가이드 8.2</a></td>
+</tr>
+<tr>
+<td>같은 서버의 다른 DB를 지키는 방법</td>
+<td><a href="../deployment/database-environments.kr.html#2-db-%EC%82%AD%EC%A0%9C-%EC%95%88%EC%A0%84-%EC%9B%90%EC%B9%99">환경별 가이드 2장</a>, <a href="database-schema-management.kr.html#83-%EC%82%AC%EB%A1%80-%EA%B0%99%EC%9D%80-%EC%84%9C%EB%B2%84%EC%9D%98-%EB%8B%A4%EB%A5%B8-db%EB%A5%BC-%EC%A7%80%ED%82%A4%EA%B8%B0-2026-11-09">DB 가이드 8.3</a></td>
+</tr>
+<tr>
+<td>운영 배포 순서와 롤백</td>
+<td><a href="../deployment/mariadb-systemd.kr.html">EC2 배포 가이드</a></td>
+</tr>
+<tr>
+<td>비밀이 커밋됐을 때</td>
+<td><a href="security-guide.kr.html#4-%EC%8B%9C%ED%81%AC%EB%A6%BF%EC%9D%B4-%EC%9D%B4%EB%AF%B8-%EC%BB%A4%EB%B0%8B%EB%90%90%EB%8B%A4%EB%A9%B4">시크릿 관리 가이드 4장</a></td>
+</tr>
+<tr>
+<td>꺼진 기능이 열리는 이유, fail-closed</td>
+<td><a href="api-security-guide.kr.html#8-%EC%82%AC%EB%A1%80-%EB%8C%80%EC%86%8C%EB%AC%B8%EC%9E%90-%EA%B2%BD%EB%A1%9C%EB%A1%9C-%EB%B9%84%ED%99%9C%EC%84%B1-provider-%EC%9A%B0%ED%9A%8C-sec-17">API 보안 가이드 8장</a></td>
+</tr>
+<tr>
+<td>비밀번호를 바꾸면 토큰을 어떻게 무효화하나</td>
+<td><a href="api-security-guide.kr.html#5-%EC%84%B8%EC%85%98-jwt%EC%99%80-%EC%B7%A8%EC%86%8C">API 보안 가이드 5장</a></td>
+</tr>
+<tr>
+<td>무차별 대입을 IP와 계정 단위로 막기</td>
+<td><a href="api-security-guide.kr.html#4-%EB%AC%B4%EC%B0%A8%EB%B3%84-%EB%8C%80%EC%9E%85-ip-%EB%8B%A8%EC%9C%84%EC%99%80-%EA%B3%84%EC%A0%95-%EB%8B%A8%EC%9C%84">API 보안 가이드 4장</a></td>
+</tr>
+<tr>
+<td>보안 점검을 직접 해 보는 순서</td>
+<td><a href="api-security-guide.kr.html#12-%EC%A7%81%EC%A0%91-%EB%B3%B4%EC%95%88-%EC%A0%90%EA%B2%80%ED%95%98%EB%8A%94-%EB%B0%A9%EB%B2%95">API 보안 가이드 12장</a></td>
+</tr>
+<tr>
+<td>앞으로의 DB 과제와 순서</td>
+<td><a href="database-improvement-guide.kr.html#2-%EC%9A%B0%EC%84%A0%EC%88%9C%EC%9C%84">DB 개선 가이드 2장</a></td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="3-자가-점검과-실습-모음"><a class="heading-anchor" href="#3-%EC%9E%90%EA%B0%80-%EC%A0%90%EA%B2%80%EA%B3%BC-%EC%8B%A4%EC%8A%B5-%EB%AA%A8%EC%9D%8C" aria-hidden="true" tabindex="-1">#</a>3. 자가 점검과 실습 모음</h2>
+<p>각 문서 끝에 질문과 과제가 있습니다. 읽은 뒤 스스로 답해 보세요.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>문서</th>
+<th>자가 점검</th>
+<th>실습</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>아키텍처 가이드</td>
+<td>14장의 파일별 질문</td>
+<td><a href="nestjs-operational-stability-guide.kr.html#15-%EC%8B%A4%EC%8A%B5-%EA%B3%BC%EC%A0%9C">15장 실습 과제</a></td>
+</tr>
+<tr>
+<td>Music 학습 가이드</td>
+<td><a href="../music/learning-guide.kr.html#9-%ED%95%99%EC%8A%B5%EC%9E%90%EA%B0%80-%EC%8A%A4%EC%8A%A4%EB%A1%9C-%EB%8B%B5%ED%95%B4%EC%95%BC-%ED%95%98%EB%8A%94-%EC%A7%88%EB%AC%B8">9장 질문</a></td>
+<td><a href="../music/learning-guide.kr.html#8-%EC%A7%81%EC%A0%91-%ED%95%B4%EB%B3%B4%EB%8A%94-%ED%95%99%EC%8A%B5-%EC%8B%A4%EC%8A%B5">8장 실습</a></td>
+</tr>
+<tr>
+<td>DB·스키마 관리 가이드</td>
+<td><a href="database-schema-management.kr.html#11-%EC%9E%90%EA%B0%80-%EC%A0%90%EA%B2%80-%EC%A7%88%EB%AC%B8">11장 자가 점검</a></td>
+<td><a href="database-schema-management.kr.html#12-%EC%8B%A4%EC%8A%B5-%EA%B3%BC%EC%A0%9C">12장 실습 과제</a></td>
+</tr>
+<tr>
+<td>API 보안 학습 가이드</td>
+<td><a href="api-security-guide.kr.html#14-%EC%9E%90%EA%B0%80-%EC%A0%90%EA%B2%80-%EC%A7%88%EB%AC%B8">14장 자가 점검</a></td>
+<td><a href="api-security-guide.kr.html#15-%EC%8B%A4%EC%8A%B5-%EA%B3%BC%EC%A0%9C">15장 실습 과제</a></td>
+</tr>
+<tr>
+<td>DB 개선 가이드</td>
+<td><a href="database-improvement-guide.kr.html#5-%EC%9E%90%EA%B0%80-%EC%A0%90%EA%B2%80-%EC%A7%88%EB%AC%B8">5장 자가 점검</a></td>
+<td><a href="database-improvement-guide.kr.html#6-%EC%8B%A4%EC%8A%B5-%EA%B3%BC%EC%A0%9C">6장 실습 과제</a></td>
+</tr>
+<tr>
+<td>작업 내역과 배운 점</td>
+<td>단계별 &quot;배운 점&quot;을 자기 말로 설명하기</td>
+<td>&quot;남은 과제&quot; 중 하나(예: DB-12 drift 해소)를 직접 해 보기</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="4-학습-자료-작성-규칙"><a class="heading-anchor" href="#4-%ED%95%99%EC%8A%B5-%EC%9E%90%EB%A3%8C-%EC%9E%91%EC%84%B1-%EA%B7%9C%EC%B9%99" aria-hidden="true" tabindex="-1">#</a>4. 학습 자료 작성 규칙</h2>
+<ul>
+<li><strong>개념과 이유는 <code>learning/</code>에, 실행 절차는 <code>deployment/</code>에 둡니다.</strong> 같은 주제는 서로 링크합니다.</li>
+<li><strong>작업을 하면 기록을 남깁니다.</strong> 문제, 원인, 조치, 배운 점을 <a href="work-history-2026-11.kr.html">작업 내역</a>이나 관련 가이드의 &quot;사례&quot; 절에 추가합니다.</li>
+<li><strong>문서 상단에 최신화 기준을 적습니다.</strong> 이력 문서는 작성 시점에 고정합니다.</li>
+<li><strong>새 학습 문서는 사이트 설정에도 넣습니다.</strong> <code>docs/html/_tools/site.config.json</code>의 섹션 순서가 사이트의 학습 순서입니다. HTML은 원할 때 <code>npm run docs:html</code>로 다시 만듭니다.</li>
+<li><strong>공개 저장소이므로</strong> 실제 서버 주소, 포트, 계정, 비밀번호는 적지 않습니다. <code>&lt;dev-db-host&gt;</code>, <code>&lt;dev-user&gt;</code> 같은 자리표시자를 씁니다.</li>
+</ul>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><span></span><a class="pager-next" href="glossary.kr.html"><span>다음</span>용어집</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/learning/README.md" target="_blank" rel="noopener noreferrer"><code>docs/learning/README.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-%EC%9D%BD%EB%8A%94-%EC%88%9C%EC%84%9C">1. 읽는 순서</a></li><li class="toc-2"><a href="#2-%EC%A3%BC%EC%A0%9C%EB%B3%84-%EC%B0%BE%EC%95%84%EB%B3%B4%EA%B8%B0">2. 주제별 찾아보기</a></li><li class="toc-2"><a href="#3-%EC%9E%90%EA%B0%80-%EC%A0%90%EA%B2%80%EA%B3%BC-%EC%8B%A4%EC%8A%B5-%EB%AA%A8%EC%9D%8C">3. 자가 점검과 실습 모음</a></li><li class="toc-2"><a href="#4-%ED%95%99%EC%8A%B5-%EC%9E%90%EB%A3%8C-%EC%9E%91%EC%84%B1-%EA%B7%9C%EC%B9%99">4. 학습 자료 작성 규칙</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 import { validateAppEnv } from './app-env';
 
 const baseEnv = {
-  JWT_SECRET: 'test-secret-with-enough-length',
+  JWT_SECRET: 'test-secret-with-enough-length-for-hs256',
   GOOGLE_ALLOWED_AUDIENCES: 'web-client.apps.googleusercontent.com',
   DB_USERNAME: 'test_user',
   DB_PASSWORD: 'test_password',
@@ -14,7 +14,7 @@ describe('validateAppEnv', () => {
       ...baseEnv,
       PORT: '4000',
       DB_PORT: '13306',
-      DB_SYNCHRONIZE: 'true',
+      DB_SYNCHRONIZE: 'false',
       THROTTLE_TTL: '120',
       THROTTLE_LIMIT: '20',
     });
@@ -24,7 +24,7 @@ describe('validateAppEnv', () => {
       NODE_ENV: 'development',
       DB_TYPE: 'mariadb',
       DB_PORT: 13306,
-      DB_SYNCHRONIZE: true,
+      DB_SYNCHRONIZE: false,
       DB_SSL: false,
       DB_SSL_REJECT_UNAUTHORIZED: true,
       THROTTLE_TTL: 120,
@@ -40,8 +40,11 @@ describe('validateAppEnv', () => {
     ).toThrow('JWT_SECRET is required.');
   });
 
-  it('requires Google allowed audiences', () => {
-    const env = { ...baseEnv };
+  it('requires Google allowed audiences when Google is enabled', () => {
+    const env: Record<string, unknown> = {
+      ...baseEnv,
+      AUTH_GOOGLE_ENABLED: 'true',
+    };
     delete env.GOOGLE_ALLOWED_AUDIENCES;
 
     expect(() => validateAppEnv(env)).toThrow(
@@ -49,16 +52,70 @@ describe('validateAppEnv', () => {
     );
   });
 
-  it('blocks synchronize in production', () => {
-    expect(() =>
-      validateAppEnv({
+  describe('SNS providers are explicit opt-in', () => {
+    it('keeps every provider disabled when no AUTH_*_ENABLED flag is set, even if credentials exist', () => {
+      const env = validateAppEnv({
         ...baseEnv,
+        APPLE_ALLOWED_AUDIENCES: 'com.example.web',
+        KAKAO_REST_API_KEY: 'kakao-key',
+        NAVER_CLIENT_ID: 'naver-id',
+        FACEBOOK_APP_ID: 'fb-id',
+      });
+
+      expect(env).toMatchObject({
+        AUTH_GOOGLE_ENABLED: false,
+        AUTH_APPLE_ENABLED: false,
+        AUTH_KAKAO_ENABLED: false,
+        AUTH_NAVER_ENABLED: false,
+        AUTH_FACEBOOK_ENABLED: false,
+        AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED: false,
+      });
+    });
+
+    it('starts in production with only local login (no SNS settings at all)', () => {
+      const env = validateAppEnv({
+        JWT_SECRET: 'a'.repeat(40),
+        DB_USERNAME: 'app',
+        DB_PASSWORD: 'pw',
+        DB_DATABASE: 'app_db',
         NODE_ENV: 'production',
-        CORS_ORIGIN: 'https://app.example.com',
-        DB_SYNCHRONIZE: 'true',
-      }),
-    ).toThrow('DB_SYNCHRONIZE must be false in production.');
+        CORS_ORIGIN: 'none',
+      });
+
+      expect(env.AUTH_GOOGLE_ENABLED).toBe(false);
+      expect(env.CORS_ORIGINS).toEqual([]);
+    });
+
+    it('rejects a non-boolean provider flag with its own name', () => {
+      expect(() =>
+        validateAppEnv({ ...baseEnv, AUTH_KAKAO_ENABLED: 'yes' }),
+      ).toThrow('AUTH_KAKAO_ENABLED must be true or false.');
+    });
+
+    it('parses the Naver accessToken login switch', () => {
+      expect(
+        validateAppEnv({
+          ...baseEnv,
+          AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED: 'true',
+        }).AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED,
+      ).toBe(true);
+    });
   });
+
+  it.each(['development', 'test', 'production'])(
+    'blocks synchronize with NODE_ENV=%s (schema changes only through migrations)',
+    (nodeEnv) => {
+      expect(() =>
+        validateAppEnv({
+          ...baseEnv,
+          NODE_ENV: nodeEnv,
+          DB_DATABASE: nodeEnv === 'test' ? 'app_db_test' : 'app_db',
+          CORS_ORIGIN: 'https://app.example.com',
+          DB_SYNCHRONIZE: 'true',
+        }),
+      ).toThrow('DB_SYNCHRONIZE must be false.');
+    },
+  );
 
   it('requires CORS_ORIGIN in production', () => {
     expect(() =>
@@ -66,7 +123,17 @@ describe('validateAppEnv', () => {
         ...baseEnv,
         NODE_ENV: 'production',
       }),
-    ).toThrow('CORS_ORIGIN is required when NODE_ENV=production.');
+    ).toThrow('CORS_ORIGIN is required when NODE_ENV=production');
+  });
+
+  it('accepts CORS_ORIGIN=none as an explicit opt-out in production', () => {
+    expect(
+      validateAppEnv({
+        ...baseEnv,
+        NODE_ENV: 'production',
+        CORS_ORIGIN: 'none',
+      }).CORS_ORIGINS,
+    ).toEqual([]);
   });
 
   it('only supports MariaDB', () => {
@@ -95,6 +162,7 @@ describe('validateAppEnv', () => {
         ...baseEnv,
         NODE_ENV: 'production',
         CORS_ORIGIN: 'https://example.com',
+        AUTH_GOOGLE_ENABLED: 'true',
       }).AUTH_GOOGLE_ENABLED,
     ).toBe(true);
   });
@@ -105,6 +173,7 @@ describe('validateAppEnv', () => {
         ...baseEnv,
         NODE_ENV: 'production',
         CORS_ORIGIN: 'https://example.com',
+        AUTH_GOOGLE_ENABLED: 'true',
         GOOGLE_OAUTH_CLIENT_ID: 'client-id',
       }),
     ).toThrow(
@@ -130,9 +199,13 @@ describe('validateAppEnv', () => {
         ...baseEnv,
         NODE_ENV: 'production',
         CORS_ORIGIN: 'https://example.com',
+        AUTH_KAKAO_ENABLED: 'true',
+        KAKAO_APP_ID: '123456',
         KAKAO_REST_API_KEY: 'kakao-rest-key',
       }),
-    ).toThrow('Enabled provider configuration is missing: KAKAO_REDIRECT_URIS.');
+    ).toThrow(
+      'Enabled provider configuration is missing: KAKAO_REDIRECT_URIS.',
+    );
   });
 
   it('requires Facebook redirect allowlist when Facebook is enabled in production', () => {
@@ -141,6 +214,7 @@ describe('validateAppEnv', () => {
         ...baseEnv,
         NODE_ENV: 'production',
         CORS_ORIGIN: 'https://example.com',
+        AUTH_FACEBOOK_ENABLED: 'true',
         FACEBOOK_APP_ID: 'facebook-app-id',
         FACEBOOK_APP_SECRET: 'facebook-app-secret',
       }),
@@ -159,31 +233,30 @@ describe('validateAppEnv', () => {
     },
   );
 
-  it('allows the current shared test database and dedicated test databases', () => {
+  it('only allows *_test databases in the test environment', () => {
     expect(() =>
       validateAppEnv({
         ...baseEnv,
         NODE_ENV: 'test',
       }),
-    ).toThrow(
-      'DB_DATABASE must be app_db or end with _test when NODE_ENV=test.',
-    );
+    ).toThrow('DB_DATABASE must end with _test when NODE_ENV=test.');
 
-    expect(
+    // 개발 DB(app_db)를 e2e에서 쓰던 예외는 제거되었습니다.
+    expect(() =>
       validateAppEnv({
         ...baseEnv,
         NODE_ENV: 'test',
         DB_DATABASE: 'app_db',
-      }).DB_DATABASE,
-    ).toBe('app_db');
+      }),
+    ).toThrow('DB_DATABASE must end with _test when NODE_ENV=test.');
 
     expect(
       validateAppEnv({
         ...baseEnv,
         NODE_ENV: 'test',
-        DB_DATABASE: 'nestjs_test',
+        DB_DATABASE: 'app_db_test',
       }).DB_DATABASE,
-    ).toBe('nestjs_test');
+    ).toBe('app_db_test');
   });
 
   it('parses RDS SSL settings and an optional connection URL', () => {
@@ -237,5 +310,109 @@ describe('validateAppEnv', () => {
         DB_SSL: 'enabled',
       }),
     ).toThrow('DB_SSL must be true or false.');
+  });
+
+  describe('production JWT_SECRET', () => {
+    const productionEnv = {
+      ...baseEnv,
+      NODE_ENV: 'production',
+      CORS_ORIGIN: 'https://example.com',
+    };
+
+    it('rejects placeholder secrets from the example files', () => {
+      expect(() =>
+        validateAppEnv({
+          ...productionEnv,
+          JWT_SECRET: 'replace-with-a-strong-production-secret',
+        }),
+      ).toThrow('JWT_SECRET must be a strong production secret.');
+    });
+
+    it('rejects secrets shorter than 32 characters', () => {
+      expect(() =>
+        validateAppEnv({ ...productionEnv, JWT_SECRET: 'a'.repeat(31) }),
+      ).toThrow('JWT_SECRET must be at least 32 characters in production.');
+    });
+
+    it('accepts a 32+ character secret', () => {
+      expect(
+        validateAppEnv({ ...productionEnv, JWT_SECRET: 'a'.repeat(32) })
+          .JWT_SECRET,
+      ).toHaveLength(32);
+    });
+
+    it('does not enforce the length rule outside production', () => {
+      expect(
+        validateAppEnv({ ...baseEnv, JWT_SECRET: 'short' }).JWT_SECRET,
+      ).toBe('short');
+    });
+  });
+
+  describe('CORS_ORIGIN', () => {
+    it('parses a comma-separated origin list', () => {
+      expect(
+        validateAppEnv({
+          ...baseEnv,
+          CORS_ORIGIN: 'https://a.example.com, https://b.example.com',
+        }).CORS_ORIGINS,
+      ).toEqual(['https://a.example.com', 'https://b.example.com']);
+    });
+
+    it('returns an empty list when unset', () => {
+      expect(validateAppEnv(baseEnv).CORS_ORIGINS).toEqual([]);
+    });
+
+    it('rejects a wildcard origin', () => {
+      expect(() => validateAppEnv({ ...baseEnv, CORS_ORIGIN: '*' })).toThrow(
+        'CORS_ORIGIN must list explicit origins; "*" is not allowed.',
+      );
+    });
+  });
+
+  describe('TRUST_PROXY', () => {
+    it.each([
+      [undefined, false],
+      ['false', false],
+      ['true', true],
+      ['1', 1],
+      ['loopback', 'loopback'],
+    ])('parses %p as %p', (value, expected) => {
+      expect(
+        validateAppEnv({ ...baseEnv, TRUST_PROXY: value }).TRUST_PROXY,
+      ).toBe(expected);
+    });
+  });
+
+  it('requires APPLE_ALLOWED_AUDIENCES whenever Apple login is enabled', () => {
+    expect(() =>
+      validateAppEnv({ ...baseEnv, AUTH_APPLE_ENABLED: 'true' }),
+    ).toThrow(
+      'APPLE_ALLOWED_AUDIENCES is required when Apple login is enabled.',
+    );
+  });
+
+  // 토큰 치환 방어(app_id 비교)에 필요하므로 개발 환경에서도 필수입니다(SEC-17 심층 방어).
+  it.each(['development', 'production'])(
+    'requires KAKAO_APP_ID whenever Kakao is enabled (%s)',
+    (nodeEnv) => {
+      expect(() =>
+        validateAppEnv({
+          ...baseEnv,
+          NODE_ENV: nodeEnv,
+          CORS_ORIGIN: 'https://example.com',
+          AUTH_KAKAO_ENABLED: 'true',
+          KAKAO_REST_API_KEY: 'kakao-rest-key',
+          KAKAO_REDIRECT_URIS: 'https://example.com/auth/kakao/callback',
+        }),
+      ).toThrow('KAKAO_APP_ID is required when Kakao login is enabled.');
+    },
+  );
+
+  it('rejects JWT_EXPIRES_IN values the session issuer cannot interpret', () => {
+    expect(() =>
+      validateAppEnv({ ...baseEnv, JWT_EXPIRES_IN: '7 days' }),
+    ).toThrow(
+      'JWT_EXPIRES_IN must be a positive duration such as 3600, 30m, 1h or 7d.',
+    );
   });
 });

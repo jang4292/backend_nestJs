@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, QueryFailedError, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
+import { isDuplicateEntryError } from '../../database/mariadb-errors';
 import { User } from '../entities/user.entity';
 import { SocialAccount } from '../entities/social-account.entity';
 import { SocialIdentity } from '../domain/social-identity';
+import { socialUsername } from '../domain/reserved-usernames';
 import {
   SocialAccountLinkerPort,
   SocialUserRecord,
@@ -12,8 +14,6 @@ import {
 @Injectable()
 export class SocialAccountLinkerTypeOrmAdapter implements SocialAccountLinkerPort {
   constructor(
-    @InjectRepository(User)
-    private readonly usersRepository: Repository<User>,
     @InjectRepository(SocialAccount)
     private readonly socialAccountsRepository: Repository<SocialAccount>,
     private readonly dataSource: DataSource,
@@ -31,65 +31,98 @@ export class SocialAccountLinkerTypeOrmAdapter implements SocialAccountLinkerPor
   }
 
   async upsert(identity: SocialIdentity): Promise<SocialUserRecord> {
-    return this.dataSource.transaction(async (manager) => {
-      const usersRepository = manager.getRepository(User);
-      const socialAccountsRepository = manager.getRepository(SocialAccount);
-      const existing = await socialAccountsRepository.findOne({
-        where: { provider: identity.provider, providerUserId: identity.sub },
-        relations: ['user'],
-      });
-
-      if (existing) {
-        existing.email = identity.email ?? existing.email;
-        existing.name = identity.name ?? existing.name;
-        await socialAccountsRepository.save(existing);
-
-        const user = existing.user;
-        user.email = identity.email ?? user.email;
-        user.name = identity.name ?? user.name;
-        return this.toRecord(await usersRepository.save(user));
-      }
-
-      const username = `${identity.provider}_${identity.sub}`;
-      try {
-        const user = await usersRepository.save(
-          usersRepository.create({
-            username,
-            password: null,
-            email: identity.email,
-            name: identity.name,
-          }),
-        );
-
-        await socialAccountsRepository.save(
-          socialAccountsRepository.create({
-            userId: user.id,
-            provider: identity.provider,
-            providerUserId: identity.sub,
-            email: identity.email,
-            name: identity.name,
-          }),
-        );
-
-        return this.toRecord(user);
-      } catch (error) {
-        if (!isDuplicateKeyError(error)) {
-          throw error;
-        }
-
-        const concurrentAccount = await socialAccountsRepository.findOne({
-          where: {
-            provider: identity.provider,
-            providerUserId: identity.sub,
-          },
-          relations: ['user'],
-        });
-        if (concurrentAccount) {
-          return this.toRecord(concurrentAccount.user);
-        }
+    try {
+      return await this.dataSource.transaction((manager) =>
+        this.upsertInTransaction(manager, identity),
+      );
+    } catch (error) {
+      if (!isDuplicateEntryError(error)) {
         throw error;
       }
+      // 같은 SNS 계정의 최초 로그인이 동시에 들어와 다른 요청이 먼저 생성한 경우입니다.
+      // 실패한 트랜잭션의 스냅샷(REPEATABLE READ)에서는 경쟁 행이 보이지 않으므로
+      // 트랜잭션 밖에서 다시 조회합니다.
+      const concurrent = await this.findBySocialId(
+        identity.provider,
+        identity.sub,
+      );
+      if (concurrent) {
+        return concurrent;
+      }
+      throw error;
+    }
+  }
+
+  private async upsertInTransaction(
+    manager: EntityManager,
+    identity: SocialIdentity,
+  ): Promise<SocialUserRecord> {
+    const usersRepository = manager.getRepository(User);
+    const socialAccountsRepository = manager.getRepository(SocialAccount);
+    const existing = await socialAccountsRepository.findOne({
+      where: { provider: identity.provider, providerUserId: identity.sub },
+      relations: ['user'],
     });
+
+    if (existing) {
+      // provider 측 정보는 social_accounts에 그대로 기록합니다.
+      existing.email = identity.email ?? existing.email;
+      existing.name = identity.name ?? existing.name;
+      await socialAccountsRepository.save(existing);
+
+      const user = existing.user;
+      user.name = user.name ?? identity.name ?? null;
+      // users.email은 비어 있을 때만 채웁니다. 이미 있는 email을 provider 값으로 덮어쓰지 않습니다.
+      if (!user.email) {
+        user.email = await this.claimableEmail(
+          usersRepository,
+          identity,
+          user.id,
+        );
+      }
+      return this.toRecord(await usersRepository.save(user));
+    }
+
+    const user = await usersRepository.save(
+      usersRepository.create({
+        username: socialUsername(identity.provider, identity.sub),
+        password: null,
+        email: await this.claimableEmail(usersRepository, identity),
+        name: identity.name ?? null,
+      }),
+    );
+
+    await socialAccountsRepository.save(
+      socialAccountsRepository.create({
+        userId: user.id,
+        provider: identity.provider,
+        providerUserId: identity.sub,
+        email: identity.email ?? null,
+        name: identity.name ?? null,
+      }),
+    );
+
+    return this.toRecord(user);
+  }
+
+  /**
+   * users.email(UNIQUE)에 provider email을 쓸 수 있는지 판단합니다.
+   * - provider가 미검증(emailVerified === false)이라고 알린 email은 쓰지 않습니다.
+   * - 다른 사용자가 이미 쓰는 email은 쓰지 않습니다. 기존에는 UNIQUE 위반으로 500이 났고,
+   *   로컬 계정과의 자동 병합은 계정 탈취 위험이 있어 하지 않습니다.
+   */
+  private async claimableEmail(
+    usersRepository: Repository<User>,
+    identity: SocialIdentity,
+    selfUserId?: number,
+  ): Promise<string | null> {
+    if (!identity.email || identity.emailVerified === false) {
+      return null;
+    }
+    const owner = await usersRepository.findOne({
+      where: { email: identity.email },
+    });
+    return owner && owner.id !== selfUserId ? null : identity.email;
   }
 
   private toRecord(user: User): SocialUserRecord {
@@ -98,15 +131,7 @@ export class SocialAccountLinkerTypeOrmAdapter implements SocialAccountLinkerPor
       username: user.username,
       email: user.email,
       name: user.name,
+      sessionVersion: user.sessionVersion ?? 0,
     };
   }
-}
-
-function isDuplicateKeyError(error: unknown): boolean {
-  if (!(error instanceof QueryFailedError)) {
-    return false;
-  }
-
-  const driverError = error.driverError as { code?: unknown } | undefined;
-  return driverError?.code === 'ER_DUP_ENTRY' || driverError?.code === '23505';
 }

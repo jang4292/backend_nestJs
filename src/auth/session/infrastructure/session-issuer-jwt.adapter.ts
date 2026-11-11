@@ -6,6 +6,7 @@ import {
   SessionTokens,
 } from '../application/ports/session-issuer.port';
 import type { SocialUserRecord } from '../../../users/application/ports/social-account-linker.port';
+import { parseDurationSeconds } from '../../../config/duration';
 
 @Injectable()
 export class SessionIssuerJwtAdapter implements SessionIssuerPort {
@@ -16,26 +17,18 @@ export class SessionIssuerJwtAdapter implements SessionIssuerPort {
     private readonly configService: ConfigService,
   ) {
     const raw = this.configService.get<string>('JWT_EXPIRES_IN', '1h');
-    this.expiresInSeconds = this.parseExpiresIn(raw);
+    // SessionModule의 signOptions.expiresIn과 같은 함수로 해석합니다.
+    this.expiresInSeconds = parseDurationSeconds(raw) ?? 3600;
   }
 
   issue(user: SocialUserRecord): Promise<SessionTokens> {
-    const payload = { username: user.username, sub: user.id };
+    // sv: 세션 무효화 버전. 비밀번호 변경 등으로 DB 값이 바뀌면 이 토큰은 JwtStrategy에서 거부됩니다.
+    const payload = {
+      username: user.username,
+      sub: user.id,
+      sv: user.sessionVersion ?? 0,
+    };
     const accessToken = this.jwtService.sign(payload);
     return Promise.resolve({ accessToken, expiresIn: this.expiresInSeconds });
-  }
-
-  private parseExpiresIn(value: string): number {
-    const match = /^(\d+)([smhd]?)$/.exec(value.trim());
-    if (!match) return 3600;
-    const amount = parseInt(match[1], 10);
-    const unit = match[2] || 's';
-    const multipliers: Record<string, number> = {
-      s: 1,
-      m: 60,
-      h: 3600,
-      d: 86400,
-    };
-    return amount * (multipliers[unit] ?? 1);
   }
 }

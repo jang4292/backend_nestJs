@@ -24,7 +24,7 @@ describe('UpdateArtistUseCase', () => {
     } as unknown as GetArtistUseCase;
     const useCase = new UpdateArtistUseCase(artistRepo, getArtist);
 
-    const result = await useCase.execute(1, { name: 'Artist Y' } as never);
+    const result = await useCase.execute(1, { name: 'Artist Y' });
 
     expect(artistRepo.save).toHaveBeenCalledWith({
       id: 1,
@@ -37,14 +37,17 @@ describe('UpdateArtistUseCase', () => {
   it('throws ConflictException when update name conflicts', async () => {
     const existing = { id: 1, name: 'Artist X', description: null };
     const artistRepo = buildRepo();
-    artistRepo.findByName.mockResolvedValue({ id: 2, name: 'Artist Y' } as never);
+    artistRepo.findByName.mockResolvedValue({
+      id: 2,
+      name: 'Artist Y',
+    } as never);
     const getArtist = {
       execute: jest.fn().mockResolvedValue({ ...existing }),
     } as unknown as GetArtistUseCase;
     const useCase = new UpdateArtistUseCase(artistRepo, getArtist);
 
-    await expect(
-      useCase.execute(1, { name: 'Artist Y' } as never),
-    ).rejects.toThrow(ConflictException);
+    await expect(useCase.execute(1, { name: 'Artist Y' })).rejects.toThrow(
+      ConflictException,
+    );
   });
 });

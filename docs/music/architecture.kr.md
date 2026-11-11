@@ -1,5 +1,7 @@
 # Music 설계 및 아키텍처
 
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
+
 ## 1. 현재 아키텍처
 
 ```mermaid
@@ -94,7 +96,11 @@ sequenceDiagram
 
 ## 5. 관리 명령 흐름
 
-Playlist 생성·publish·Track 추가·reorder는 JWT가 필요합니다. 현재 로그인 사용자와 리소스 소유자의 일치 여부를 검사하는 owner/role 정책은 아직 없습니다. 따라서 운영 전에는 “JWT 인증”과 “리소스 권한”을 별도 요구사항으로 다뤄야 합니다.
+Track·AudioAsset·Playlist의 생성, 수정, 삭제, publish, Track 추가, reorder는 `@AdminOnly()`(JWT + `role = admin`)로 보호합니다. 일반 사용자 토큰이면 403입니다.
+
+- 역할은 `JwtStrategy`가 매 요청 DB에서 다시 읽으므로 변경이 즉시 반영됩니다.
+- 사용자별 소유권(`ownerId`)은 없습니다. 카탈로그는 운영자가 관리하는 전역 데이터입니다.
+- 쓰기 라우트에 `@AdminOnly()`가 빠지면 `src/music/music-authorization.spec.ts`가 실패합니다.
 
 reorder는 다음 원칙을 사용합니다.
 
@@ -108,7 +114,8 @@ reorder는 다음 원칙을 사용합니다.
 
 - Catalog와 Legacy에 Track/Playlist 이름이 중복됩니다.
 - Catalog Playlist 관리 기능은 아직 별도 application use case가 아니라 `CatalogMusicService`에 집중되어 있습니다.
-- owner/editor/admin 권한이 없습니다.
+- 권한은 user/admin 두 단계뿐입니다. 사용자별 소유권이나 editor 역할은 없습니다([결정 문서](decisions.md#playlist-소유권-및-역할)).
+- 재정렬은 기존 항목을 트랜잭션 밖에서 읽고, 항목 수 상한 없이 2N회 UPDATE합니다(감사 DB-8).
 - AudioAsset은 URL 메타데이터 저장만 지원하며 S3 upload/delete lifecycle은 구현하지 않았습니다.
 - public URL을 사용하는 1차 계획은 URL이 유출되면 접근이 가능하다는 한계가 있습니다.
 - 공개 Playlist pagination은 지원하지만 날짜 검색, title 검색, 전체 duration 합계는 아직 응답 계약에 없습니다.
@@ -118,6 +125,6 @@ reorder는 다음 원칙을 사용합니다.
 1. Catalog를 단일 canonical music model로 확정합니다.
 2. Legacy 사용 클라이언트의 migration 기간을 정하고 이후 제거합니다.
 3. Playlist application service와 transaction boundary를 별도 계층으로 분리합니다.
-4. Track/Playlist owner 또는 editor role을 추가합니다.
+4. 제품에 필요하면 Playlist owner 또는 editor role을 추가합니다. 현재는 admin 단일 역할입니다.
 5. S3 public URL에서 private object + 짧은 TTL presigned URL로 전환합니다.
 6. 공개 응답 DTO와 관리 응답 DTO를 더 엄격히 분리합니다.

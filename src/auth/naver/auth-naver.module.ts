@@ -1,25 +1,40 @@
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { CommonModule } from '../../common/common.module';
 import { UsersModule } from '../../users/users.module';
 import { SessionModule } from '../session/session.module';
 
 import { NAVER_OAUTH_PORT } from './application/ports/naver-oauth.port';
+import {
+  NAVER_LOGIN_POLICY,
+  NaverLoginPolicy,
+} from './application/naver-login.policy';
 import { ExchangeNaverAuthCodeUseCase } from './application/use-cases/exchange-naver-auth-code.use-case';
 import { NaverLoginUseCase } from './application/use-cases/naver-login.use-case';
 
 import { NaverOAuthClientAdapter } from './infrastructure/naver-oauth-client.adapter';
 
 import { AuthNaverController } from './interface/auth-naver.controller';
-import { NaverAuthExceptionFilter } from './interface/naver-auth-exception.filter';
+import { SocialAuthExceptionFilter } from '../shared/interface/social-auth-exception.filter';
 
 @Module({
   imports: [CommonModule, UsersModule, SessionModule],
   controllers: [AuthNaverController],
   providers: [
     NaverOAuthClientAdapter,
-    NaverAuthExceptionFilter,
+    SocialAuthExceptionFilter,
 
     { provide: NAVER_OAUTH_PORT, useExisting: NaverOAuthClientAdapter },
+    {
+      provide: NAVER_LOGIN_POLICY,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService): NaverLoginPolicy => ({
+        allowAccessTokenLogin: config.get<boolean>(
+          'AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED',
+          false,
+        ),
+      }),
+    },
 
     ExchangeNaverAuthCodeUseCase,
     NaverLoginUseCase,

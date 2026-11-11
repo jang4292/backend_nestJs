@@ -1,28 +1,38 @@
 # 배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)
 
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
+
 이 문서는 현재 프로젝트를 기준으로, 로컬 개발과 운영 배포에서 시크릿을 어떻게 다루는지 체크리스트 형태로 정리한 문서입니다.
 
-## 1) 로컬 개발 체크리스트
+## 1) Local(개발 PC) 체크리스트
 
-1. 현재 코드 기준 기본 환경 파일은 `.env`입니다.
+환경 용어: **Local**(개발 PC + 개발 서버의 `app_db_dev`), **Test**(e2e, `app_db_test`), **Prod**(EC2). 자세히는 [환경별 가이드 1장](../deployment/database-environments.kr.md#1-환경-구분).
+
+
+1. Local은 `.env`, Test는 `.env.test.local`을 읽습니다. 두 파일 모두 `chmod 600`으로 둡니다.
 2. 이 프로젝트의 공식 DB 경로는 MariaDB이며, EC2에서는 기본적으로 `localhost:3306`을 사용합니다.
 3. `.env`에는 로컬 개발에 필요한 최소값만 둡니다.
 4. MariaDB endpoint, DB 계정명, DB 이름은 `.env`처럼 Git에서 제외된 파일이나 EC2 환경변수에만 둡니다.
 5. 실제 운영 시크릿 값은 로컬 파일에 복사하지 않습니다.
 6. `.env`는 Git 추적 대상이 아니어야 합니다.
 7. 원격 MariaDB에 연결할 때는 방화벽과 네트워크 경계가 애플리케이션 실행 위치의 접근을 허용해야 합니다.
-8. 로컬 점검 순서:
-   - `npm run migration:show`
-   - `npm run migration:run`
-   - `npm test -- --runInBand`
+8. Local 점검 순서:
+   - `npm run db:check`(읽기 전용: 접속, 권한, 소유, pending)
+   - `npm run db:setup`(앱 전용 DB가 없으면 생성 + migration)
+   - `npx jest`
    - `npm run build`
-9. 개발/운영 MariaDB에서도 `DB_SYNCHRONIZE=false`를 유지하고 migration으로 스키마를 맞춥니다.
-10. 현재 E2E는 테스트 계정 권한 문제로 `app_db`를 임시 사용합니다.
-11. [ ] `app_db_test` 생성 및 테스트 계정 권한 부여 후 `.env.test.local`을 `app_db_test`로 복구합니다.
+9. `DB_SYNCHRONIZE=true`는 모든 환경에서 기동이 거부됩니다. 스키마는 migration으로 맞춥니다.
+10. E2E는 개발 서버의 `app_db_test`를 사용합니다. `NODE_ENV=test`에서는 `*_test` DB만 허용됩니다.
+11. [ ] 개발 계정에 `app_db_dev`·`app_db_test` 권한을 부여했습니다(SQL: [환경별 가이드 3.1](../deployment/database-environments.kr.md#31-최초-1회-앱-전용-db-권한-서버-관리자)). 다른 DB에는 권한을 주지 않습니다.
+12. 설정 검증: `npm run build` 후 `npm run env:check` / `npm run env:check:test`(DB 접속 없음).
 
-현재 MariaDB 연결이 없으면 `migration:show`와 `npm run test:e2e`는 DB 연결 단계에서 실패합니다. 이 경우 단위 테스트와 build로 코드 상태를 먼저 확인하고, DB 접근 경로를 준비한 뒤 e2e를 실행합니다.
+MariaDB에 연결할 수 없으면 `db:check`가 원인(주소, 포트, 인증, 권한)을 알려 줍니다. 단위 테스트와 build는 DB 없이도 실행됩니다.
 
-## 2) 운영 배포 체크리스트 (Secrets Manager 기반)
+## 2) 운영 배포 체크리스트
+
+기본 운영 경로는 **프로젝트 루트의 `.env.production` + PM2**입니다. 자세한 절차는 `docs/deployment/database-environments.kr.md`와 `docs/deployment/mariadb-systemd.kr.md`를 참고하세요. 아래 Secrets Manager 절차는 비밀값을 서버 파일에 두지 않을 때 쓰는 선택 경로이며, export한 값이 `.env.production`보다 우선합니다.
+
+### Secrets Manager를 쓰는 경우 (선택)
 
 1. EC2 IAM Role에 최소 권한을 부여합니다.
    - `secretsmanager:GetSecretValue`
@@ -58,7 +68,10 @@ password-only-secret
 
 ## 3) 운영 시크릿 예시 키
 
-아래 키 이름은 코드에서 사용하는 변수명과 동일하게 유지합니다.
+아래 키 이름은 코드에서 사용하는 변수명과 동일하게 유지합니다. 전체 목록의 단일 출처는 `scripts/runtime-env-keys.cjs`입니다. PM2와 Secrets Manager export가 이 목록만 전달하며, `src/config/app-env.ts`와 어긋나면 spec이 실패합니다.
+
+- `TRUST_PROXY`(reverse proxy 뒤라면 hop 수, 예: `1`)
+- `DB_TYPE`, `DATABASE_URL`
 
 - `DB_HOST`
 - `DB_PORT`
@@ -71,8 +84,8 @@ password-only-secret
 - `DB_POOL_MIN`
 - `DB_POOL_MAX`
 - `DB_CONNECT_TIMEOUT_MS`
-- `JWT_SECRET`
-- `JWT_EXPIRES_IN`
+- `JWT_SECRET`(production: 32자 이상, `replace-with`/`change-this`/`your-` 문구 금지)
+- `JWT_EXPIRES_IN`(`3600`, `30m`, `1h`, `7d` 형식)
 - `GOOGLE_ALLOWED_AUDIENCES`
 - `GOOGLE_ALLOWED_ISSUERS`
 - `GOOGLE_OAUTH_CLIENT_ID`
@@ -93,6 +106,7 @@ password-only-secret
 - `FACEBOOK_APP_SECRET`
 - `FACEBOOK_REDIRECT_URIS`
 - `FACEBOOK_GRAPH_API_VERSION`
+- `KAKAO_APP_ID`(production에서 Kakao 활성 시 필수)
 - `KAKAO_REST_API_KEY`
 - `KAKAO_CLIENT_SECRET`
 - `KAKAO_REDIRECT_URIS`
@@ -117,10 +131,11 @@ password-only-secret
    ```bash
    eval "$(AWS_SECRET_ID=<secret-id> AWS_REGION=ap-northeast-2 npm run -s secrets:export)"
    ```
-5. migration을 먼저 실행합니다.
+5. 설정을 검증하고 migration을 먼저 실행합니다(dist 기반, ts-node 불필요).
    ```bash
-   npm run migration:show
-   npm run migration:run
+   npm run env:check:prod
+   npm run migration:show:prod
+   npm run migration:run:prod
    ```
 6. PM2에 최신 환경변수와 build 결과를 반영합니다.
    ```bash
@@ -160,6 +175,6 @@ password-only-secret
 
 ## 8) 참고
 
-- 과거 PostgreSQL 참고: `docs/learning/postgresql-rds-nestjs-guide.kr.md`
+- 배포 절차: `docs/deployment/mariadb-systemd.kr.md`
 - 보안 가이드: `docs/learning/security-guide.kr.md`
 - SNS 로그인 운영·학습 가이드: `docs/learning/sns-login-operational-guide.kr.md`

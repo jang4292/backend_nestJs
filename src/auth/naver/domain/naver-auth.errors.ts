@@ -1,3 +1,5 @@
+import { SocialAuthError } from '../../shared/domain/social-auth.error';
+
 /** Stable error code enum – no framework imports */
 export enum NaverAuthErrorCode {
   AUTH_NAVER_BAD_REQUEST = 'AUTH_NAVER_BAD_REQUEST',
@@ -8,12 +10,14 @@ export enum NaverAuthErrorCode {
   AUTH_NAVER_INTERNAL_ERROR = 'AUTH_NAVER_INTERNAL_ERROR',
 }
 
-export class NaverAuthError extends Error {
+export class NaverAuthError extends SocialAuthError {
+  declare readonly errorCode: NaverAuthErrorCode;
+
   constructor(
-    public readonly errorCode: NaverAuthErrorCode,
+    errorCode: NaverAuthErrorCode,
     message: string,
+    options?: ErrorOptions,
   ) {
-    super(message);
-    this.name = 'NaverAuthError';
+    super(errorCode, message, options);
   }
 }

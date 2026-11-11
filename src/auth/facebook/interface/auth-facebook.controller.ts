@@ -5,13 +5,10 @@ import {
   Req,
   HttpCode,
   HttpStatus,
-  ValidationPipe,
   UseFilters,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { successResponse } from '../../../common/http/api-response';
-import { RequestIdInterceptor } from '../../../common/request-id/request-id.interceptor';
 import { RequestIdService } from '../../../common/request-id/request-id.service';
 import type { RequestWithId } from '../../../common/request-id/request-with-id';
 import type { FacebookAccessTokenSet } from '../application/ports/facebook-oauth.port';
@@ -20,7 +17,9 @@ import { FacebookLoginUseCase } from '../application/use-cases/facebook-login.us
 import type { FacebookLoginOutput } from '../application/use-cases/facebook-login.use-case';
 import { ExchangeCodeDto } from './dto/exchange-code.dto';
 import { FacebookLoginDto } from './dto/facebook-login.dto';
-import { FacebookAuthExceptionFilter } from './facebook-auth-exception.filter';
+import { SocialAuthExceptionFilter } from '../../shared/interface/social-auth-exception.filter';
+import { SocialProviderRoute } from '../../../common/auth/social-provider-route.decorator';
+import { toSocialAuthError } from '../../shared/interface/to-social-auth-error';
 import {
   FacebookAuthError,
   FacebookAuthErrorCode,
@@ -36,10 +35,18 @@ type FacebookLoginResponseData = {
   };
 };
 
+/** 예상하지 못한 오류(DB 오류 등)는 메시지를 노출하지 않는 INTERNAL_ERROR로 감쌉니다. */
+const wrapUnexpected = (cause: unknown) =>
+  new FacebookAuthError(
+    FacebookAuthErrorCode.AUTH_FACEBOOK_INTERNAL_ERROR,
+    'Unexpected error during Facebook authentication.',
+    { cause },
+  );
+
 @Controller('auth/facebook')
 @ApiTags('auth/facebook')
-@UseInterceptors(RequestIdInterceptor)
-@UseFilters(FacebookAuthExceptionFilter)
+@UseFilters(SocialAuthExceptionFilter)
+@SocialProviderRoute('facebook')
 export class AuthFacebookController {
   constructor(
     private readonly exchangeCodeUseCase: ExchangeFacebookAuthCodeUseCase,
@@ -51,21 +58,10 @@ export class AuthFacebookController {
     return req.requestId ?? this.requestIdService.resolve(req);
   }
 
-  private static toFacebookAuthError(err: unknown): FacebookAuthError {
-    if (err instanceof FacebookAuthError) return err;
-    return new FacebookAuthError(
-      FacebookAuthErrorCode.AUTH_FACEBOOK_INTERNAL_ERROR,
-      err instanceof Error ? err.message : String(err),
-    );
-  }
-
   @Post('exchange-code')
   @ApiOperation({ summary: 'Facebook authorization code 교환' })
   @HttpCode(HttpStatus.OK)
-  async exchangeCode(
-    @Body(ValidationPipe) dto: ExchangeCodeDto,
-    @Req() req: RequestWithId,
-  ) {
+  async exchangeCode(@Body() dto: ExchangeCodeDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);
     let tokenSet: FacebookAccessTokenSet;
     try {
@@ -76,7 +72,7 @@ export class AuthFacebookController {
         expectedState: dto.expectedState,
       });
     } catch (err) {
-      throw AuthFacebookController.toFacebookAuthError(err);
+      throw toSocialAuthError(err, wrapUnexpected);
     }
     return successResponse(requestId, tokenSet);
   }
@@ -84,10 +80,7 @@ export class AuthFacebookController {
   @Post('login')
   @ApiOperation({ summary: 'Facebook social login' })
   @HttpCode(HttpStatus.OK)
-  async login(
-    @Body(ValidationPipe) dto: FacebookLoginDto,
-    @Req() req: RequestWithId,
-  ) {
+  async login(@Body() dto: FacebookLoginDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);
     let result: FacebookLoginOutput;
     try {
@@ -99,7 +92,7 @@ export class AuthFacebookController {
         expectedState: dto.expectedState,
       });
     } catch (err) {
-      throw AuthFacebookController.toFacebookAuthError(err);
+      throw toSocialAuthError(err, wrapUnexpected);
     }
     const data: FacebookLoginResponseData = {
       accessToken: result.session.accessToken,

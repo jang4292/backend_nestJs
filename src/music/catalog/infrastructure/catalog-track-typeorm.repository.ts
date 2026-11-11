@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { isRowReferencedError } from '../../../database/mariadb-errors';
+import { ForeignKeyConstraintError } from '../../domain/music.errors';
 import type { CatalogTrackRepositoryPort } from '../application/ports/catalog-track-repository.port';
 import { CatalogTrack } from '../entities/catalog-track.entity';
 
@@ -23,8 +25,12 @@ export class CatalogTrackTypeOrmRepository implements CatalogTrackRepositoryPort
     return this.repo.save(track);
   }
 
-  findAll(): Promise<CatalogTrack[]> {
-    return this.repo.find({ order: { id: 'DESC' } });
+  findAll(options: { skip: number; take: number }): Promise<CatalogTrack[]> {
+    return this.repo.find({
+      order: { id: 'DESC' },
+      skip: options.skip,
+      take: options.take,
+    });
   }
 
   findById(id: number): Promise<CatalogTrack | null> {
@@ -32,6 +38,16 @@ export class CatalogTrackTypeOrmRepository implements CatalogTrackRepositoryPort
   }
 
   async remove(track: CatalogTrack): Promise<void> {
-    await this.repo.remove(track);
+    try {
+      await this.repo.remove(track);
+    } catch (error) {
+      // playlist_track.trackId는 ON DELETE RESTRICT입니다(1764000002000 migration).
+      if (isRowReferencedError(error)) {
+        throw new ForeignKeyConstraintError(
+          'Cannot delete track because it is used in a playlist',
+        );
+      }
+      throw error;
+    }
   }
 }

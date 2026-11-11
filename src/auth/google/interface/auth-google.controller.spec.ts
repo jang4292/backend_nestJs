@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { RequestIdInterceptor } from '../../../common/request-id/request-id.interceptor';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { CommonModule } from '../../../common/common.module';
@@ -16,7 +18,7 @@ import {
   GoogleAuthErrorCode,
 } from '../domain/google-auth.errors';
 import { SocialIdentity } from '../../../users/domain/social-identity';
-import { GoogleAuthExceptionFilter } from './google-auth-exception.filter';
+import { SocialAuthExceptionFilter } from '../../shared/interface/social-auth-exception.filter';
 
 interface SuccessEnvelope<T> {
   ok: true;
@@ -51,7 +53,9 @@ describe('AuthGoogleController (integration)', () => {
         { provide: GOOGLE_AUTH_CODE_EXCHANGER_PORT, useValue: mockExchanger },
         { provide: SOCIAL_ACCOUNT_LINKER_PORT, useValue: mockUserRepo },
         { provide: SESSION_ISSUER_PORT, useValue: mockSessionIssuer },
-        GoogleAuthExceptionFilter,
+        SocialAuthExceptionFilter,
+        // app.module.ts와 동일하게 request id 인터셉터를 전역으로 등록합니다.
+        { provide: APP_INTERCEPTOR, useClass: RequestIdInterceptor },
       ],
     }).compile();
 

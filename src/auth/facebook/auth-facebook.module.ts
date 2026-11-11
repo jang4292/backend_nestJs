@@ -10,14 +10,14 @@ import { FacebookLoginUseCase } from './application/use-cases/facebook-login.use
 import { FacebookGraphApiAdapter } from './infrastructure/facebook-graph-api.adapter';
 
 import { AuthFacebookController } from './interface/auth-facebook.controller';
-import { FacebookAuthExceptionFilter } from './interface/facebook-auth-exception.filter';
+import { SocialAuthExceptionFilter } from '../shared/interface/social-auth-exception.filter';
 
 @Module({
   imports: [CommonModule, UsersModule, SessionModule],
   controllers: [AuthFacebookController],
   providers: [
     FacebookGraphApiAdapter,
-    FacebookAuthExceptionFilter,
+    SocialAuthExceptionFilter,
 
     { provide: FACEBOOK_OAUTH_PORT, useExisting: FacebookGraphApiAdapter },
 

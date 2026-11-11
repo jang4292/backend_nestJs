@@ -32,9 +32,8 @@ export class ListPlaylistTracksUseCase {
       throw new NotFoundException('Playlist not found');
     }
 
-    const playlistTracks = await this.playlistTrackRepo.findByPlaylist(
-      playlistId,
-    );
+    const playlistTracks =
+      await this.playlistTrackRepo.findByPlaylist(playlistId);
 
     return playlistTracks.map((playlistTrack) => ({
       playlistTrackId: playlistTrack.id,

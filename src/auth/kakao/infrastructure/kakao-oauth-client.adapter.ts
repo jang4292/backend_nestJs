@@ -9,9 +9,20 @@ import {
   KakaoAccessTokenSet,
   KakaoOAuthPort,
 } from '../application/ports/kakao-oauth.port';
+import {
+  fetchWithTimeout,
+  readJsonSafely,
+} from '../../shared/infrastructure/fetch-with-timeout';
 
 const KAKAO_TOKEN_URL = 'https://kauth.kakao.com/oauth/token';
 const KAKAO_PROFILE_URL = 'https://kapi.kakao.com/v2/user/me';
+const KAKAO_TOKEN_INFO_URL = 'https://kapi.kakao.com/v1/user/access_token_info';
+
+interface KakaoTokenInfoResponse {
+  id?: number;
+  expires_in?: number;
+  app_id?: number;
+}
 
 interface KakaoTokenResponse {
   access_token?: string;
@@ -32,11 +43,13 @@ interface KakaoProfileResponse {
 
 @Injectable()
 export class KakaoOAuthClientAdapter implements KakaoOAuthPort {
+  private readonly appId?: string;
   private readonly restApiKey?: string;
   private readonly clientSecret?: string;
   private readonly allowedRedirectUris: string[];
 
   constructor(private readonly configService: ConfigService) {
+    this.appId = configService.get<string>('KAKAO_APP_ID');
     this.restApiKey = configService.get<string>('KAKAO_REST_API_KEY');
     this.clientSecret = configService.get<string>('KAKAO_CLIENT_SECRET');
 
@@ -53,10 +66,14 @@ export class KakaoOAuthClientAdapter implements KakaoOAuthPort {
     state?: string;
     expectedState?: string;
   }): Promise<KakaoAccessTokenSet> {
-    if (
-      this.allowedRedirectUris.length > 0 &&
-      !this.allowedRedirectUris.includes(params.redirectUri)
-    ) {
+    // 허용 목록이 없으면 임의 redirect URI로 code를 교환할 수 있으므로 code flow를 거부합니다(SEC-16).
+    if (this.allowedRedirectUris.length === 0) {
+      throw new KakaoAuthError(
+        KakaoAuthErrorCode.AUTH_KAKAO_CONFIG_MISSING,
+        'KAKAO_REDIRECT_URIS is not configured.',
+      );
+    }
+    if (!this.allowedRedirectUris.includes(params.redirectUri)) {
       throw new KakaoAuthError(
         KakaoAuthErrorCode.AUTH_KAKAO_BAD_REQUEST,
         'redirectUri is not in the allowed list.',
@@ -79,7 +96,7 @@ export class KakaoOAuthClientAdapter implements KakaoOAuthPort {
       });
       if (this.clientSecret) body.set('client_secret', this.clientSecret);
 
-      response = await fetch(KAKAO_TOKEN_URL, {
+      response = await fetchWithTimeout(KAKAO_TOKEN_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
@@ -93,7 +110,7 @@ export class KakaoOAuthClientAdapter implements KakaoOAuthPort {
       );
     }
 
-    const data = (await response.json()) as KakaoTokenResponse;
+    const data = await readJsonSafely<KakaoTokenResponse>(response);
     if (!response.ok || !data.access_token) {
       throw new KakaoAuthError(
         KakaoAuthErrorCode.AUTH_KAKAO_EXCHANGE_FAILED,
@@ -111,7 +128,7 @@ export class KakaoOAuthClientAdapter implements KakaoOAuthPort {
   async fetchProfile(accessToken: string): Promise<SocialIdentity> {
     let response: Response;
     try {
-      response = await fetch(KAKAO_PROFILE_URL, {
+      response = await fetchWithTimeout(KAKAO_PROFILE_URL, {
         method: 'GET',
         headers: { Authorization: `Bearer ${accessToken}` },
       });
@@ -122,7 +139,7 @@ export class KakaoOAuthClientAdapter implements KakaoOAuthPort {
       );
     }
 
-    const data = (await response.json()) as KakaoProfileResponse;
+    const data = await readJsonSafely<KakaoProfileResponse>(response);
     if (!response.ok || !data.id) {
       throw new KakaoAuthError(
         KakaoAuthErrorCode.AUTH_KAKAO_PROFILE_FETCH_FAILED,
@@ -138,5 +155,46 @@ export class KakaoOAuthClientAdapter implements KakaoOAuthPort {
       name: data.kakao_account?.profile?.nickname,
       picture: data.kakao_account?.profile?.profile_image_url,
     };
+  }
+
+  /**
+   * 클라이언트가 직접 보낸 accessToken이 이 앱(KAKAO_APP_ID)에서 발급되었는지 확인합니다.
+   * 다른 Kakao 앱에서 받은 사용자 토큰으로 이 서비스에 로그인하는 토큰 치환 공격을 막습니다.
+   * app-env.ts가 Kakao 활성 시 KAKAO_APP_ID를 필수로 검증합니다. 설정이 없으면 검증을 생략하지 않고 거부합니다(fail-closed).
+   */
+  async verifyAccessTokenAudience(accessToken: string): Promise<void> {
+    if (!this.appId) {
+      throw new KakaoAuthError(
+        KakaoAuthErrorCode.AUTH_KAKAO_CONFIG_MISSING,
+        'KAKAO_APP_ID is not configured.',
+      );
+    }
+
+    let response: Response;
+    try {
+      response = await fetchWithTimeout(KAKAO_TOKEN_INFO_URL, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+    } catch (err) {
+      throw new KakaoAuthError(
+        KakaoAuthErrorCode.AUTH_KAKAO_PROFILE_FETCH_FAILED,
+        err instanceof Error ? err.message : 'Network error verifying token.',
+      );
+    }
+
+    const data = await readJsonSafely<KakaoTokenInfoResponse>(response);
+    if (!response.ok || data.app_id === undefined) {
+      throw new KakaoAuthError(
+        KakaoAuthErrorCode.AUTH_KAKAO_INVALID_TOKEN,
+        'Kakao access token could not be verified.',
+      );
+    }
+    if (String(data.app_id) !== this.appId) {
+      throw new KakaoAuthError(
+        KakaoAuthErrorCode.AUTH_KAKAO_INVALID_TOKEN,
+        'Kakao access token was not issued for this application.',
+      );
+    }
   }
 }

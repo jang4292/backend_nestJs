@@ -31,11 +31,18 @@ export class AppleJwksVerifierAdapter implements AppleTokenVerifierPort {
     idToken: string,
     nonce?: string,
   ): Promise<SocialIdentity> {
+    // aud 없이 검증하면 다른 앱용 Apple 토큰도 통과하므로 설정이 없으면 거부합니다(fail-closed).
+    if (this.allowedAudiences.length === 0) {
+      throw new AppleAuthError(
+        AppleAuthErrorCode.AUTH_APPLE_CONFIG_MISSING,
+        'APPLE_ALLOWED_AUDIENCES is not configured.',
+      );
+    }
+
     try {
       const { payload } = await jwtVerify(idToken, this.jwks, {
         issuer: APPLE_ISSUER,
-        audience:
-          this.allowedAudiences.length > 0 ? this.allowedAudiences : undefined,
+        audience: this.allowedAudiences,
       });
 
       if (!payload.sub) {

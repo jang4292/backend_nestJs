@@ -9,6 +9,10 @@ import {
   NaverAccessTokenSet,
   NaverOAuthPort,
 } from '../application/ports/naver-oauth.port';
+import {
+  fetchWithTimeout,
+  readJsonSafely,
+} from '../../shared/infrastructure/fetch-with-timeout';
 
 const NAVER_TOKEN_URL = 'https://nid.naver.com/oauth2.0/token';
 const NAVER_PROFILE_URL = 'https://openapi.naver.com/v1/nid/me';
@@ -56,10 +60,14 @@ export class NaverOAuthClientAdapter implements NaverOAuthPort {
     state?: string;
     expectedState?: string;
   }): Promise<NaverAccessTokenSet> {
-    if (
-      this.allowedRedirectUris.length > 0 &&
-      !this.allowedRedirectUris.includes(params.redirectUri)
-    ) {
+    // 허용 목록이 없으면 임의 redirect URI로 받은 code를 교환할 수 있으므로 code flow를 거부합니다(SEC-16).
+    if (this.allowedRedirectUris.length === 0) {
+      throw new NaverAuthError(
+        NaverAuthErrorCode.AUTH_NAVER_CONFIG_MISSING,
+        'NAVER_REDIRECT_URIS is not configured.',
+      );
+    }
+    if (!this.allowedRedirectUris.includes(params.redirectUri)) {
       throw new NaverAuthError(
         NaverAuthErrorCode.AUTH_NAVER_BAD_REQUEST,
         'redirectUri is not in the allowed list.',
@@ -88,7 +96,7 @@ export class NaverOAuthClientAdapter implements NaverOAuthPort {
         state: params.state,
       });
 
-      response = await fetch(NAVER_TOKEN_URL, {
+      response = await fetchWithTimeout(NAVER_TOKEN_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
@@ -102,7 +110,7 @@ export class NaverOAuthClientAdapter implements NaverOAuthPort {
       );
     }
 
-    const data = (await response.json()) as NaverTokenResponse;
+    const data = await readJsonSafely<NaverTokenResponse>(response);
     if (!response.ok || !data.access_token) {
       throw new NaverAuthError(
         NaverAuthErrorCode.AUTH_NAVER_EXCHANGE_FAILED,
@@ -120,7 +128,7 @@ export class NaverOAuthClientAdapter implements NaverOAuthPort {
   async fetchProfile(accessToken: string): Promise<SocialIdentity> {
     let response: Response;
     try {
-      response = await fetch(NAVER_PROFILE_URL, {
+      response = await fetchWithTimeout(NAVER_PROFILE_URL, {
         method: 'GET',
         headers: { Authorization: `Bearer ${accessToken}` },
       });
@@ -131,7 +139,7 @@ export class NaverOAuthClientAdapter implements NaverOAuthPort {
       );
     }
 
-    const data = (await response.json()) as NaverProfileResponse;
+    const data = await readJsonSafely<NaverProfileResponse>(response);
     if (!response.ok || data.resultcode !== '00' || !data.response?.id) {
       throw new NaverAuthError(
         NaverAuthErrorCode.AUTH_NAVER_PROFILE_FETCH_FAILED,

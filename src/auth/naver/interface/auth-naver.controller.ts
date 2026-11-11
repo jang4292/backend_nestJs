@@ -5,13 +5,10 @@ import {
   Req,
   HttpCode,
   HttpStatus,
-  ValidationPipe,
   UseFilters,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { successResponse } from '../../../common/http/api-response';
-import { RequestIdInterceptor } from '../../../common/request-id/request-id.interceptor';
 import { RequestIdService } from '../../../common/request-id/request-id.service';
 import type { RequestWithId } from '../../../common/request-id/request-with-id';
 import type { NaverAccessTokenSet } from '../application/ports/naver-oauth.port';
@@ -20,7 +17,9 @@ import { NaverLoginUseCase } from '../application/use-cases/naver-login.use-case
 import type { NaverLoginOutput } from '../application/use-cases/naver-login.use-case';
 import { ExchangeCodeDto } from './dto/exchange-code.dto';
 import { NaverLoginDto } from './dto/naver-login.dto';
-import { NaverAuthExceptionFilter } from './naver-auth-exception.filter';
+import { SocialAuthExceptionFilter } from '../../shared/interface/social-auth-exception.filter';
+import { SocialProviderRoute } from '../../../common/auth/social-provider-route.decorator';
+import { toSocialAuthError } from '../../shared/interface/to-social-auth-error';
 import {
   NaverAuthError,
   NaverAuthErrorCode,
@@ -36,10 +35,18 @@ type NaverLoginResponseData = {
   };
 };
 
+/** 예상하지 못한 오류(DB 오류 등)는 메시지를 노출하지 않는 INTERNAL_ERROR로 감쌉니다. */
+const wrapUnexpected = (cause: unknown) =>
+  new NaverAuthError(
+    NaverAuthErrorCode.AUTH_NAVER_INTERNAL_ERROR,
+    'Unexpected error during Naver authentication.',
+    { cause },
+  );
+
 @Controller('auth/naver')
 @ApiTags('auth/naver')
-@UseInterceptors(RequestIdInterceptor)
-@UseFilters(NaverAuthExceptionFilter)
+@UseFilters(SocialAuthExceptionFilter)
+@SocialProviderRoute('naver')
 export class AuthNaverController {
   constructor(
     private readonly exchangeCodeUseCase: ExchangeNaverAuthCodeUseCase,
@@ -51,21 +58,10 @@ export class AuthNaverController {
     return req.requestId ?? this.requestIdService.resolve(req);
   }
 
-  private static toNaverAuthError(err: unknown): NaverAuthError {
-    if (err instanceof NaverAuthError) return err;
-    return new NaverAuthError(
-      NaverAuthErrorCode.AUTH_NAVER_INTERNAL_ERROR,
-      err instanceof Error ? err.message : String(err),
-    );
-  }
-
   @Post('exchange-code')
   @ApiOperation({ summary: 'Naver authorization code 교환' })
   @HttpCode(HttpStatus.OK)
-  async exchangeCode(
-    @Body(ValidationPipe) dto: ExchangeCodeDto,
-    @Req() req: RequestWithId,
-  ) {
+  async exchangeCode(@Body() dto: ExchangeCodeDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);
     let tokenSet: NaverAccessTokenSet;
     try {
@@ -76,7 +72,7 @@ export class AuthNaverController {
         expectedState: dto.expectedState,
       });
     } catch (err) {
-      throw AuthNaverController.toNaverAuthError(err);
+      throw toSocialAuthError(err, wrapUnexpected);
     }
     return successResponse(requestId, tokenSet);
   }
@@ -84,10 +80,7 @@ export class AuthNaverController {
   @Post('login')
   @ApiOperation({ summary: 'Naver social login' })
   @HttpCode(HttpStatus.OK)
-  async login(
-    @Body(ValidationPipe) dto: NaverLoginDto,
-    @Req() req: RequestWithId,
-  ) {
+  async login(@Body() dto: NaverLoginDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);
     let result: NaverLoginOutput;
     try {
@@ -99,7 +92,7 @@ export class AuthNaverController {
         expectedState: dto.expectedState,
       });
     } catch (err) {
-      throw AuthNaverController.toNaverAuthError(err);
+      throw toSocialAuthError(err, wrapUnexpected);
     }
     const data: NaverLoginResponseData = {
       accessToken: result.session.accessToken,

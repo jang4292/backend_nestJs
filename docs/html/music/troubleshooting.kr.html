@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/music/troubleshooting.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>Music 원인 분석 및 트러블슈팅 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section" open><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr" aria-current="page">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">아키텍처</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="music-원인-분석-및-트러블슈팅">Music 원인 분석 및 트러블슈팅</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code></p>
+</blockquote>
+<p>문제를 해결할 때는 먼저 <strong>route -&gt; Entity -&gt; table -&gt; migration 상태</strong>를 같은 기능 단위로 확인합니다.</p>
+<h2 id="1-musictracks-가-예상과-다른-응답을-반환함"><a class="heading-anchor" href="#1-musictracks-%EA%B0%80-%EC%98%88%EC%83%81%EA%B3%BC-%EB%8B%A4%EB%A5%B8-%EC%9D%91%EB%8B%B5%EC%9D%84-%EB%B0%98%ED%99%98%ED%95%A8" aria-hidden="true" tabindex="-1">#</a>1. <code>/music/tracks</code>가 예상과 다른 응답을 반환함</h2>
+<ul>
+<li>증상: Legacy 응답 또는 Catalog 응답이 예상과 다름</li>
+<li>원인: 과거 두 controller가 같은 <code>/music/tracks</code> 경로를 사용했거나, route 변경 후 클라이언트가 이전 경로를 호출함</li>
+<li>확인:</li>
+</ul>
+<pre><code class="language-bash">rg &quot;Controller\(&#39;music|@Get\(&#39;tracks&#39;&quot; src/music
+npm run migration:show
+</code></pre>
+<ul>
+<li>해결: Catalog는 <code>/music/*</code>, Legacy는 <code>/music/legacy/*</code>를 사용하고, API 예시의 경로를 일치시킵니다.</li>
+</ul>
+<h2 id="2-entity가-legacy_-테이블을-찾지-못함"><a class="heading-anchor" href="#2-entity%EA%B0%80-legacy_-%ED%85%8C%EC%9D%B4%EB%B8%94%EC%9D%84-%EC%B0%BE%EC%A7%80-%EB%AA%BB%ED%95%A8" aria-hidden="true" tabindex="-1">#</a>2. Entity가 <code>legacy_*</code> 테이블을 찾지 못함</h2>
+<ul>
+<li>증상: <code>Table &#39;...legacy_track&#39; doesn&#39;t exist</code></li>
+<li>원인: Legacy Entity가 archive된 테이블을 보도록 설정되어 있는데 Legacy archive Migration이 적용되지 않았거나, 다른 DB에 연결됨</li>
+<li>확인:</li>
+</ul>
+<pre><code class="language-bash">npm run migration:show
+</code></pre>
+<p>MariaDB에서:</p>
+<pre><code class="language-sql">SHOW TABLES LIKE &#39;%track%&#39;;
+SHOW TABLES LIKE &#39;%playlist%&#39;;
+</code></pre>
+<ul>
+<li>해결: 연결된 DB와 Migration 적용 상태를 확인합니다. 기존 Migration 파일을 임의로 수정하지 않습니다.</li>
+</ul>
+<h2 id="3-catalog-entity와-테이블이-불일치함"><a class="heading-anchor" href="#3-catalog-entity%EC%99%80-%ED%85%8C%EC%9D%B4%EB%B8%94%EC%9D%B4-%EB%B6%88%EC%9D%BC%EC%B9%98%ED%95%A8" aria-hidden="true" tabindex="-1">#</a>3. Catalog Entity와 테이블이 불일치함</h2>
+<ul>
+<li>증상: <code>track</code>, <code>audio_asset</code>, <code>playlist</code>, <code>playlist_track</code> 관련 metadata 또는 table 오류</li>
+<li>원인: Entity 등록은 되었지만 Catalog Migration이 적용되지 않음</li>
+<li>확인:</li>
+</ul>
+<pre><code class="language-bash">npm run migration:show
+</code></pre>
+<ul>
+<li>해결: 백업 후 명시적으로 <code>npm run migration:run</code>을 실행합니다. 현재 프로젝트에서는 2026-09-13 기준 Catalog Migration 3개가 적용된 상태입니다.</li>
+</ul>
+<h2 id="4-playlist에-track이-없거나-순서가-무작위임"><a class="heading-anchor" href="#4-playlist%EC%97%90-track%EC%9D%B4-%EC%97%86%EA%B1%B0%EB%82%98-%EC%88%9C%EC%84%9C%EA%B0%80-%EB%AC%B4%EC%9E%91%EC%9C%84%EC%9E%84" aria-hidden="true" tabindex="-1">#</a>4. Playlist에 Track이 없거나 순서가 무작위임</h2>
+<ul>
+<li><p>증상: 상세 응답의 <code>tracks</code>가 비어 있거나 순서가 기대와 다름</p>
+</li>
+<li><p>원인: relation loading 누락 또는 position 정렬 누락</p>
+</li>
+<li><p>확인 대상:</p>
+</li>
+<li><p><code>CatalogPlaylist.playlistItems</code></p>
+</li>
+<li><p><code>CatalogPlaylistTrack.track</code></p>
+</li>
+<li><p><code>getPublicPlaylist()</code>의 relation 설정</p>
+</li>
+<li><p>presenter의 position 정렬</p>
+</li>
+<li><p>예방: 공개 응답은 <code>toPublicPlaylistResponse()</code>를 통과시키고 position 오름차순으로 정렬합니다.</p>
+</li>
+</ul>
+<h2 id="5-playlist-position-unique-오류"><a class="heading-anchor" href="#5-playlist-position-unique-%EC%98%A4%EB%A5%98" aria-hidden="true" tabindex="-1">#</a>5. Playlist position unique 오류</h2>
+<ul>
+<li>증상: 같은 Playlist에 이미 사용 중인 position을 추가하거나 reorder할 때 DB constraint 오류</li>
+<li>원인: <code>(playlistId, position)</code>은 하나만 허용됨</li>
+<li>확인:</li>
+</ul>
+<pre><code class="language-sql">SELECT playlistId, position, COUNT(*)
+FROM playlist_track
+GROUP BY playlistId, position
+HAVING COUNT(*) &gt; 1;
+</code></pre>
+<ul>
+<li>해결: 추가 API는 충돌을 사전에 검사하고, reorder는 임시 음수 position을 거쳐 transaction으로 처리합니다.</li>
+</ul>
+<h2 id="6-draft-playlist가-공개됨"><a class="heading-anchor" href="#6-draft-playlist%EA%B0%80-%EA%B3%B5%EA%B0%9C%EB%90%A8" aria-hidden="true" tabindex="-1">#</a>6. Draft Playlist가 공개됨</h2>
+<ul>
+<li>증상: 작성 중 Playlist가 익명 목록에 나타남</li>
+<li>원인: 공개 조회 조건에 <code>status = published</code>가 빠짐</li>
+<li>확인: <code>CatalogMusicService.listPublicPlaylists()</code>와 <code>getPublicPlaylist()</code>를 확인합니다.</li>
+<li>예방: 공개 query에서 status를 고정하고, Entity 전체 조회 후 controller에서 필터링하지 않습니다.</li>
+</ul>
+<h2 id="7-공개-json에-s3-url이-포함됨"><a class="heading-anchor" href="#7-%EA%B3%B5%EA%B0%9C-json%EC%97%90-s3-url%EC%9D%B4-%ED%8F%AC%ED%95%A8%EB%90%A8" aria-hidden="true" tabindex="-1">#</a>7. 공개 JSON에 S3 URL이 포함됨</h2>
+<ul>
+<li>증상: 공개 API 응답에 <code>audio_asset.url</code> 또는 object key가 나타남</li>
+<li>원인: Entity 직접 반환, AudioAsset relation eager loading, presenter 누락</li>
+<li>확인:</li>
+</ul>
+<pre><code class="language-bash">curl -s http://localhost:3000/music/public/playlists/1 | rg &quot;url|objectKey|s3&quot;
+</code></pre>
+<ul>
+<li>해결: public presenter가 선택한 필드만 반환하도록 합니다. 공개 응답에는 재생 URL을 넣지 않는 것이 현재 계약입니다.</li>
+</ul>
+<h2 id="8-unitbuild는-통과하지만-e2e가-db-연결에-실패함"><a class="heading-anchor" href="#8-unitbuild%EB%8A%94-%ED%86%B5%EA%B3%BC%ED%95%98%EC%A7%80%EB%A7%8C-e2e%EA%B0%80-db-%EC%97%B0%EA%B2%B0%EC%97%90-%EC%8B%A4%ED%8C%A8%ED%95%A8" aria-hidden="true" tabindex="-1">#</a>8. Unit/build는 통과하지만 E2E가 DB 연결에 실패함</h2>
+<ul>
+<li>증상: <code>npm test</code> 또는 <code>npm run build</code>는 성공하지만 E2E에서 connection refused 또는 access denied</li>
+<li>원인: Unit/build는 실제 MariaDB 연결을 요구하지 않지만 E2E는 <code>.env.test.local</code>과 DB 권한을 사용함</li>
+<li>확인:</li>
+</ul>
+<pre><code class="language-bash">npm run db:check:test      # 읽기 전용: 접속, 권한, 소유, pending migration
+npm run db:setup:test      # app_db_test가 없으면 생성 + migration
+npm run test:e2e
+</code></pre>
+<ul>
+<li>해결: <code>db:check:test</code>가 알려 주는 원인(주소, 포트, 인증, 권한, 소유)을 고칩니다. 운영 DB를 E2E DB로 사용하지 않습니다. 명령과 env 파일의 대응은 <a href="../deployment/database-environments.kr.html#%EB%AA%85%EB%A0%B9%EA%B3%BC-env-%ED%8C%8C%EC%9D%BC">환경별 가이드 1장</a>을 봅니다.</li>
+</ul>
+<h2 id="9-migration이-실행되지-않음"><a class="heading-anchor" href="#9-migration%EC%9D%B4-%EC%8B%A4%ED%96%89%EB%90%98%EC%A7%80-%EC%95%8A%EC%9D%8C" aria-hidden="true" tabindex="-1">#</a>9. Migration이 실행되지 않음</h2>
+<ul>
+<li>증상: 새 Migration 파일이 있는데 <code>migration:show</code>에 나타나지 않음</li>
+<li>원인: TypeORM DataSource의 migration glob 또는 ts-node 실행 환경 문제</li>
+<li>확인:</li>
+</ul>
+<pre><code class="language-bash">npm run migration:show
+npm run build
+</code></pre>
+<ul>
+<li>예방: source Migration과 production <code>dist/database/migrations/*.js</code> 경로를 모두 확인합니다.</li>
+</ul>
+<h2 id="10-로그에-음원-url-또는-token이-남음"><a class="heading-anchor" href="#10-%EB%A1%9C%EA%B7%B8%EC%97%90-%EC%9D%8C%EC%9B%90-url-%EB%98%90%EB%8A%94-token%EC%9D%B4-%EB%82%A8%EC%9D%8C" aria-hidden="true" tabindex="-1">#</a>10. 로그에 음원 URL 또는 token이 남음</h2>
+<ul>
+<li>증상: error log, request log, exception message에 URL/token이 기록됨</li>
+<li>원인: DTO 또는 예외 객체를 그대로 로깅</li>
+<li>해결: URL, object key, Authorization, secret은 redaction합니다. S3 public URL을 쓸 때도 URL을 로그에 남기지 않습니다.</li>
+</ul>
+<h2 id="권한삭제-관련-2026-11-08-추가"><a class="heading-anchor" href="#%EA%B6%8C%ED%95%9C%EC%82%AD%EC%A0%9C-%EA%B4%80%EB%A0%A8-2026-11-08-%EC%B6%94%EA%B0%80" aria-hidden="true" tabindex="-1">#</a>권한·삭제 관련 (2026-11-08 추가)</h2>
+<h3 id="로그인했는데-post-musictracks-가-403"><a class="heading-anchor" href="#%EB%A1%9C%EA%B7%B8%EC%9D%B8%ED%96%88%EB%8A%94%EB%8D%B0-post-musictracks-%EA%B0%80-403" aria-hidden="true" tabindex="-1">#</a>로그인했는데 <code>POST /music/tracks</code>가 403</h3>
+<ul>
+<li>원인: 음악 쓰기 API는 admin 전용입니다.</li>
+<li>확인: <code>GET /users/profile</code> 응답의 <code>role</code>을 봅니다.</li>
+<li>해결: 운영 절차에 따라 <code>UPDATE users SET role = &#39;admin&#39; …</code>을 실행합니다(<a href="../deployment/mariadb-systemd.kr.html#5-%EB%B0%B0%ED%8F%AC-%ED%9B%84-%EC%9E%91%EC%97%85">배포 가이드</a>). 재로그인은 필요 없습니다.</li>
+</ul>
+<h3 id="artisttrack-삭제가-409-foreign_key_constraint"><a class="heading-anchor" href="#artisttrack-%EC%82%AD%EC%A0%9C%EA%B0%80-409-foreign_key_constraint" aria-hidden="true" tabindex="-1">#</a>Artist·Track 삭제가 409 <code>FOREIGN_KEY_CONSTRAINT</code></h3>
+<ul>
+<li>원인: 다른 데이터가 참조하고 있습니다.<ul>
+<li>Artist: legacy track이 참조</li>
+<li>Catalog Track: playlist 항목이 참조(<code>RESTRICT</code>)</li>
+</ul>
+</li>
+<li>해결: 참조를 먼저 제거합니다. 이전에는 PostgreSQL 오류 코드로 판별하던 버그 때문에 500이 났습니다.</li>
+</ul>
+<h3 id="get-musiclegacyplaylistsby-date-가-400"><a class="heading-anchor" href="#get-musiclegacyplaylistsby-date-%EA%B0%80-400" aria-hidden="true" tabindex="-1">#</a><code>GET /music/legacy/playlists/by-date</code>가 400</h3>
+<ul>
+<li>원인: <code>date</code> 쿼리가 없거나 <code>YYYY-MM-DD</code> 형식이 아닙니다. 예전에는 조건 없는 조회로 임의의 playlist가 반환됐습니다.</li>
+</ul>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="checklists.kr.html"><span>이전</span>Music 체크리스트</a><a class="pager-next" href="../learning/database-schema-management.kr.html"><span>다음</span>DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/music/troubleshooting.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/music/troubleshooting.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-musictracks-%EA%B0%80-%EC%98%88%EC%83%81%EA%B3%BC-%EB%8B%A4%EB%A5%B8-%EC%9D%91%EB%8B%B5%EC%9D%84-%EB%B0%98%ED%99%98%ED%95%A8">1. /music/tracks 가 예상과 다른 응답을 반환함</a></li><li class="toc-2"><a href="#2-entity%EA%B0%80-legacy_-%ED%85%8C%EC%9D%B4%EB%B8%94%EC%9D%84-%EC%B0%BE%EC%A7%80-%EB%AA%BB%ED%95%A8">2. Entity가 legacy_* 테이블을 찾지 못함</a></li><li class="toc-2"><a href="#3-catalog-entity%EC%99%80-%ED%85%8C%EC%9D%B4%EB%B8%94%EC%9D%B4-%EB%B6%88%EC%9D%BC%EC%B9%98%ED%95%A8">3. Catalog Entity와 테이블이 불일치함</a></li><li class="toc-2"><a href="#4-playlist%EC%97%90-track%EC%9D%B4-%EC%97%86%EA%B1%B0%EB%82%98-%EC%88%9C%EC%84%9C%EA%B0%80-%EB%AC%B4%EC%9E%91%EC%9C%84%EC%9E%84">4. Playlist에 Track이 없거나 순서가 무작위임</a></li><li class="toc-2"><a href="#5-playlist-position-unique-%EC%98%A4%EB%A5%98">5. Playlist position unique 오류</a></li><li class="toc-2"><a href="#6-draft-playlist%EA%B0%80-%EA%B3%B5%EA%B0%9C%EB%90%A8">6. Draft Playlist가 공개됨</a></li><li class="toc-2"><a href="#7-%EA%B3%B5%EA%B0%9C-json%EC%97%90-s3-url%EC%9D%B4-%ED%8F%AC%ED%95%A8%EB%90%A8">7. 공개 JSON에 S3 URL이 포함됨</a></li><li class="toc-2"><a href="#8-unitbuild%EB%8A%94-%ED%86%B5%EA%B3%BC%ED%95%98%EC%A7%80%EB%A7%8C-e2e%EA%B0%80-db-%EC%97%B0%EA%B2%B0%EC%97%90-%EC%8B%A4%ED%8C%A8%ED%95%A8">8. Unit/build는 통과하지만 E2E가 DB 연결에 실패함</a></li><li class="toc-2"><a href="#9-migration%EC%9D%B4-%EC%8B%A4%ED%96%89%EB%90%98%EC%A7%80-%EC%95%8A%EC%9D%8C">9. Migration이 실행되지 않음</a></li><li class="toc-2"><a href="#10-%EB%A1%9C%EA%B7%B8%EC%97%90-%EC%9D%8C%EC%9B%90-url-%EB%98%90%EB%8A%94-token%EC%9D%B4-%EB%82%A8%EC%9D%8C">10. 로그에 음원 URL 또는 token이 남음</a></li><li class="toc-2"><a href="#%EA%B6%8C%ED%95%9C%EC%82%AD%EC%A0%9C-%EA%B4%80%EB%A0%A8-2026-11-08-%EC%B6%94%EA%B0%80">권한·삭제 관련 (2026-11-08 추가)</a></li><li class="toc-3"><a href="#%EB%A1%9C%EA%B7%B8%EC%9D%B8%ED%96%88%EB%8A%94%EB%8D%B0-post-musictracks-%EA%B0%80-403">로그인했는데 POST /music/tracks 가 403</a></li><li class="toc-3"><a href="#artisttrack-%EC%82%AD%EC%A0%9C%EA%B0%80-409-foreign_key_constraint">Artist·Track 삭제가 409 FOREIGN_KEY_CONSTRAINT</a></li><li class="toc-3"><a href="#get-musiclegacyplaylistsby-date-%EA%B0%80-400">GET /music/legacy/playlists/by-date 가 400</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

@@ -1,34 +1,25 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from '../../entities/user.entity';
-import { LoginIdentifierType } from '../../domain/login-identifier-type.enum';
+import { Inject, Injectable } from '@nestjs/common';
+import type { User } from '../../entities/user.entity';
+import { USER_REPOSITORY_PORT } from '../ports/user-repository.port';
+import type { UserRepositoryPort } from '../ports/user-repository.port';
 
 @Injectable()
 export class FindUserUseCase {
   constructor(
-    @InjectRepository(User)
-    private readonly usersRepository: Repository<User>,
+    @Inject(USER_REPOSITORY_PORT)
+    private readonly users: UserRepositoryPort,
   ) {}
 
   byUsername(username: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { username } });
+    return this.users.findByUsername(username);
   }
 
   byEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { email } });
+    return this.users.findByEmail(email);
   }
 
-  byIdentifier(
-    identifierType: LoginIdentifierType,
-    identifier: string,
-  ): Promise<User | null> {
-    return identifierType === LoginIdentifierType.EMAIL
-      ? this.byEmail(identifier)
-      : this.byUsername(identifier);
-  }
-
+  /** 연결된 SNS 계정(providers)을 포함해 조회합니다. */
   byId(id: number): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { id } });
+    return this.users.findById(id);
   }
 }

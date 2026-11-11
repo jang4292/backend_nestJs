@@ -17,7 +17,11 @@ describe('ExchangeKakaoAuthCodeUseCase', () => {
   const tokenSet: KakaoAccessTokenSet = { accessToken: 'access.token.value' };
 
   beforeEach(async () => {
-    oauth = { exchange: jest.fn(), fetchProfile: jest.fn() };
+    oauth = {
+      exchange: jest.fn(),
+      verifyAccessTokenAudience: jest.fn().mockResolvedValue(undefined),
+      fetchProfile: jest.fn(),
+    };
 
     const module = await Test.createTestingModule({
       providers: [

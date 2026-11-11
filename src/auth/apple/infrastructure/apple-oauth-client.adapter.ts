@@ -9,6 +9,10 @@ import {
   AppleAuthCodeExchangerPort,
   TokenSet,
 } from '../application/ports/apple-auth-code-exchanger.port';
+import {
+  fetchWithTimeout,
+  readJsonSafely,
+} from '../../shared/infrastructure/fetch-with-timeout';
 
 const APPLE_TOKEN_URL = 'https://appleid.apple.com/auth/token';
 const APPLE_ISSUER = 'https://appleid.apple.com';
@@ -52,10 +56,14 @@ export class AppleOAuthClientAdapter implements AppleAuthCodeExchangerPort {
     state?: string;
     expectedState?: string;
   }): Promise<TokenSet> {
-    if (
-      this.allowedRedirectUris.length > 0 &&
-      !this.allowedRedirectUris.includes(params.redirectUri)
-    ) {
+    // 허용 목록이 없으면 임의 redirect URI로 code를 교환할 수 있으므로 code flow를 거부합니다(SEC-16).
+    if (this.allowedRedirectUris.length === 0) {
+      throw new AppleAuthError(
+        AppleAuthErrorCode.AUTH_APPLE_CONFIG_MISSING,
+        'APPLE_REDIRECT_URIS is not configured.',
+      );
+    }
+    if (!this.allowedRedirectUris.includes(params.redirectUri)) {
       throw new AppleAuthError(
         AppleAuthErrorCode.AUTH_APPLE_BAD_REQUEST,
         'redirectUri is not in the allowed list.',
@@ -66,7 +74,7 @@ export class AppleOAuthClientAdapter implements AppleAuthCodeExchangerPort {
 
     let response: Response;
     try {
-      response = await fetch(APPLE_TOKEN_URL, {
+      response = await fetchWithTimeout(APPLE_TOKEN_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
@@ -84,7 +92,7 @@ export class AppleOAuthClientAdapter implements AppleAuthCodeExchangerPort {
       );
     }
 
-    const body = (await response.json()) as AppleTokenResponse;
+    const body = await readJsonSafely<AppleTokenResponse>(response);
     if (!response.ok || !body.id_token) {
       throw new AppleAuthError(
         AppleAuthErrorCode.AUTH_APPLE_EXCHANGE_FAILED,

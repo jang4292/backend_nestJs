@@ -60,10 +60,19 @@ export class GoogleOAuthClientAdapter
     idToken: string,
     nonce?: string,
   ): Promise<SocialIdentity> {
+    // audience 없이 검증하면 다른 앱(client)용 Google 토큰도 통과하므로 설정이 없으면 거부합니다(fail-closed).
+    if (this.allowedAudiences.length === 0) {
+      throw new GoogleAuthError(
+        GoogleAuthErrorCode.AUTH_GOOGLE_CONFIG_MISSING,
+        'GOOGLE_ALLOWED_AUDIENCES is not configured.',
+      );
+    }
+
     try {
-      const audience =
-        this.allowedAudiences.length > 0 ? this.allowedAudiences : undefined;
-      const ticket = await this.client.verifyIdToken({ idToken, audience });
+      const ticket = await this.client.verifyIdToken({
+        idToken,
+        audience: this.allowedAudiences,
+      });
       const payload = ticket.getPayload();
 
       if (!payload) {
@@ -118,10 +127,14 @@ export class GoogleOAuthClientAdapter
     expectedState?: string;
   }): Promise<TokenSet> {
     try {
-      if (
-        this.allowedRedirectUris.length > 0 &&
-        !this.allowedRedirectUris.includes(params.redirectUri)
-      ) {
+      // 허용 목록이 없으면 임의 redirect URI로 code를 교환할 수 있으므로 code flow를 거부합니다(SEC-16).
+      if (this.allowedRedirectUris.length === 0) {
+        throw new GoogleAuthError(
+          GoogleAuthErrorCode.AUTH_GOOGLE_CONFIG_MISSING,
+          'GOOGLE_OAUTH_REDIRECT_URIS is not configured.',
+        );
+      }
+      if (!this.allowedRedirectUris.includes(params.redirectUri)) {
         throw new GoogleAuthError(
           GoogleAuthErrorCode.AUTH_GOOGLE_BAD_REQUEST,
           'redirectUri is not allowed.',

@@ -5,10 +5,11 @@ import { AppService } from './app.service';
 
 describe('AppController', () => {
   let appController: AppController;
+  let mockDataSource: { query: jest.Mock };
 
   beforeEach(async () => {
-    const mockDataSource = {
-      query: jest.fn().mockResolvedValue([{ '?column?': 1 }]),
+    mockDataSource = {
+      query: jest.fn().mockResolvedValue([{ 1: 1 }]),
     };
 
     const app: TestingModule = await Test.createTestingModule({
@@ -33,10 +34,22 @@ describe('AppController', () => {
 
   describe('health', () => {
     it('should return health status', async () => {
-      const result = await appController.getHealth();
+      const res = { status: jest.fn() };
+      const result = await appController.getHealth(res as never);
       expect(result).toHaveProperty('status', 'ok');
       expect(result).toHaveProperty('database', 'up');
       expect(result).toHaveProperty('timestamp');
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('should return 503 and degraded status when the database is down', async () => {
+      mockDataSource.query.mockRejectedValueOnce(new Error('ECONNREFUSED'));
+      const res = { status: jest.fn() };
+
+      const result = await appController.getHealth(res as never);
+
+      expect(res.status).toHaveBeenCalledWith(503);
+      expect(result).toMatchObject({ status: 'degraded', database: 'down' });
     });
   });
 });

@@ -8,10 +8,9 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../../auth/session/interface/jwt-auth.guard';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AdminOnly } from '../../../auth/session/interface/auth-route.decorators';
 import { CatalogMusicService } from '../catalog-music.service';
 import { CreateAudioAssetDto } from './dto/create-audio-asset.dto';
 import { CreateCatalogTrackDto } from './dto/create-catalog-track.dto';
@@ -20,6 +19,7 @@ import { UpdateCatalogTrackDto } from './dto/update-catalog-track.dto';
 import { CreateCatalogPlaylistDto } from './dto/create-catalog-playlist.dto';
 import { AddCatalogPlaylistTrackDto } from './dto/add-catalog-playlist-track.dto';
 import { ListPublicPlaylistsQueryDto } from './dto/list-public-playlists-query.dto';
+import { ListCatalogTracksQueryDto } from './dto/list-catalog-tracks-query.dto';
 import { ReorderCatalogPlaylistDto } from './dto/reorder-catalog-playlist.dto';
 import {
   PaginatedPublicPlaylistsResponse,
@@ -32,8 +32,7 @@ export class CatalogMusicController {
   constructor(private readonly musicService: CatalogMusicService) {}
 
   @ApiOperation({ summary: '트랙 등록' })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @AdminOnly()
   @Post('tracks')
   createTrack(@Body() dto: CreateCatalogTrackDto) {
     return this.musicService.createTrack(dto);
@@ -41,8 +40,8 @@ export class CatalogMusicController {
 
   @ApiOperation({ summary: '트랙 목록 조회' })
   @Get('tracks')
-  listTracks() {
-    return this.musicService.listTracks().then((tracks) =>
+  listTracks(@Query() query: ListCatalogTracksQueryDto) {
+    return this.musicService.listTracks(query).then((tracks) =>
       tracks.map((track) => ({
         id: track.id,
         title: track.title,
@@ -64,8 +63,7 @@ export class CatalogMusicController {
   }
 
   @ApiOperation({ summary: '트랙 수정' })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @AdminOnly()
   @Patch('tracks/:id')
   updateTrack(
     @Param('id', ParseIntPipe) id: number,
@@ -75,16 +73,14 @@ export class CatalogMusicController {
   }
 
   @ApiOperation({ summary: '트랙 삭제' })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @AdminOnly()
   @Delete('tracks/:id')
   deleteTrack(@Param('id', ParseIntPipe) id: number) {
     return this.musicService.deleteTrack(id);
   }
 
   @ApiOperation({ summary: '트랙 음원 파일 등록' })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @AdminOnly()
   @Post('tracks/:trackId/audio-assets')
   createAudioAsset(
     @Param('trackId', ParseIntPipe) trackId: number,
@@ -95,8 +91,7 @@ export class CatalogMusicController {
 
   @ApiOperation({ summary: '트랙 음원 파일 목록 조회' })
   // AudioAsset에는 저장된 음원 URL이 포함될 수 있으므로 인증된 관리 조회입니다.
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @AdminOnly()
   @Get('tracks/:trackId/audio-assets')
   listAudioAssets(@Param('trackId', ParseIntPipe) trackId: number) {
     return this.musicService.listAudioAssets(trackId);
@@ -129,24 +124,21 @@ export class CatalogMusicController {
   }
 
   @ApiOperation({ summary: 'Playlist 등록' })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @AdminOnly()
   @Post('playlists')
   createPlaylist(@Body() dto: CreateCatalogPlaylistDto) {
     return this.musicService.createPlaylist(dto);
   }
 
   @ApiOperation({ summary: 'Playlist 공개 전환' })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @AdminOnly()
   @Patch('playlists/:id/publish')
   publishPlaylist(@Param('id', ParseIntPipe) id: number) {
     return this.musicService.publishPlaylist(id);
   }
 
   @ApiOperation({ summary: 'Playlist에 Track 추가' })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @AdminOnly()
   @Post('playlists/:playlistId/tracks')
   addTrackToPlaylist(
     @Param('playlistId', ParseIntPipe) playlistId: number,
@@ -156,8 +148,7 @@ export class CatalogMusicController {
   }
 
   @ApiOperation({ summary: 'Playlist Track 순서 변경' })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @AdminOnly()
   @Patch('playlists/:playlistId/tracks/reorder')
   reorderPlaylist(
     @Param('playlistId', ParseIntPipe) playlistId: number,
@@ -167,8 +158,7 @@ export class CatalogMusicController {
   }
 
   @ApiOperation({ summary: '음원 파일 수정' })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @AdminOnly()
   @Patch('audio-assets/:id')
   updateAudioAsset(
     @Param('id', ParseIntPipe) id: number,
@@ -178,8 +168,7 @@ export class CatalogMusicController {
   }
 
   @ApiOperation({ summary: '음원 파일 삭제' })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @AdminOnly()
   @Delete('audio-assets/:id')
   deleteAudioAsset(@Param('id', ParseIntPipe) id: number) {
     return this.musicService.deleteAudioAsset(id);

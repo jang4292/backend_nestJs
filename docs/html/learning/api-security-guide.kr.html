@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/learning/api-security-guide.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section" open><summary>보안</summary><ul class="nav-list"><li><a href="api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr" aria-current="page">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">보안</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="api-보안-학습-가이드-이-프로젝트로-배우는-인증인가입력운영-보안">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code>
+근거와 ID: <a href="../audit/2026-11-09-security-audit.kr.html">2026-11-09 보안 감사</a> · 비밀 관리와 push 전 점검: <a href="security-guide.kr.html">시크릿 관리 가이드</a> · 용어: <a href="glossary.kr.html">용어집</a></p>
+</blockquote>
+<h2 id="1-학습-목표"><a class="heading-anchor" href="#1-%ED%95%99%EC%8A%B5-%EB%AA%A9%ED%91%9C" aria-hidden="true" tabindex="-1">#</a>1. 학습 목표</h2>
+<p>이 문서를 읽고 나면 다음을 설명할 수 있어야 합니다.</p>
+<ul>
+<li>이 API의 자산, 공격자, 진입점(위협 모델)</li>
+<li>비밀번호를 어떻게 저장하고 비교하는지, bcrypt의 72바이트 한계가 무엇인지</li>
+<li>IP 단위 제한과 계정 단위 제한이 각각 무엇을 막는지</li>
+<li>JWT 세션을 어떻게 &quot;취소&quot;할 수 있는지(<code>sessionVersion</code>)</li>
+<li>외부 IdP 토큰을 받을 때 무엇을 반드시 검증해야 하는지(aud, iss, 발급 앱)</li>
+<li><strong>경로 문자열로 보안 판단을 하면 왜 위험한지</strong>(SEC-17 사례)</li>
+<li>설정이 비었을 때 &quot;통과&quot;가 아니라 &quot;거부&quot;해야 하는 이유(fail-closed)</li>
+<li>직접 보안 점검을 하는 순서와 명령</li>
+</ul>
+<h2 id="2-위협-모델"><a class="heading-anchor" href="#2-%EC%9C%84%ED%98%91-%EB%AA%A8%EB%8D%B8" aria-hidden="true" tabindex="-1">#</a>2. 위협 모델</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>구분</th>
+<th>이 프로젝트에서</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>지켜야 할 것(자산)</strong></td>
+<td>사용자 계정(비밀번호 해시, email), 세션 JWT, admin 권한, 음악 카탈로그 데이터, <code>JWT_SECRET</code>·DB 계정 같은 비밀값, 같은 DB 서버의 다른 DB</td>
+</tr>
+<tr>
+<td><strong>공격자</strong></td>
+<td>인터넷의 익명 사용자, 가입한 일반 사용자, 토큰을 훔친 사람, 다른 SNS 앱 운영자(그 앱 사용자의 토큰을 가진 사람), 의존성 공급망</td>
+</tr>
+<tr>
+<td><strong>진입점</strong></td>
+<td>공개 라우트(가입, 로그인, SNS 로그인, 음악 조회), JWT 라우트, admin 라우트, 배포 스크립트와 CI, 개발자 PC의 env 파일</td>
+</tr>
+<tr>
+<td><strong>신뢰 경계</strong></td>
+<td>클라이언트 → (nginx) → Nest 앱 → MariaDB / 외부 IdP(Google, Apple, Kakao, Naver, Facebook)</td>
+</tr>
+</tbody></table>
+</div>
+<p>요청이 지나는 순서와 각 단계의 방어 장치는 다음과 같습니다.</p>
+<pre><code class="language-text">요청
+ └─ helmet, CORS(origin 목록), body 크기(기본 100kb)
+ └─ RequestIdInterceptor ........ x-request-id 형식 검사(SEC-14)
+ └─ ThrottlerGuard .............. IP 단위 제한(전역 10회/60초, 로그인 5회/분)
+ └─ ProviderReadinessGuard ...... 비활성 SNS provider 503(라우트 메타데이터 기준, SEC-17)
+ └─ JwtAuthGuard / RolesGuard ... 토큰 서명·만료·sessionVersion, admin 역할
+ └─ ValidationPipe .............. whitelist, forbidNonWhitelisted, 길이 상한(SEC-18)
+ └─ use-case .................... 계정 단위 실패 제한(SEC-19), 비즈니스 규칙
+ └─ GlobalExceptionFilter ....... 5xx 메시지 고정, 비밀값 마스킹, 로그 redaction
+</code></pre>
+<h2 id="3-비밀번호-저장과-비교"><a class="heading-anchor" href="#3-%EB%B9%84%EB%B0%80%EB%B2%88%ED%98%B8-%EC%A0%80%EC%9E%A5%EA%B3%BC-%EB%B9%84%EA%B5%90" aria-hidden="true" tabindex="-1">#</a>3. 비밀번호 저장과 비교</h2>
+<p><strong>bcrypt를 쓰는 이유:</strong> 해시 계산이 의도적으로 느리고(cost 10 = 2^10회 반복) salt가 자동으로 들어갑니다. DB가 유출돼도 비밀번호를 한꺼번에 알아내기 어렵습니다.</p>
+<p><strong>bcrypt의 72바이트 한계</strong></p>
+<ul>
+<li>bcrypt는 입력의 <strong>앞 72바이트만</strong> 사용합니다.</li>
+<li>예를 들어 73바이트 비밀번호 <code>A…A1</code>과 <code>A…A2</code>는 같은 해시로 검증됩니다.</li>
+<li>UTF-8에서 한글 한 글자는 3바이트이므로, 한글 25자(75바이트)도 이미 한계를 넘습니다.</li>
+<li>그래서 <strong>새 비밀번호</strong>는 72바이트 이하만 받습니다(<code>@IsByteLength(0, 72)</code>).</li>
+<li><strong>로그인과 현재 비밀번호 확인</strong>에는 72바이트 제한을 걸지 않습니다. 정책 이전에 긴 비밀번호로 가입한 사용자도 로그인할 수 있어야 하기 때문입니다. 요청 크기만 1024자로 제한합니다.</li>
+</ul>
+<p><strong>최소 길이를 8자로 한 이유:</strong> NIST SP 800-63B는 사용자가 고르는 비밀번호에 최소 8자를 권장합니다. 복잡도 규칙(대문자, 특수문자 강제)보다 길이와 유출 목록 대조가 효과적이라고 봅니다. 유출 비밀번호 대조는 이 프로젝트에 아직 없습니다.</p>
+<p><strong>응답 시간으로 계정 존재가 드러나지 않게 하기(SEC-9)</strong></p>
+<ul>
+<li>계정이 없을 때 bcrypt를 건너뛰면 응답이 눈에 띄게 빨라집니다.</li>
+<li>그래서 계정이 없어도 고정 해시와 한 번 비교합니다(<code>bcrypt-password-hasher.adapter.ts</code>).</li>
+</ul>
+<p>정책 값은 한곳에 모아 두었습니다: <code>src/users/domain/user-input-policy.ts</code></p>
+<h2 id="4-무차별-대입-ip-단위와-계정-단위"><a class="heading-anchor" href="#4-%EB%AC%B4%EC%B0%A8%EB%B3%84-%EB%8C%80%EC%9E%85-ip-%EB%8B%A8%EC%9C%84%EC%99%80-%EA%B3%84%EC%A0%95-%EB%8B%A8%EC%9C%84" aria-hidden="true" tabindex="-1">#</a>4. 무차별 대입: IP 단위와 계정 단위</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>제한</th>
+<th>막는 것</th>
+<th>못 막는 것</th>
+<th>위치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IP 단위(5회/분)</td>
+<td>한 IP에서 빠르게 반복 시도</td>
+<td>여러 IP(봇넷, 프록시)로 나눠 한 계정을 공격</td>
+<td><code>@Throttle</code></td>
+</tr>
+<tr>
+<td><strong>계정 단위(실패 10회/15분)</strong></td>
+<td>IP를 바꿔 가며 한 계정을 공격</td>
+<td>계정마다 비밀번호 한두 개씩 시도하는 credential stuffing</td>
+<td><code>InMemoryLoginAttemptLimiterAdapter</code></td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>설계에서 고민한 점</strong></p>
+<ul>
+<li><strong>실패만 셉니다.</strong> 성공하면 초기화하므로 정상 사용자는 거의 걸리지 않습니다.</li>
+<li><strong>없는 계정도 똑같이 셉니다.</strong> 그렇지 않으면 &quot;차단되는 계정은 존재한다&quot;는 정보가 새어 나갑니다.</li>
+<li><strong>식별자를 정규화합니다.</strong> <code>Alice</code>, <code>alice</code>가 다른 키가 되면 우회됩니다.</li>
+<li><strong>잠금(lockout) DoS:</strong> 공격자가 피해자 계정을 일부러 실패시켜 잠글 수 있습니다. 영구 잠금이 아니라 15분 창으로 제한해 피해를 줄였습니다. 실무에서는 CAPTCHA, 점진적 지연, 신뢰 기기 예외를 함께 씁니다.</li>
+<li><strong>저장소:</strong> 프로세스 메모리라 PM2 인스턴스가 하나일 때만 정확합니다. 인스턴스를 늘리면 Redis 같은 공유 저장소 어댑터로 바꿉니다. 포트(<code>LoginAttemptLimiterPort</code>)를 두었기 때문에 use-case는 바뀌지 않습니다.</li>
+</ul>
+<h2 id="5-세션-jwt와-취소"><a class="heading-anchor" href="#5-%EC%84%B8%EC%85%98-jwt%EC%99%80-%EC%B7%A8%EC%86%8C" aria-hidden="true" tabindex="-1">#</a>5. 세션 JWT와 &quot;취소&quot;</h2>
+<p><strong>JWT의 장단점:</strong> 서버가 세션을 저장하지 않아 단순하지만, 한 번 발급한 토큰을 만료 전에 무효로 만들기 어렵습니다.</p>
+<p><strong>이 프로젝트의 선택: 세션 버전(<code>sessionVersion</code>)</strong></p>
+<ol>
+<li><code>users.sessionVersion</code>(기본 0)을 둡니다(migration 1766).</li>
+<li>토큰을 발급할 때 현재 버전을 <code>sv</code> claim에 넣습니다.</li>
+<li><code>JwtStrategy</code>는 이미 매 요청 사용자를 DB에서 다시 읽고 있습니다(역할 변경을 즉시 반영하려고). 여기서 <code>sv</code>와 DB 값을 함께 비교합니다. <strong>추가 쿼리가 없습니다.</strong></li>
+<li>비밀번호를 바꾸면 버전을 1 올립니다. 그 전에 발급된 토큰은 모두 401이 됩니다.</li>
+</ol>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>방식</th>
+<th>장점</th>
+<th>단점</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>짧은 만료만 사용</td>
+<td>구현 없음</td>
+<td>만료 전까지는 못 막음</td>
+</tr>
+<tr>
+<td><strong>세션 버전(이번 선택)</strong></td>
+<td>컬럼 하나, 추가 쿼리 없음</td>
+<td>사용자 단위로만 취소(기기별 로그아웃 불가)</td>
+</tr>
+<tr>
+<td>토큰 블랙리스트(jti 저장)</td>
+<td>토큰 단위 취소</td>
+<td>저장소가 필요하고 매 요청 조회</td>
+</tr>
+<tr>
+<td>refresh token + 짧은 access token</td>
+<td>실무 표준, 기기별 관리</td>
+<td>테이블과 rotation 로직 필요(📌 P1)</td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>하위 호환:</strong> 배포 전에 발급된 토큰에는 <code>sv</code>가 없습니다. 없으면 0으로 간주하므로 배포 직후 모든 사용자가 로그아웃되지 않습니다. 대신 비밀번호를 한 번이라도 바꾼 사용자의 옛 토큰은 거부됩니다.</p>
+<h2 id="6-인가-누가-무엇을-할-수-있나"><a class="heading-anchor" href="#6-%EC%9D%B8%EA%B0%80-%EB%88%84%EA%B0%80-%EB%AC%B4%EC%97%87%EC%9D%84-%ED%95%A0-%EC%88%98-%EC%9E%88%EB%82%98" aria-hidden="true" tabindex="-1">#</a>6. 인가: 누가 무엇을 할 수 있나</h2>
+<ul>
+<li><strong>인증과 인가는 다릅니다.</strong> 로그인했다는 사실(인증)만으로 쓰기 권한(인가)을 주면 안 됩니다(SEC-1).</li>
+<li><code>@AdminOnly()</code> = <code>JwtAuthGuard</code> + <code>RolesGuard</code> + <code>@Roles(admin)</code></li>
+<li>역할은 토큰이 아니라 <strong>매 요청 DB에서</strong> 읽습니다. 권한을 회수하면 즉시 반영됩니다.</li>
+<li><strong>빠뜨림을 테스트로 막기:</strong> <code>music-authorization.spec.ts</code>는 컨트롤러 메타데이터를 읽어, 쓰기 라우트에 admin 역할이 없으면 실패합니다. 같은 방식으로 SNS 컨트롤러의 <code>@SocialProviderRoute</code>도 검사합니다.</li>
+</ul>
+<h2 id="7-외부-idp-토큰-검증"><a class="heading-anchor" href="#7-%EC%99%B8%EB%B6%80-idp-%ED%86%A0%ED%81%B0-%EA%B2%80%EC%A6%9D" aria-hidden="true" tabindex="-1">#</a>7. 외부 IdP 토큰 검증</h2>
+<p>다른 회사가 발급한 토큰을 받을 때는 <strong>&quot;누가, 누구에게, 언제&quot; 발급했는지</strong> 모두 확인해야 합니다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>검증</th>
+<th>의미</th>
+<th>빠지면</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>서명</td>
+<td>provider가 발급했는가</td>
+<td>위조 토큰 통과</td>
+</tr>
+<tr>
+<td><code>iss</code> (issuer)</td>
+<td>기대한 provider인가</td>
+<td>다른 발급자의 토큰 통과</td>
+</tr>
+<tr>
+<td><strong><code>aud</code> (audience) / 발급 앱</strong></td>
+<td><strong>이 앱을 위해</strong> 발급했는가</td>
+<td><strong>토큰 치환:</strong> 다른 앱이 받은 사용자 토큰으로 이 서비스에 로그인</td>
+</tr>
+<tr>
+<td><code>exp</code></td>
+<td>만료되지 않았는가</td>
+<td>오래된 토큰 재사용</td>
+</tr>
+<tr>
+<td><code>nonce</code></td>
+<td>이 로그인 시도에서 받은 토큰인가</td>
+<td>재전송(replay)</td>
+</tr>
+</tbody></table>
+</div>
+<p>provider별 방법:</p>
+<ul>
+<li><strong>Google, Apple:</strong> ID Token(JWT)의 <code>aud</code>를 허용 목록(<code>GOOGLE_ALLOWED_AUDIENCES</code>, <code>APPLE_ALLOWED_AUDIENCES</code>)과 비교합니다.</li>
+<li><strong>Kakao:</strong> access token은 JWT가 아니므로 <code>/v1/user/access_token_info</code>의 <code>app_id</code>를 <code>KAKAO_APP_ID</code>와 비교합니다.</li>
+<li><strong>Facebook:</strong> <code>debug_token</code>으로 <code>app_id</code>를 확인합니다.</li>
+<li><strong>Naver:</strong> 발급 앱을 확인할 공식 방법을 찾지 못했습니다. 그래서 클라이언트 access token 로그인을 기본으로 막고, 서버가 code를 직접 교환하는 흐름만 허용합니다.</li>
+</ul>
+<p><strong>토큰 치환 공격의 흐름</strong></p>
+<ol>
+<li>공격자가 &quot;운세 보기&quot; 같은 앱을 만들어 Kakao 로그인을 붙입니다.</li>
+<li>피해자가 그 앱에 로그인하면 공격자는 피해자의 Kakao access token을 얻습니다.</li>
+<li>공격자는 그 토큰을 이 서비스의 <code>POST /auth/kakao/login</code>에 보냅니다.</li>
+<li>서버가 프로필 조회만 하고 발급 앱을 확인하지 않으면, 공격자는 <strong>피해자로 로그인</strong>합니다.</li>
+</ol>
+<h2 id="8-사례-대소문자-경로로-비활성-provider-우회-sec-17"><a class="heading-anchor" href="#8-%EC%82%AC%EB%A1%80-%EB%8C%80%EC%86%8C%EB%AC%B8%EC%9E%90-%EA%B2%BD%EB%A1%9C%EB%A1%9C-%EB%B9%84%ED%99%9C%EC%84%B1-provider-%EC%9A%B0%ED%9A%8C-sec-17" aria-hidden="true" tabindex="-1">#</a>8. 사례: 대소문자 경로로 비활성 provider 우회 (SEC-17)</h2>
+<p><strong>상황:</strong> SNS 로그인은 모두 꺼져 있었습니다. 꺼진 provider는 <code>ProviderReadinessGuard</code>가 503으로 막는다고 생각했습니다.</p>
+<p><strong>결함</strong></p>
+<pre><code class="language-ts">// 수정 전: 요청 경로를 정규식으로 검사
+const match = /^\/auth\/([^/]+)/.exec(request.path);   // &#39;GOOGLE&#39;은 목록에 없음 → 통과
+</code></pre>
+<ul>
+<li>Express는 기본적으로 <strong>대소문자를 구분하지 않고</strong> 라우팅합니다. 그래서 <code>/auth/GOOGLE/login</code>도 Google 컨트롤러로 갑니다.</li>
+<li>가드는 <code>GOOGLE</code>을 알 수 없는 provider로 보고 통과시켰습니다.</li>
+</ul>
+<p><strong>피해가 커진 이유: fail-open 설정</strong></p>
+<ul>
+<li>꺼진 provider에는 설정이 없습니다. 그런데 검증 코드는 설정이 없으면 검사를 <strong>생략</strong>했습니다.<ul>
+<li>Google: <code>audience: allowed.length &gt; 0 ? allowed : undefined</code> → aud 검사 없음</li>
+<li>Kakao: <code>KAKAO_APP_ID</code>가 없으면 경고만 하고 통과</li>
+</ul>
+</li>
+<li>두 결함이 겹쳐서 <strong>&quot;꺼져 있다&quot;고 믿은 기능이 가장 약한 설정으로 동작</strong>했습니다.</li>
+</ul>
+<p><strong>재현:</strong> 수정 전 커밋(<code>532ccc7</code>)을 빌드해서 확인했습니다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>요청</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>POST /auth/google/verify-id-token</code></td>
+<td>503 <code>AUTH_GOOGLE_DISABLED</code></td>
+</tr>
+<tr>
+<td><code>POST /auth/GOOGLE/verify-id-token</code></td>
+<td><strong>500</strong> <code>AUTH_GOOGLE_INTERNAL_ERROR</code> — 컨트롤러와 검증기까지 실행됨</td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>수정</strong></p>
+<ol>
+<li><strong>경로가 아니라 라우트 메타데이터로 판정합니다.</strong> 컨트롤러에 <code>@SocialProviderRoute(&#39;google&#39;)</code>을 붙이고, 가드는 <code>Reflector</code>로 읽습니다. 라우터가 어떤 철자로 매칭했든 실행될 컨트롤러는 같으므로 우회할 수 없습니다.</li>
+<li><strong>설정이 없으면 거부합니다(fail-closed).</strong> audience나 <code>KAKAO_APP_ID</code>가 비면 <code>*_CONFIG_MISSING</code>(503)을 반환합니다.</li>
+<li><strong>테스트로 고정합니다.</strong> 메타데이터가 빠진 SNS 컨트롤러가 있으면 spec이 실패합니다. e2e는 대소문자를 바꾼 경로가 503인지 확인합니다.</li>
+</ol>
+<p><strong>일반화한 교훈</strong></p>
+<ul>
+<li>보안 판단은 <strong>라우터가 내린 결정</strong>(어느 핸들러가 실행되는가)에 붙입니다. 경로 문자열을 다시 해석하지 않습니다. 대소문자, 끝의 <code>/</code>, URL 인코딩, 전역 prefix, 버전 경로처럼 라우터와 다르게 해석할 여지가 많습니다.</li>
+<li>&quot;기능이 꺼져 있다&quot;는 것은 방어가 아닙니다. 꺼진 기능의 코드도 <strong>안전한 기본값</strong>을 가져야 합니다.</li>
+<li>방어는 겹쳐 둡니다(심층 방어). 가드가 뚫려도 검증기가 거부하면 피해가 없습니다.</li>
+</ul>
+<h2 id="9-입력-검증"><a class="heading-anchor" href="#9-%EC%9E%85%EB%A0%A5-%EA%B2%80%EC%A6%9D" aria-hidden="true" tabindex="-1">#</a>9. 입력 검증</h2>
+<ul>
+<li><strong>whitelist + forbidNonWhitelisted:</strong> DTO에 없는 필드는 400입니다. <code>role: &#39;admin&#39;</code>을 끼워 넣어도 거부됩니다(대량 할당 방지).</li>
+<li><strong>모든 문자열에 상한을 둡니다.</strong> 상한이 없으면 다음 일이 생깁니다.<ul>
+<li>DB 컬럼보다 길면 <code>Data too long</code> 오류로 500</li>
+<li>거대한 문자열이 외부 API 호출, 로그, 정규식으로 흘러감</li>
+</ul>
+</li>
+<li><strong>LIKE 패턴 이스케이프:</strong> <code>%</code>, <code>_</code>는 LIKE의 와일드카드입니다. 사용자 입력을 그대로 넣으면 <code>%</code> 하나로 전체를 조회하거나 패턴으로 비용을 키울 수 있습니다. <code>escapeLike()</code>로 <code>\ % _</code>를 이스케이프합니다. <strong>SQL 주입은 바인딩 파라미터로 막고, 패턴 조작은 이스케이프로 막습니다.</strong> 둘은 다른 문제입니다.</li>
+<li><strong>URL 필드:</strong> scheme을 <code>http</code>, <code>https</code>로 제한합니다. <code>javascript:</code> 같은 값이 저장되면 그 값을 링크로 쓰는 클라이언트에서 문제가 됩니다.</li>
+</ul>
+<h2 id="10-오류와-로그"><a class="heading-anchor" href="#10-%EC%98%A4%EB%A5%98%EC%99%80-%EB%A1%9C%EA%B7%B8" aria-hidden="true" tabindex="-1">#</a>10. 오류와 로그</h2>
+<ul>
+<li><strong>5xx 메시지는 고정합니다(<code>Internal server error</code>).</strong> 원인은 requestId와 함께 서버 로그에만 남깁니다(SEC-4).</li>
+<li><strong>로그에 비밀값을 남기지 않습니다.</strong> <code>redactSensitiveText</code>가 <code>password=</code>, <code>token=</code>, <code>Bearer …</code>, DB URL 비밀번호를 가립니다. 이번에 로그의 <code>path</code>(query 포함)에도 적용했습니다(SEC-23).</li>
+<li><strong>클라이언트가 보낸 값은 로그에 그대로 쓰지 않습니다.</strong> <code>x-request-id</code>는 안전한 문자와 길이일 때만 쓰고, 아니면 새로 만듭니다(SEC-14).</li>
+<li><strong>남은 과제:</strong> provider 오류 원문이 401 메시지로 나갑니다(SEC-24).</li>
+</ul>
+<h2 id="11-공급망과-저장소"><a class="heading-anchor" href="#11-%EA%B3%B5%EA%B8%89%EB%A7%9D%EA%B3%BC-%EC%A0%80%EC%9E%A5%EC%86%8C" aria-hidden="true" tabindex="-1">#</a>11. 공급망과 저장소</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>위험</th>
+<th>대응</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>취약한 의존성</td>
+<td><code>npm audit</code>(CI는 critical 기준), Dependabot 주간 PR</td>
+</tr>
+<tr>
+<td>탈취된 GitHub Action</td>
+<td><code>persist-credentials: false</code>로 토큰이 남지 않게 함. SHA 고정은 📌</td>
+</tr>
+<tr>
+<td>비밀값 커밋</td>
+<td><code>.gitignore</code>, push 전 점검(<a href="security-guide.kr.html#3-github-push-%EC%A0%84-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%9E%AC%EC%82%AC%EC%9A%A9-%EA%B0%80%EB%8A%A5%ED%95%9C-%EC%A0%88%EC%B0%A8">시크릿 관리 가이드 3장</a>), GitHub secret scanning push protection</td>
+</tr>
+<tr>
+<td>DB 덤프 커밋</td>
+<td><code>*.sql</code>, <code>*.sql.gz</code>, <code>*.dump</code> ignore</td>
+</tr>
+<tr>
+<td>AI 도구의 과한 허용</td>
+<td>공유 <code>.claude/settings.json</code>은 읽기 전용·품질 게이트 명령만 허용</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="12-직접-보안-점검하는-방법"><a class="heading-anchor" href="#12-%EC%A7%81%EC%A0%91-%EB%B3%B4%EC%95%88-%EC%A0%90%EA%B2%80%ED%95%98%EB%8A%94-%EB%B0%A9%EB%B2%95" aria-hidden="true" tabindex="-1">#</a>12. 직접 보안 점검하는 방법</h2>
+<p>이번 감사에서 쓴 순서입니다. 새 기능을 넣은 뒤 같은 순서로 다시 확인할 수 있습니다.</p>
+<ol>
+<li><strong>라우트와 권한 목록 뽑기:</strong> 모든 라우트의 메서드, 경로, 가드를 표로 만듭니다(<a href="../product/api-spec.kr.html">API 명세</a>). 공개 라우트부터 봅니다.</li>
+<li><strong>가드가 무엇을 기준으로 판단하는지 확인:</strong> 경로 문자열, 헤더처럼 공격자가 바꿀 수 있는 값을 기준으로 하면 의심합니다.</li>
+<li><strong>설정이 비었을 때 동작 확인:</strong> <code>if (config) check()</code> 형태를 찾습니다. 비었을 때 통과하면 fail-open입니다.<pre><code class="language-bash">grep -rn &quot;length &gt; 0 ?&quot; src/auth
+grep -rn &quot;skipping\|skip&quot; src --include=*.ts
+</code></pre>
+</li>
+<li><strong>입력 상한 확인:</strong> <code>@IsString()</code>만 있고 <code>@MaxLength</code>가 없는 필드를 찾습니다.</li>
+<li><strong>외부 토큰 검증 확인:</strong> aud·iss·발급 앱을 확인하는지 provider별로 봅니다.</li>
+<li><strong>오류와 로그 확인:</strong> 5xx 응답에 원문이 나가는지, 로그에 비밀값이 남는지 봅니다.</li>
+<li><strong>공급망과 이력:</strong> <code>npm audit --omit=dev</code>, Git 이력 비밀값 검색(<a href="security-guide.kr.html#3-github-push-%EC%A0%84-%EC%B2%B4%ED%81%AC%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%9E%AC%EC%82%AC%EC%9A%A9-%EA%B0%80%EB%8A%A5%ED%95%9C-%EC%A0%88%EC%B0%A8">시크릿 관리 가이드 3장</a>)</li>
+<li><strong>재현과 회귀 테스트:</strong> 결함은 수정 전 코드에서 재현하고, 같은 요청을 e2e나 spec으로 고정합니다.</li>
+</ol>
+<h2 id="13-결정-기록-2026-11-09"><a class="heading-anchor" href="#13-%EA%B2%B0%EC%A0%95-%EA%B8%B0%EB%A1%9D-2026-11-09" aria-hidden="true" tabindex="-1">#</a>13. 결정 기록 (2026-11-09)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>결정</th>
+<th>이유</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>가드는 경로 대신 메타데이터로 판정</td>
+<td>라우터와 같은 결론을 보장. 라우팅 옵션을 바꾸는 방식(<code>case sensitive routing</code> 켜기)은 기존 클라이언트를 깨뜨릴 수 있음</td>
+</tr>
+<tr>
+<td>설정 누락은 503 <code>CONFIG_MISSING</code></td>
+<td>401은 &quot;토큰이 틀림&quot;으로 읽혀 원인을 숨김. 운영자가 설정 문제임을 알 수 있어야 함</td>
+</tr>
+<tr>
+<td>세션 무효화는 <code>sessionVersion</code></td>
+<td>이미 매 요청 사용자를 조회하므로 추가 비용 없음. refresh token은 별도 설계(P1)</td>
+</tr>
+<tr>
+<td>비밀번호 변경 후 현재 토큰도 무효</td>
+<td>탈취된 토큰과 현재 토큰을 구분할 수 없음. 다시 로그인하게 하는 것이 일반적</td>
+</tr>
+<tr>
+<td>계정 단위 제한은 메모리 저장</td>
+<td>현재 단일 인스턴스. 포트로 분리해 Redis 전환 비용을 낮춤</td>
+</tr>
+<tr>
+<td>새 비밀번호만 8자·72바이트 정책</td>
+<td>기존 사용자의 로그인을 깨지 않음</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="14-자가-점검-질문"><a class="heading-anchor" href="#14-%EC%9E%90%EA%B0%80-%EC%A0%90%EA%B2%80-%EC%A7%88%EB%AC%B8" aria-hidden="true" tabindex="-1">#</a>14. 자가 점검 질문</h2>
+<ol>
+<li><code>/auth/GOOGLE/login</code>이 Google 컨트롤러로 라우팅되는 이유는 무엇인가요? 가드를 메타데이터 기준으로 바꾸면 왜 해결되나요?</li>
+<li>&quot;설정이 없으면 검사를 생략한다&quot;는 코드가 위험한 이유를 SEC-17로 설명해 보세요.</li>
+<li>bcrypt에 73바이트 비밀번호를 넣으면 어떤 일이 생기나요? 그런데 왜 로그인 DTO에는 72바이트 제한을 걸지 않았나요?</li>
+<li>IP 단위 제한과 계정 단위 제한은 각각 어떤 공격을 막고, 어떤 공격은 못 막나요?</li>
+<li>계정 단위 제한에서 없는 계정도 실패로 세는 이유는 무엇인가요?</li>
+<li><code>sessionVersion</code>을 도입해도 배포 직후 모든 사용자가 로그아웃되지 않는 이유는 무엇인가요?</li>
+<li>Kakao access token으로 로그인할 때 프로필 조회만 하면 어떤 공격이 가능한가요?</li>
+<li>SQL 주입 방어(바인딩 파라미터)가 있는데도 <code>escapeLike</code>가 필요한 이유는 무엇인가요?</li>
+<li>클라이언트가 보낸 <code>x-request-id</code>를 그대로 로그에 쓰면 어떤 문제가 생기나요?</li>
+</ol>
+<h2 id="15-실습-과제"><a class="heading-anchor" href="#15-%EC%8B%A4%EC%8A%B5-%EA%B3%BC%EC%A0%9C" aria-hidden="true" tabindex="-1">#</a>15. 실습 과제</h2>
+<ol>
+<li><strong>재현:</strong> <code>git worktree add ../base 532ccc7</code>로 수정 전 코드를 받아 빌드하고, <code>/auth/GOOGLE/verify-id-token</code>이 503이 아닌 것을 확인하세요. 현재 브랜치에서는 503인지 비교합니다.</li>
+<li><strong>회귀 테스트:</strong> <code>ProviderReadinessGuard</code>에서 <code>@SocialProviderRoute</code> 검사를 주석 처리하고 <code>npx jest src/common/auth</code>를 실행해, 어떤 테스트가 실패하는지 보세요(되돌리기 잊지 말기).</li>
+<li><strong>설계:</strong> 로그인 실패 제한을 Redis로 옮기는 <code>RedisLoginAttemptLimiterAdapter</code>의 인터페이스와 키 만료 방식(<code>INCR</code> + <code>EXPIRE</code>)을 설계해 보세요.</li>
+<li><strong>확장:</strong> &quot;모든 기기에서 로그아웃&quot; API(<code>POST /users/sessions/revoke</code>)를 <code>sessionVersion</code>으로 구현하려면 무엇이 필요한지 적어 보세요. 테스트는 어떻게 쓸까요?</li>
+<li><strong>점검:</strong> 12장 절차로 <code>src/music/catalog</code> 모듈을 점검하고, 발견한 것을 감사 리포트 형식(ID, 등급, 발견, 조치)으로 적어 보세요.</li>
+</ol>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../music/database/mariadb-operations.html"><span>이전</span>MariaDB 운영 가이드</a><a class="pager-next" href="security-guide.kr.html"><span>다음</span>시크릿 관리와 GitHub Push 보안 학습 가이드</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/learning/api-security-guide.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/learning/api-security-guide.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-%ED%95%99%EC%8A%B5-%EB%AA%A9%ED%91%9C">1. 학습 목표</a></li><li class="toc-2"><a href="#2-%EC%9C%84%ED%98%91-%EB%AA%A8%EB%8D%B8">2. 위협 모델</a></li><li class="toc-2"><a href="#3-%EB%B9%84%EB%B0%80%EB%B2%88%ED%98%B8-%EC%A0%80%EC%9E%A5%EA%B3%BC-%EB%B9%84%EA%B5%90">3. 비밀번호 저장과 비교</a></li><li class="toc-2"><a href="#4-%EB%AC%B4%EC%B0%A8%EB%B3%84-%EB%8C%80%EC%9E%85-ip-%EB%8B%A8%EC%9C%84%EC%99%80-%EA%B3%84%EC%A0%95-%EB%8B%A8%EC%9C%84">4. 무차별 대입: IP 단위와 계정 단위</a></li><li class="toc-2"><a href="#5-%EC%84%B8%EC%85%98-jwt%EC%99%80-%EC%B7%A8%EC%86%8C">5. 세션 JWT와 "취소"</a></li><li class="toc-2"><a href="#6-%EC%9D%B8%EA%B0%80-%EB%88%84%EA%B0%80-%EB%AC%B4%EC%97%87%EC%9D%84-%ED%95%A0-%EC%88%98-%EC%9E%88%EB%82%98">6. 인가: 누가 무엇을 할 수 있나</a></li><li class="toc-2"><a href="#7-%EC%99%B8%EB%B6%80-idp-%ED%86%A0%ED%81%B0-%EA%B2%80%EC%A6%9D">7. 외부 IdP 토큰 검증</a></li><li class="toc-2"><a href="#8-%EC%82%AC%EB%A1%80-%EB%8C%80%EC%86%8C%EB%AC%B8%EC%9E%90-%EA%B2%BD%EB%A1%9C%EB%A1%9C-%EB%B9%84%ED%99%9C%EC%84%B1-provider-%EC%9A%B0%ED%9A%8C-sec-17">8. 사례: 대소문자 경로로 비활성 provider 우회 (SEC-17)</a></li><li class="toc-2"><a href="#9-%EC%9E%85%EB%A0%A5-%EA%B2%80%EC%A6%9D">9. 입력 검증</a></li><li class="toc-2"><a href="#10-%EC%98%A4%EB%A5%98%EC%99%80-%EB%A1%9C%EA%B7%B8">10. 오류와 로그</a></li><li class="toc-2"><a href="#11-%EA%B3%B5%EA%B8%89%EB%A7%9D%EA%B3%BC-%EC%A0%80%EC%9E%A5%EC%86%8C">11. 공급망과 저장소</a></li><li class="toc-2"><a href="#12-%EC%A7%81%EC%A0%91-%EB%B3%B4%EC%95%88-%EC%A0%90%EA%B2%80%ED%95%98%EB%8A%94-%EB%B0%A9%EB%B2%95">12. 직접 보안 점검하는 방법</a></li><li class="toc-2"><a href="#13-%EA%B2%B0%EC%A0%95-%EA%B8%B0%EB%A1%9D-2026-11-09">13. 결정 기록 (2026-11-09)</a></li><li class="toc-2"><a href="#14-%EC%9E%90%EA%B0%80-%EC%A0%90%EA%B2%80-%EC%A7%88%EB%AC%B8">14. 자가 점검 질문</a></li><li class="toc-2"><a href="#15-%EC%8B%A4%EC%8A%B5-%EA%B3%BC%EC%A0%9C">15. 실습 과제</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

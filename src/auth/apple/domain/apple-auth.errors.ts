@@ -1,3 +1,5 @@
+import { SocialAuthError } from '../../shared/domain/social-auth.error';
+
 /** Stable error code enum – no framework imports */
 export enum AppleAuthErrorCode {
   AUTH_APPLE_BAD_REQUEST = 'AUTH_APPLE_BAD_REQUEST',
@@ -11,12 +13,14 @@ export enum AppleAuthErrorCode {
   AUTH_APPLE_INTERNAL_ERROR = 'AUTH_APPLE_INTERNAL_ERROR',
 }
 
-export class AppleAuthError extends Error {
+export class AppleAuthError extends SocialAuthError {
+  declare readonly errorCode: AppleAuthErrorCode;
+
   constructor(
-    public readonly errorCode: AppleAuthErrorCode,
+    errorCode: AppleAuthErrorCode,
     message: string,
+    options?: ErrorOptions,
   ) {
-    super(message);
-    this.name = 'AppleAuthError';
+    super(errorCode, message, options);
   }
 }

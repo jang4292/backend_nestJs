@@ -1,5 +1,7 @@
 # Music 학습 가이드
 
+> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
+
 이 문서는 현재 Music 기능을 처음 읽는 개발자가 도메인 개념부터 API 호출과 DB Migration까지 따라갈 수 있도록 구성한 학습용 문서입니다.
 
 ## 1. 먼저 알아둘 구조
@@ -100,7 +102,7 @@ PATCH /music/tracks/:id
 DELETE /music/tracks/:id
 ```
 
-관리 작업은 JWT가 필요합니다. 공개 Playlist 상세 응답에는 제목, Track 요약, 순서만 포함하고 `audio_asset.url` 같은 내부 또는 민감한 저장소 정보는 포함하지 않습니다.
+관리 작업은 admin 역할의 JWT가 필요합니다(`@AdminOnly()`). 일반 사용자 토큰이면 403입니다. 공개 Track 목록은 `page`/`limit`(최대 100)를 받습니다. 공개 Playlist 상세 응답에는 제목, Track 요약, 순서만 포함하고 `audio_asset.url` 같은 내부 또는 민감한 저장소 정보는 포함하지 않습니다.
 
 ## 5. Presenter가 필요한 이유
 
@@ -141,7 +143,7 @@ npm run build
 3. Catalog `track`, `audio_asset` 생성
 4. Catalog `playlist`, `playlist_track` 생성
 
-운영 DB에서는 `DB_SYNCHRONIZE=false`를 유지하고 기존 Migration 파일을 수정하지 않습니다. 변경이 필요하면 새 Migration을 추가합니다.
+`DB_SYNCHRONIZE`는 모든 환경에서 `false`입니다(`true`면 기동 거부). 기존 Migration 파일은 수정하지 않습니다(예외: 대상 DB에서 아예 실행될 수 없는 경우, [DB 가이드 8.1](../learning/database-schema-management.kr.md#81-사례-ci가-처음-잡아낸-문제-2026-11-08)). 변경이 필요하면 새 Migration을 추가합니다.
 
 ## 8. 직접 해보는 학습 실습
 
@@ -162,4 +164,4 @@ npm run build
 - `published` 필터는 controller, service, repository 중 어디에 있어야 하는가?
 - Entity를 그대로 반환할 때 URL 노출 위험이 생기는 이유는 무엇인가?
 - position 교환에 임시 값과 transaction이 필요한 이유는 무엇인가?
-- Migration과 `synchronize`를 운영에서 분리해야 하는 이유는 무엇인가?
+- Migration과 `synchronize`를 분리하고, `synchronize`를 모든 환경에서 금지하는 이유는 무엇인가?

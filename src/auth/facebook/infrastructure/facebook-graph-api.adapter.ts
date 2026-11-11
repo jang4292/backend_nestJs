@@ -9,6 +9,10 @@ import {
   FacebookAccessTokenSet,
   FacebookOAuthPort,
 } from '../application/ports/facebook-oauth.port';
+import {
+  fetchWithTimeout,
+  readJsonSafely,
+} from '../../shared/infrastructure/fetch-with-timeout';
 
 interface FacebookTokenResponse {
   access_token?: string;
@@ -62,10 +66,14 @@ export class FacebookGraphApiAdapter implements FacebookOAuthPort {
     state?: string;
     expectedState?: string;
   }): Promise<FacebookAccessTokenSet> {
-    if (
-      this.allowedRedirectUris.length > 0 &&
-      !this.allowedRedirectUris.includes(params.redirectUri)
-    ) {
+    // 허용 목록이 없으면 임의 redirect URI로 code를 교환할 수 있으므로 code flow를 거부합니다(SEC-16).
+    if (this.allowedRedirectUris.length === 0) {
+      throw new FacebookAuthError(
+        FacebookAuthErrorCode.AUTH_FACEBOOK_CONFIG_MISSING,
+        'FACEBOOK_REDIRECT_URIS is not configured.',
+      );
+    }
+    if (!this.allowedRedirectUris.includes(params.redirectUri)) {
       throw new FacebookAuthError(
         FacebookAuthErrorCode.AUTH_FACEBOOK_BAD_REQUEST,
         'redirectUri is not in the allowed list.',
@@ -87,7 +95,7 @@ export class FacebookGraphApiAdapter implements FacebookOAuthPort {
 
     let response: Response;
     try {
-      response = await fetch(
+      response = await fetchWithTimeout(
         `${this.graphBaseUrl}/oauth/access_token?${query.toString()}`,
       );
     } catch (err) {
@@ -97,7 +105,7 @@ export class FacebookGraphApiAdapter implements FacebookOAuthPort {
       );
     }
 
-    const data = (await response.json()) as FacebookTokenResponse;
+    const data = await readJsonSafely<FacebookTokenResponse>(response);
     if (!response.ok || !data.access_token) {
       throw new FacebookAuthError(
         FacebookAuthErrorCode.AUTH_FACEBOOK_EXCHANGE_FAILED,
@@ -117,7 +125,9 @@ export class FacebookGraphApiAdapter implements FacebookOAuthPort {
         fields: 'id,name,email',
         access_token: accessToken,
       });
-      response = await fetch(`${this.graphBaseUrl}/me?${query.toString()}`);
+      response = await fetchWithTimeout(
+        `${this.graphBaseUrl}/me?${query.toString()}`,
+      );
     } catch (err) {
       throw new FacebookAuthError(
         FacebookAuthErrorCode.AUTH_FACEBOOK_PROFILE_FETCH_FAILED,
@@ -125,7 +135,7 @@ export class FacebookGraphApiAdapter implements FacebookOAuthPort {
       );
     }
 
-    const data = (await response.json()) as FacebookProfileResponse;
+    const data = await readJsonSafely<FacebookProfileResponse>(response);
     if (!response.ok || !data.id) {
       throw new FacebookAuthError(
         FacebookAuthErrorCode.AUTH_FACEBOOK_PROFILE_FETCH_FAILED,
@@ -157,7 +167,7 @@ export class FacebookGraphApiAdapter implements FacebookOAuthPort {
 
     let response: Response;
     try {
-      response = await fetch(
+      response = await fetchWithTimeout(
         `${this.graphBaseUrl}/debug_token?${query.toString()}`,
       );
     } catch (err) {
@@ -167,7 +177,7 @@ export class FacebookGraphApiAdapter implements FacebookOAuthPort {
       );
     }
 
-    const data = (await response.json()) as FacebookDebugTokenResponse;
+    const data = await readJsonSafely<FacebookDebugTokenResponse>(response);
     if (
       !response.ok ||
       !data.data?.is_valid ||

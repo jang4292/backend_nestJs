@@ -1,66 +1,69 @@
 # API Usage Examples
 
-This document provides practical examples for using the backend API.
+> Last updated: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`.
+> The complete route and permission table is in
+> [docs/product/api-spec.kr.md](docs/product/api-spec.kr.md).
 
 ## Prerequisites
 
-1. Make sure MariaDB is reachable at the configured `DB_HOST:DB_PORT`
-2. Copy `.env.example` to `.env` and configure:
+1. Create `.env` from the template and type in the DB connection values,
+   including `DB_PASSWORD` (the file is git-ignored):
+   ```bash
+   cp .env.example .env && chmod 600 .env
+   ```
+   ```env
+   NODE_ENV=development
+   DB_HOST=<dev-db-host>
+   DB_PORT=<port>
+   DB_USERNAME=<dev-user>
+   DB_PASSWORD=<type it here>
+   DB_DATABASE=app_db_dev   # a database dedicated to this app
+   JWT_SECRET=a-local-secret-of-at-least-32-characters
+   CORS_ORIGIN=http://localhost:3001
+   # SNS providers stay disabled (AUTH_*_ENABLED=false); their routes return 503.
+   ```
+2. Check the connection, then create the database and tables:
+   ```bash
+   npm ci
+   npm run db:check   # read-only: connection, privileges, pending migrations
+   npm run db:setup   # creates app_db_dev if missing, then applies migrations
+   ```
+3. Start the server:
+   ```bash
+   npm run start:dev
+   ```
+4. For admin-only examples, promote a user after registering it:
+   `UPDATE users SET role = 'admin' WHERE username = '<username>';`
+
+See [docs/deployment/database-environments.kr.md](docs/deployment/database-environments.kr.md)
+for Test and Prod.
+
+Access levels used below:
+
+- **public**: no token
+- **JWT**: `Authorization: Bearer <token>`
+- **admin**: JWT of a user whose `role` is `admin`
+
+Grant admin access in the database:
+
+```sql
+UPDATE users SET role = 'admin' WHERE username = 'johndoe';
+```
+
+## 1. Health Check (public)
+
 ```bash
-cp .env.example .env
+curl -i http://localhost:3000/health
 ```
 
-3. Update `.env` with your settings:
-```env
-JWT_SECRET=your-strong-secret-key-here
-DB_TYPE=mariadb
-DB_HOST=yhjang.com
-DB_PORT=3306
-DB_USERNAME=your-db-user
-DB_PASSWORD=your-password
-DB_DATABASE=nestjs_db
-DB_SYNCHRONIZE=false
-DB_SSL=false
-DB_SSL_REJECT_UNAUTHORIZED=true
-CORS_ORIGIN=http://localhost:3001
-GOOGLE_ALLOWED_AUDIENCES=your-google-client-id.apps.googleusercontent.com
-```
-
-4. Install dependencies and start the server:
-```bash
-npm install
-npm run start:dev
-```
-
-For a shared or production database, apply the schema before starting the API:
-
-```bash
-npm run migration:show
-npm run migration:run
-```
-
-## API Examples
-
-### 1. Health Check
-
-Check if the API is running:
-
-```bash
-curl http://localhost:3000/health
-```
-
-Response:
 ```json
-{
-  "status": "ok",
-  "timestamp": "2026-09-10T14:30:00.000Z",
-  "database": "up"
-}
+{ "status": "ok", "timestamp": "2026-11-08T10:00:00.000Z", "database": "up" }
 ```
 
-### 2. User Registration
+When the database is unreachable the endpoint returns **503** with
+`"status": "degraded", "database": "down"`. It is excluded from rate limiting.
 
-Register a new user:
+## 2. Register (public)
 
 ```bash
 curl -X POST http://localhost:3000/users/register \
@@ -73,32 +76,43 @@ curl -X POST http://localhost:3000/users/register \
   }'
 ```
 
-Response:
 ```json
 {
   "id": 1,
   "username": "johndoe",
   "email": "john@example.com",
   "name": "John Doe",
-  "createdAt": "2025-12-06T14:30:00.000Z",
-  "updatedAt": "2025-12-06T14:30:00.000Z"
+  "role": "user",
+  "providers": [],
+  "createdAt": "2026-11-08T10:00:00.000Z",
+  "updatedAt": "2026-11-08T10:00:00.000Z"
 }
 ```
 
-### 3. User Login
+Rules:
 
-Login with username and password:
+- `username` must be 4–50 characters.
+- `password` must be at least 8 characters and at most 72 bytes in UTF-8
+  (bcrypt ignores anything after 72 bytes). One Korean character is 3 bytes.
+- `email` is at most 255 characters and `name` at most 100.
+- Usernames starting with `google_`, `apple_`, `kakao_`, `naver_` or
+  `facebook_` are reserved for SNS accounts and return 400.
+- A duplicate username or email returns 409.
+
+## 3. Login (public)
+
+`identifierType` is `username` or `email`.
 
 ```bash
 curl -X POST http://localhost:3000/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "johndoe",
+    "identifierType": "username",
+    "identifier": "johndoe",
     "password": "SecurePass123"
   }'
 ```
 
-Response:
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -107,390 +121,294 @@ Response:
     "username": "johndoe",
     "email": "john@example.com",
     "name": "John Doe",
-    "createdAt": "2025-12-06T14:30:00.000Z",
-    "updatedAt": "2025-12-06T14:30:00.000Z"
+    "role": "user",
+    "providers": [],
+    "createdAt": "2026-11-08T10:00:00.000Z",
+    "updatedAt": "2026-11-08T10:00:00.000Z"
   }
 }
 ```
 
-**Save the `access_token` for subsequent requests!**
+- Wrong credentials, an unknown account, and an SNS-only account (no password)
+  all return the same 401 `Invalid credentials`.
+- The endpoint allows 5 requests per minute per client IP.
+- After 10 failed attempts for the same identifier within 15 minutes (from any
+  IP), further attempts return 429 `RATE_LIMITED` with a `Retry-After` header
+  in seconds, even with the right password. A successful login resets the
+  count.
 
-### 4. Get User Profile (Protected)
+```json
+{
+  "ok": false,
+  "requestId": "6f1c…",
+  "errorCode": "RATE_LIMITED",
+  "message": "Too many failed login attempts. Try again later."
+}
+```
 
-Get the current user's profile using the JWT token:
+## 4. Profile (JWT)
 
 ```bash
 curl http://localhost:3000/users/profile \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE"
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
-Response:
-```json
-{
-  "id": 1,
-  "username": "johndoe",
-  "email": "john@example.com",
-  "name": "John Doe",
-  "createdAt": "2025-12-06T14:30:00.000Z",
-  "updatedAt": "2025-12-06T14:30:00.000Z"
-}
-```
+`providers` lists linked SNS accounts, for example `["google", "kakao"]`.
 
-### 5. Update User Profile (Protected)
-
-Update user information:
+### Update name or email
 
 ```bash
 curl -X PATCH http://localhost:3000/users/profile \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
-  -d '{
-    "email": "newemail@example.com",
-    "name": "John Smith"
-  }'
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{ "email": "newemail@example.com", "name": "John Smith" }'
 ```
 
-Response:
-```json
-{
-  "id": 1,
-  "username": "johndoe",
-  "email": "newemail@example.com",
-  "name": "John Smith",
-  "createdAt": "2025-12-06T14:30:00.000Z",
-  "updatedAt": "2025-12-06T14:35:00.000Z"
-}
-```
+An email that already belongs to another account returns 409.
 
-### 6. Change Password (Protected)
+### Change password
 
-Update password:
+`currentPassword` is required when the account already has a password:
 
 ```bash
 curl -X PATCH http://localhost:3000/users/profile \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
-  -d '{
-    "password": "NewSecurePass456"
-  }'
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{ "currentPassword": "SecurePass123", "password": "NewSecurePass456" }'
 ```
 
-### 7. Social Login
+| Case | Response |
+| --- | --- |
+| `currentPassword` missing | 400 |
+| `currentPassword` wrong | 403 |
+| New password shorter than 8 characters or longer than 72 bytes | 400 |
+| SNS-only account without a password | First password can be set without `currentPassword` |
 
-Google and Apple support ID-token verification and authorization-code login.
-Facebook, Kakao, and Naver accept a provider access token or authorization code.
-All social login responses use this envelope:
+**A password change revokes every existing token, including the one used for
+the request.** The next request with an old token returns 401, so the client
+should send the user back to the login screen.
+
+## 5. Social Login (public)
+
+> **All SNS providers are currently disabled.** Only local login is used, and
+> every `/auth/<provider>/*` route returns 503 `AUTH_<PROVIDER>_DISABLED`. A
+> provider is enabled only with `AUTH_<PROVIDER>_ENABLED=true`, after completing
+> [docs/auth/sns-reenable-checklist.kr.md](docs/auth/sns-reenable-checklist.kr.md).
+> The examples below apply once a provider is enabled.
+
+All SNS responses use the request-id envelope:
 
 ```json
 {
   "ok": true,
-  "requestId": "request-id",
+  "requestId": "6f1c…",
   "data": {
     "accessToken": "jwt_token_here",
     "expiresIn": 3600,
-    "user": { "id": 1, "username": "provider_subject", "email": "user@example.com" }
+    "user": { "id": 2, "username": "google_117123456789", "email": "user@example.com" }
   }
 }
 ```
 
-#### Google login
-
-Login with a Google ID token:
-
 ```bash
+# Google / Apple: ID token (or {"code", "redirectUri"} for the code flow)
 curl -X POST http://localhost:3000/auth/google/login \
   -H "Content-Type: application/json" \
-  -d '{
-    "idToken": "GOOGLE_ID_TOKEN"
-  }'
-```
+  -d '{"idToken":"GOOGLE_ID_TOKEN"}'
 
-Response:
-
-```json
-{
-  "ok": true,
-  "requestId": "request-id",
-  "data": {
-    "accessToken": "jwt_token_here",
-    "expiresIn": 3600,
-    "user": {
-      "id": 1,
-      "username": "google_117123456789",
-      "email": "user@example.com"
-    }
-  }
-}
-```
-
-#### Apple login
-
-```bash
-curl -X POST http://localhost:3000/auth/apple/login \
-  -H "Content-Type: application/json" \
-  -d '{"idToken":"APPLE_ID_TOKEN"}'
-```
-
-#### Facebook, Kakao, and Naver login
-
-Replace the provider name and token with the corresponding provider value:
-
-```bash
+# Kakao / Naver / Facebook: provider access token (or {"code", "redirectUri"})
 curl -X POST http://localhost:3000/auth/kakao/login \
   -H "Content-Type: application/json" \
   -d '{"accessToken":"KAKAO_ACCESS_TOKEN"}'
 ```
 
-Authorization-code exchange endpoints are:
+How each provider token is verified:
 
-```text
-POST /auth/google/exchange-code
-POST /auth/apple/exchange-code
-POST /auth/facebook/exchange-code
-POST /auth/kakao/exchange-code
-POST /auth/naver/exchange-code
-```
+| Provider | Check |
+| --- | --- |
+| Google, Apple | ID token `aud` |
+| Facebook | `debug_token` `app_id` |
+| Kakao | `access_token_info` `app_id` against `KAKAO_APP_ID`; a token from another app returns 401 `AUTH_KAKAO_INVALID_TOKEN` |
+| Naver | Cannot be verified, so `accessToken` login is rejected (400) unless `AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=true`; use the code flow |
 
-Google and Apple also expose `POST /auth/{provider}/verify-id-token`.
-Provider-specific credentials and error codes are documented in
-[the SNS login overview](docs/auth/sns-login-overview.kr.md).
+Other endpoints:
 
-### 8. Legacy Music API
+- Every provider exposes `POST /auth/{provider}/exchange-code`.
+- Google and Apple also expose `POST /auth/{provider}/verify-id-token`.
+- A disabled provider (`AUTH_<PROVIDER>_ENABLED=false`) returns 503
+  `AUTH_<PROVIDER>_DISABLED` without calling the provider.
 
-Existing Artist, Playlist, and their Track APIs are preserved below `/music/legacy`.
-They require `Authorization: Bearer YOUR_ACCESS_TOKEN_HERE`.
+Details are in the [SNS login overview](docs/auth/sns-login-overview.kr.md).
 
-```bash
-curl http://localhost:3000/music/legacy/artists \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE"
-
-curl -X POST http://localhost:3000/music/legacy/artists \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
-  -d '{"name":"Artist X"}'
-```
-
-Use `GET /music/legacy/artists/:id`, `PATCH /music/legacy/artists/:id`, and
-`DELETE /music/legacy/artists/:id` for single-artist operations.
-
-### 9. Catalog Tracks and Audio Assets
-
-Create a catalog Track. It may exist before any audio file URL is known:
+## 6. Catalog Tracks and Audio Assets
 
 ```bash
+# public: newest first, page/limit (limit <= 100)
+curl 'http://localhost:3000/music/tracks?page=1&limit=20'
+curl http://localhost:3000/music/tracks/1
+
+# admin
 curl -X POST http://localhost:3000/music/tracks \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
-  -d '{
-    "title": "Song A",
-    "artist": "Artist X",
-    "bpm": 120
-  }'
-
-curl http://localhost:3000/music/tracks
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" \
+  -d '{ "title": "Song A", "artist": "Artist X", "bpm": 120 }'
 
 curl -X POST http://localhost:3000/music/tracks/1/audio-assets \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
-  -d '{
-    "url": "https://media.example.com/song-a.mp3",
-    "duration": 210,
-    "bpm": 121
-  }'
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" \
+  -d '{ "url": "https://media.example.com/song-a.mp3", "duration": 210, "bpm": 121 }'
 ```
 
-`Track.bpm` is the catalog value. `AudioAsset.bpm` is file or analysis metadata;
-changing it does not modify the Track BPM. Catalog writes require a bearer token;
-catalog metadata reads are public. Public responses intentionally do not expose
-the stored audio URL as a playback authorization mechanism.
+- `Track.bpm` is the catalog value. `AudioAsset.bpm` is file or analysis
+  metadata and is not synchronised with it.
+- A regular user token on a write route returns 403.
+- Deleting a track that is used in a playlist returns 409
+  `FOREIGN_KEY_CONSTRAINT`.
 
-### 10. Public Catalog Playlists
+## 7. Public Catalog Playlists (public)
 
-Only `published` playlists are returned to anonymous clients. First request the
-playlist page, then request the selected playlist to receive its ordered tracks:
+Only `published` playlists are visible:
 
 ```bash
 curl 'http://localhost:3000/music/public/playlists?page=1&limit=20'
-
 curl http://localhost:3000/music/public/playlists/1
 ```
 
-The detail response contains playlist metadata, Track summaries, and each Track's
-`position`. It does not contain `audio_asset.url`, S3 object keys, or playback
-tokens. `draft` and `archived` playlists are not public.
+The detail response contains playlist metadata, track summaries and each item's
+`position`. It never includes `audio_asset.url`, S3 object keys or playback
+tokens.
 
-### 11. Manage Catalog Playlists (Protected)
-
-Create a draft playlist, add tracks, publish it, and reorder all items. These
-operations require a bearer token:
+## 8. Manage Catalog Playlists (admin)
 
 ```bash
 curl -X POST http://localhost:3000/music/playlists \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
-  -d '{
-    "title": "Evening Set",
-    "description": "A public catalog playlist",
-    "anonymousPlayable": false
-  }'
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" \
+  -d '{ "title": "Evening Set", "description": "A public catalog playlist", "anonymousPlayable": false }'
 
 curl -X POST http://localhost:3000/music/playlists/1/tracks \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" \
   -d '{"trackId":1,"position":1,"note":"Opening track"}'
 
 curl -X PATCH http://localhost:3000/music/playlists/1/publish \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE"
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN"
 
 curl -X PATCH http://localhost:3000/music/playlists/1/tracks/reorder \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" \
   -d '{"items":[{"id":2,"position":1},{"id":1,"position":2}]}'
 ```
 
-The reorder request must include every existing playlist item exactly once. The
-database also enforces one position per playlist.
+- The reorder request must include every existing item exactly once.
+- `(playlistId, position)` is unique, so an occupied position returns 400.
 
-### 12. Legacy Music Playlists
+## 9. Legacy Music API (`/music/legacy`)
 
-Create a playlist and add a track:
+Access:
+
+- `GET /music/legacy/tracks` and `GET /music/legacy/tracks/:id` are public.
+- Other reads require a JWT.
+- All writes are admin-only.
 
 ```bash
-curl -X POST http://localhost:3000/music/legacy/playlists \
+curl 'http://localhost:3000/music/legacy/tracks?search=song&page=1&limit=20'
+
+curl http://localhost:3000/music/legacy/artists \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+curl 'http://localhost:3000/music/legacy/playlists/by-date?date=2026-01-01' \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+curl -X POST http://localhost:3000/music/legacy/artists \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
-  -d '{
-    "name": "Evening Set",
-    "playDate": "2026-01-01",
-    "description": "Main playlist"
-  }'
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" \
+  -d '{"name":"Artist X"}'
 
 curl -X POST http://localhost:3000/music/legacy/playlists/1/tracks \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
-  -d '{
-    "trackId": 1,
-    "seq": 1,
-    "note": "Opening track"
-  }'
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" \
+  -d '{ "trackId": 1, "seq": 1, "note": "Opening track" }'
 ```
 
-## Error Responses
+- `by-date` requires `date=YYYY-MM-DD`; without it the endpoint returns 400.
+- Deleting an artist that still has tracks returns 409 `FOREIGN_KEY_CONSTRAINT`.
 
-Social authentication errors use the request-id envelope:
+## 10. Error Responses
+
+Every error uses the same envelope, and the `x-request-id` response header
+matches `requestId`:
 
 ```json
 {
   "ok": false,
-  "requestId": "request-id",
-  "errorCode": "AUTH_KAKAO_INVALID_TOKEN",
-  "message": "Invalid provider token."
+  "requestId": "6f1c…",
+  "errorCode": "BAD_REQUEST",
+  "message": "username must be longer than or equal to 4 characters, password must be longer than or equal to 8 characters"
 }
 ```
 
-### 400 Bad Request
+| HTTP | `errorCode` | Example |
+| --- | --- | --- |
+| 400 | `BAD_REQUEST` | Validation failure, reserved username, missing `currentPassword` |
+| 401 | `UNAUTHORIZED` | Missing, expired or tampered token; token issued before a password change; invalid credentials |
+| 403 | `FORBIDDEN` | Not an admin; wrong `currentPassword` |
+| 404 | `NOT_FOUND` | Resource not found |
+| 409 | `CONFLICT`, `FOREIGN_KEY_CONSTRAINT` | Duplicate username/email; resource still referenced |
+| 429 | `RATE_LIMITED` | Too many requests per IP, or 10 failed logins for one account in 15 minutes (`Retry-After`) |
+| 503 | `AUTH_<PROVIDER>_DISABLED`, `AUTH_<PROVIDER>_CONFIG_MISSING` | SNS provider disabled, or enabled without required verification settings |
+| 500 | `INTERNAL_SERVER_ERROR` / `AUTH_<PROVIDER>_INTERNAL_ERROR` | Message is always `Internal server error`; details are logged server-side |
 
-Invalid input data:
+SNS routes use `AUTH_<PROVIDER>_<REASON>` codes, for example
+`AUTH_KAKAO_EXCHANGE_FAILED`.
 
-```json
-{
-  "statusCode": 400,
-  "message": [
-    "username must be longer than or equal to 4 characters",
-    "password must be longer than or equal to 6 characters"
-  ],
-  "error": "Bad Request"
-}
-```
-
-### 401 Unauthorized
-
-Invalid credentials or missing/invalid token:
-
-```json
-{
-  "statusCode": 401,
-  "message": "Invalid credentials",
-  "error": "Unauthorized"
-}
-```
-
-### 409 Conflict
-
-Username already exists:
-
-```json
-{
-  "statusCode": 409,
-  "message": "Username already exists",
-  "error": "Conflict"
-}
-```
-
-## Using with Postman
-
-1. Import the following into Postman or create a new collection
-2. Set a base URL variable: `http://localhost:3000`
-3. For protected endpoints, add Authorization header:
-   - Type: Bearer Token
-   - Token: `{{access_token}}`
-
-## Testing with JavaScript/TypeScript
+## 11. JavaScript Example
 
 ```typescript
-// Register a user
-const registerResponse = await fetch('http://localhost:3000/users/register', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    username: 'testuser',
-    password: 'password123',
-    email: 'test@example.com',
-    name: 'Test User'
-  })
-});
-const user = await registerResponse.json();
+const base = 'http://localhost:3000';
 
-// Login
-const loginResponse = await fetch('http://localhost:3000/auth/login', {
+await fetch(`${base}/users/register`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ username: 'testuser', password: 'password123' }),
+});
+
+const loginResponse = await fetch(`${base}/auth/login`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    username: 'testuser',
-    password: 'password123'
-  })
+    identifierType: 'username',
+    identifier: 'testuser',
+    password: 'password123',
+  }),
 });
 const { access_token } = await loginResponse.json();
 
-// Get profile
-const profileResponse = await fetch('http://localhost:3000/users/profile', {
-  headers: { 'Authorization': `Bearer ${access_token}` }
-});
-const profile = await profileResponse.json();
+const profile = await fetch(`${base}/users/profile`, {
+  headers: { Authorization: `Bearer ${access_token}` },
+}).then((res) => res.json());
 ```
 
-## Security Notes
+## 12. Security Notes
 
-1. **Always use HTTPS in production**
-2. **Never commit `.env` file** - it's already in `.gitignore`
-3. **Use strong JWT secrets** - minimum 32 characters recommended
-4. **Rotate JWT secrets periodically**
-5. **Set appropriate CORS_ORIGIN** - never use `*` in production
-6. **Enable rate limiting** - configured via THROTTLE_TTL and THROTTLE_LIMIT
-7. **Use strong passwords** - minimum 6 characters (configure as needed)
+1. Use HTTPS in production. Set `TRUST_PROXY` when TLS terminates at a proxy.
+2. Never commit `.env` files; only `*.example` files are tracked.
+3. `JWT_SECRET` must be at least 32 characters in production. Placeholder text
+   is rejected at startup.
+4. Set `CORS_ORIGIN` to explicit origins; `*` is rejected.
+5. Do not log raw provider tokens, JWTs or passwords. The exception filters
+   redact them.
 
-## Production Deployment Checklist
+## 13. Production Deployment Checklist
 
-- [ ] Set `NODE_ENV=production`
-- [ ] Use a strong, randomly generated `JWT_SECRET`
-- [ ] Set `DB_SYNCHRONIZE=false` and use migrations
-- [ ] Configure `CORS_ORIGIN` to your frontend domain
-- [ ] Configure `GOOGLE_ALLOWED_AUDIENCES` with exact OAuth client IDs
-- [ ] Configure credentials for every social provider the client uses
-- [ ] Set up HTTPS/TLS
-- [ ] Configure database connection pooling
-- [ ] Set up logging and monitoring
-- [ ] Enable rate limiting with appropriate limits
-- [ ] Review and adjust JWT token expiration time
-- [ ] Set up database backups
-- [ ] Configure environment-specific error messages
+Follow [docs/deployment/mariadb-systemd.kr.md](docs/deployment/mariadb-systemd.kr.md).
+In short:
+
+1. Back up the database.
+2. Set `NODE_ENV=production`, a 32+ character `JWT_SECRET`, `CORS_ORIGIN`,
+   `TRUST_PROXY` (behind a proxy), and the enabled providers' settings
+   (`KAKAO_APP_ID`, `APPLE_ALLOWED_AUDIENCES`, ...).
+3. Run `npm run build`, then `npm run env:check:prod`, `npm run migration:show:prod`
+   and `npm run migration:run:prod`.
+4. Grant the admin role.
+5. Run `npm run pm2:reload`, then check `curl -fsS /health`.

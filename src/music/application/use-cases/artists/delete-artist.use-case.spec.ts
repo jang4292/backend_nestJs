@@ -1,4 +1,3 @@
-import { ConflictException } from '@nestjs/common';
 import { DeleteArtistUseCase } from './delete-artist.use-case';
 import { GetArtistUseCase } from './get-artist.use-case';
 import type { ArtistRepositoryPort } from '../../ports/artist-repository.port';
@@ -14,7 +13,7 @@ describe('DeleteArtistUseCase', () => {
     remove: jest.fn(),
   });
 
-  it('translates FK violation to ConflictException on delete', async () => {
+  it('propagates the FK violation as a 409 ForeignKeyConstraintError', async () => {
     const existing = { id: 1, name: 'Artist X', description: null };
     const artistRepo = buildRepo();
     artistRepo.remove.mockRejectedValue(
@@ -25,7 +24,10 @@ describe('DeleteArtistUseCase', () => {
     } as unknown as GetArtistUseCase;
     const useCase = new DeleteArtistUseCase(artistRepo, getArtist);
 
-    await expect(useCase.execute(1)).rejects.toThrow(ConflictException);
+    await expect(useCase.execute(1)).rejects.toMatchObject({
+      kind: 'conflict',
+      code: 'FOREIGN_KEY_CONSTRAINT',
+    });
   });
 
   it('deletes artist when no linked tracks exist', async () => {

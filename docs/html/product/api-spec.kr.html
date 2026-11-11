@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/product/api-spec.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>API 명세 (라우트·권한) · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section" open><summary>제품과 API</summary><ul class="nav-list"><li><a href="features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="api-spec.kr.html" data-page-id="docs/product/api-spec.kr" aria-current="page">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 보류 항목</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-09 · <code>e603bbd</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">제품과 API</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="api-명세-라우트권한">API 명세 (라우트·권한)</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code>
+빌드된 컨트롤러 메타데이터에서 추출한 전체 라우트 55개입니다. 요청·응답 예시는 <a href="../repo/API_EXAMPLES.html">API_EXAMPLES.md</a>를, 실행 중인 서버에서는 Swagger <code>/api-docs</code>(production 제외)를 참고하세요.</p>
+</blockquote>
+<p>권한 표기:</p>
+<ul>
+<li><code>public</code>: 인증 불필요</li>
+<li><code>jwt</code>: <code>Authorization: Bearer &lt;token&gt;</code> 필요</li>
+<li><code>admin</code>: JWT 필요, <code>role = admin</code>이어야 하며 아니면 403</li>
+<li><code>public*</code>: SNS 라우트. <code>AUTH_&lt;PROVIDER&gt;_ENABLED=true</code>가 아니면 503 — <strong>현재 5종 모두 비활성</strong>. 라우팅은 대소문자를 구분하지 않지만(<code>/auth/GOOGLE/login</code>도 같은 라우트), 비활성 판정은 컨트롤러 메타데이터로 하므로 철자와 관계없이 503입니다</li>
+</ul>
+<h2 id="시스템"><a class="heading-anchor" href="#%EC%8B%9C%EC%8A%A4%ED%85%9C" aria-hidden="true" tabindex="-1">#</a>시스템</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>권한</th>
+<th>요청</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GET</td>
+<td><code>/</code></td>
+<td>public</td>
+<td>—</td>
+<td>환영 메시지</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/health</code></td>
+<td>public</td>
+<td>—</td>
+<td><code>{status:&#39;ok&#39;|&#39;degraded&#39;, database:&#39;up&#39;|&#39;down&#39;, timestamp}</code>, DB down이면 503, rate limit 제외</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="계정"><a class="heading-anchor" href="#%EA%B3%84%EC%A0%95" aria-hidden="true" tabindex="-1">#</a>계정</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>권한</th>
+<th>요청</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>POST</td>
+<td><code>/users/register</code></td>
+<td>public</td>
+<td><code>CreateUserDto {username(4–50), password(8자 이상·72바이트 이하), email?(255), name?(100)}</code></td>
+<td>201 PublicUser, 409 중복, 400 예약 username·정책 위반</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/users/profile</code></td>
+<td>jwt</td>
+<td>—</td>
+<td>PublicUser(<code>role</code>, <code>providers</code> 포함)</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/users/profile</code></td>
+<td>jwt</td>
+<td><code>UpdateUserDto {email?, name?, password?, currentPassword?}</code></td>
+<td>비밀번호 변경 시 <code>currentPassword</code> 필요(400/403), email 중복 409. <strong>비밀번호를 바꾸면 기존 토큰 전부(현재 토큰 포함) 401</strong></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/login</code></td>
+<td>public</td>
+<td><code>LoginDto {identifierType, identifier(255), password(1024)}</code></td>
+<td>201 <code>{access_token, user}</code>, 401, IP당 분당 5회, 계정당 실패 10회/15분이면 429 + <code>Retry-After</code></td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="sns-로그인"><a class="heading-anchor" href="#sns-%EB%A1%9C%EA%B7%B8%EC%9D%B8" aria-hidden="true" tabindex="-1">#</a>SNS 로그인</h2>
+<p>성공 응답: <code>{ ok: true, requestId, data }</code></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>권한</th>
+<th>요청</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>POST</td>
+<td><code>/auth/google/verify-id-token</code></td>
+<td>public*</td>
+<td><code>{idToken, nonce?}</code></td>
+<td>검증된 identity 반환</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/google/exchange-code</code></td>
+<td>public*</td>
+<td><code>{code, redirectUri, codeVerifier?, state?, expectedState?}</code></td>
+<td>provider token set 반환</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/google/login</code></td>
+<td>public*</td>
+<td><code>{idToken | code, redirectUri?, nonce?, codeVerifier?, state?, expectedState?}</code></td>
+<td><code>data {accessToken, expiresIn, user}</code></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/apple/verify-id-token</code></td>
+<td>public*</td>
+<td><code>{idToken, nonce?}</code></td>
+<td></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/apple/exchange-code</code></td>
+<td>public*</td>
+<td><code>{code, redirectUri, state?, expectedState?}</code></td>
+<td></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/apple/login</code></td>
+<td>public*</td>
+<td><code>{idToken | code, redirectUri?, nonce?, state?, expectedState?, user?{name?, email?}}</code></td>
+<td><code>user.email</code>은 token에 email이 없을 때만 미검증으로 사용</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/kakao/exchange-code</code></td>
+<td>public*</td>
+<td><code>{code, redirectUri, state?, expectedState?}</code></td>
+<td></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/kakao/login</code></td>
+<td>public*</td>
+<td><code>{accessToken | code, redirectUri?, state?, expectedState?}</code></td>
+<td><code>accessToken</code>은 <code>KAKAO_APP_ID</code>로 발급 앱 검증, 불일치 시 401 <code>AUTH_KAKAO_INVALID_TOKEN</code></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/naver/exchange-code</code></td>
+<td>public*</td>
+<td><code>{code, redirectUri, state, expectedState?}</code></td>
+<td></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/naver/login</code></td>
+<td>public*</td>
+<td><code>{code, redirectUri, state, expectedState?}</code> (<code>accessToken</code>은 <code>AUTH_NAVER_ACCESS_TOKEN_LOGIN_ENABLED=true</code>일 때만)</td>
+<td>accessToken 요청은 기본 400 <code>AUTH_NAVER_BAD_REQUEST</code></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/facebook/exchange-code</code></td>
+<td>public*</td>
+<td><code>{code, redirectUri, state?, expectedState?}</code></td>
+<td></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/facebook/login</code></td>
+<td>public*</td>
+<td><code>{accessToken | code, redirectUri?, state?, expectedState?}</code></td>
+<td><code>debug_token</code>으로 <code>app_id</code> 검증</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="음악-카탈로그--music-"><a class="heading-anchor" href="#%EC%9D%8C%EC%95%85-%EC%B9%B4%ED%83%88%EB%A1%9C%EA%B7%B8--music-" aria-hidden="true" tabindex="-1">#</a>음악 카탈로그 (<code>/music</code>)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>권한</th>
+<th>요청</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GET</td>
+<td><code>/music/tracks</code></td>
+<td>public</td>
+<td><code>?page=1&amp;limit=100</code>(최대 100)</td>
+<td>최신순 <code>[{id, title, artist, bpm}]</code></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/tracks/:id</code></td>
+<td>public</td>
+<td>—</td>
+<td>404</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/music/tracks</code></td>
+<td>admin</td>
+<td><code>{title, artist, bpm?}</code></td>
+<td></td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/music/tracks/:id</code></td>
+<td>admin</td>
+<td>부분 수정</td>
+<td></td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/music/tracks/:id</code></td>
+<td>admin</td>
+<td>—</td>
+<td>플레이리스트에 포함되어 있으면 409</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/tracks/:trackId/audio-assets</code></td>
+<td>admin</td>
+<td>—</td>
+<td>내부 저장소 정보 포함</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/music/tracks/:trackId/audio-assets</code></td>
+<td>admin</td>
+<td><code>{url?, duration?, bpm?}</code></td>
+<td><code>url</code>은 http(s) 절대 URL, 2000자 이하</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/music/audio-assets/:id</code></td>
+<td>admin</td>
+<td>부분 수정</td>
+<td></td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/music/audio-assets/:id</code></td>
+<td>admin</td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/public/playlists</code></td>
+<td>public</td>
+<td><code>?page=1&amp;limit=20</code>(최대 100)</td>
+<td><code>published</code>만</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/public/playlists/:id</code></td>
+<td>public</td>
+<td>—</td>
+<td>항목은 <code>position</code> 순, 음원 URL 제외</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/music/playlists</code></td>
+<td>admin</td>
+<td><code>{title, description?, playDate?, anonymousPlayable?}</code></td>
+<td><code>draft</code>로 생성</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/music/playlists/:id/publish</code></td>
+<td>admin</td>
+<td>—</td>
+<td><code>published</code>로 변경</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/music/playlists/:playlistId/tracks</code></td>
+<td>admin</td>
+<td><code>{trackId, position, note?}</code></td>
+<td>position 중복 시 400</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/music/playlists/:playlistId/tracks/reorder</code></td>
+<td>admin</td>
+<td><code>{items:[{id, position}]}</code></td>
+<td>기존 항목 전체 필수</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="legacy-음악--musiclegacy-"><a class="heading-anchor" href="#legacy-%EC%9D%8C%EC%95%85--musiclegacy-" aria-hidden="true" tabindex="-1">#</a>Legacy 음악 (<code>/music/legacy</code>)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>권한</th>
+<th>요청</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GET</td>
+<td><code>/music/legacy/artists</code></td>
+<td>jwt</td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/legacy/artists/:id</code></td>
+<td>jwt</td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/music/legacy/artists</code></td>
+<td>admin</td>
+<td><code>{name, description?}</code></td>
+<td></td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/music/legacy/artists/:id</code></td>
+<td>admin</td>
+<td>부분 수정</td>
+<td></td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/music/legacy/artists/:id</code></td>
+<td>admin</td>
+<td>—</td>
+<td>연결된 track이 있으면 409 <code>FOREIGN_KEY_CONSTRAINT</code></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/legacy/tracks</code></td>
+<td>public</td>
+<td><code>?search&amp;artistId&amp;artistName&amp;title&amp;minBpm&amp;maxBpm&amp;page=1&amp;limit=20(최대 100)&amp;sortBy&amp;sortOrder</code></td>
+<td>공개 필드, 페이지네이션. 검색어는 100자 이하이며 <code>%</code>, <code>_</code>는 문자 그대로 검색</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/legacy/tracks/full</code></td>
+<td>jwt</td>
+<td>위와 같음</td>
+<td>생성·수정 시각 포함</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/legacy/tracks/:id</code></td>
+<td>public</td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/legacy/tracks/:id/full</code></td>
+<td>jwt</td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/music/legacy/tracks</code></td>
+<td>admin</td>
+<td><code>{title, artistId, bpm?, lengthSec?}</code></td>
+<td></td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/music/legacy/tracks/:id</code></td>
+<td>admin</td>
+<td>부분 수정</td>
+<td></td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/music/legacy/tracks/:id</code></td>
+<td>admin</td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/legacy/playlists</code></td>
+<td>jwt</td>
+<td><code>?date=YYYY-MM-DD</code> 선택</td>
+<td></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/legacy/playlists/by-date</code></td>
+<td>jwt</td>
+<td><code>?date=YYYY-MM-DD</code> <strong>필수</strong></td>
+<td>없거나 형식 오류면 400</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/legacy/playlists/:id</code></td>
+<td>jwt</td>
+<td>—</td>
+<td>포함된 track 포함</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/music/legacy/playlists</code></td>
+<td>admin</td>
+<td><code>{name, playDate?, description?}</code></td>
+<td></td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/music/legacy/playlists/:id</code></td>
+<td>admin</td>
+<td>부분 수정</td>
+<td></td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/music/legacy/playlists/:id</code></td>
+<td>admin</td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/legacy/playlists/:playlistId/tracks</code></td>
+<td>jwt</td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/music/legacy/playlists/:playlistId/tracks</code></td>
+<td>admin</td>
+<td><code>{trackId, seq, note?}</code></td>
+<td></td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/music/legacy/playlists/:playlistId/tracks/:playlistTrackId</code></td>
+<td>admin</td>
+<td><code>{seq?, note?}</code></td>
+<td></td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/music/legacy/playlists/:playlistId/tracks/:playlistTrackId</code></td>
+<td>admin</td>
+<td>—</td>
+<td></td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="공통-오류-envelope"><a class="heading-anchor" href="#%EA%B3%B5%ED%86%B5-%EC%98%A4%EB%A5%98-envelope" aria-hidden="true" tabindex="-1">#</a>공통 오류 envelope</h2>
+<pre><code class="language-json">{ &quot;ok&quot;: false, &quot;requestId&quot;: &quot;…&quot;, &quot;errorCode&quot;: &quot;CONFLICT&quot;, &quot;message&quot;: &quot;Email already exists&quot; }
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>HTTP</th>
+<th>errorCode(기본)</th>
+<th>대표 상황</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>400</td>
+<td><code>BAD_REQUEST</code></td>
+<td>DTO 검증 실패(메시지는 쉼표로 이어 붙임), 예약 username, <code>currentPassword</code> 누락</td>
+</tr>
+<tr>
+<td>401</td>
+<td><code>UNAUTHORIZED</code></td>
+<td>토큰 없음·만료·변조, 비밀번호 변경 전에 발급된 토큰, 로그인 실패</td>
+</tr>
+<tr>
+<td>403</td>
+<td><code>FORBIDDEN</code></td>
+<td>admin 아님, <code>currentPassword</code> 불일치</td>
+</tr>
+<tr>
+<td>404</td>
+<td><code>NOT_FOUND</code></td>
+<td>리소스 없음</td>
+</tr>
+<tr>
+<td>409</td>
+<td><code>CONFLICT</code> / <code>FOREIGN_KEY_CONSTRAINT</code></td>
+<td>중복, 참조 중인 리소스 삭제</td>
+</tr>
+<tr>
+<td>429</td>
+<td><code>RATE_LIMITED</code></td>
+<td>요청 제한 초과, 계정 단위 로그인 실패 제한(<code>Retry-After</code>)</td>
+</tr>
+<tr>
+<td>503</td>
+<td><code>SERVICE_UNAVAILABLE</code> / <code>AUTH_&lt;PROVIDER&gt;_DISABLED</code> / <code>AUTH_&lt;PROVIDER&gt;_CONFIG_MISSING</code></td>
+<td>비활성 provider, 검증 설정 누락</td>
+</tr>
+<tr>
+<td>5xx</td>
+<td><code>INTERNAL_SERVER_ERROR</code></td>
+<td>메시지는 <code>Internal server error</code>로 고정</td>
+</tr>
+</tbody></table>
+</div>
+<p>SNS 라우트는 <code>AUTH_&lt;PROVIDER&gt;_&lt;REASON&gt;</code> 코드를 씁니다(<a href="features.kr.html#2-sns-%EB%A1%9C%EA%B7%B8%EC%9D%B8">기능 명세 2장</a>).</p>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="features.kr.html"><span>이전</span>기능 명세 (기획)</a><a class="pager-next" href="../repo/API_EXAMPLES.html"><span>다음</span>API Usage Examples</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/e603bbd/docs/product/api-spec.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/product/api-spec.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-09 · chore/project-audit-2026-11 <code>e603bbd</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#%EC%8B%9C%EC%8A%A4%ED%85%9C">시스템</a></li><li class="toc-2"><a href="#%EA%B3%84%EC%A0%95">계정</a></li><li class="toc-2"><a href="#sns-%EB%A1%9C%EA%B7%B8%EC%9D%B8">SNS 로그인</a></li><li class="toc-2"><a href="#%EC%9D%8C%EC%95%85-%EC%B9%B4%ED%83%88%EB%A1%9C%EA%B7%B8--music-">음악 카탈로그 ( /music )</a></li><li class="toc-2"><a href="#legacy-%EC%9D%8C%EC%95%85--musiclegacy-">Legacy 음악 ( /music/legacy )</a></li><li class="toc-2"><a href="#%EA%B3%B5%ED%86%B5-%EC%98%A4%EB%A5%98-envelope">공통 오류 envelope</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

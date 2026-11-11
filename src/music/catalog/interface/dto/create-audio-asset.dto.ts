@@ -1,10 +1,16 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsUrl, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsUrl, Max, Min, MaxLength } from 'class-validator';
 
 export class CreateAudioAssetDto {
   @ApiPropertyOptional({ maxLength: 2000 })
   @IsOptional()
-  @IsUrl({ require_tld: false })
+  // http(s) 절대 URL만 받습니다(javascript:, ftp: 등 거부). 컬럼 길이(2000)를 넘으면 DB 오류 대신 400입니다.
+  @IsUrl({
+    require_tld: false,
+    require_protocol: true,
+    protocols: ['http', 'https'],
+  })
+  @MaxLength(2000)
   url?: string;
 
   @ApiPropertyOptional({ minimum: 0 })

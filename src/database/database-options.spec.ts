@@ -1,4 +1,9 @@
-import { createDatabaseOptions, DatabaseConfig } from './database-options';
+import { join } from 'node:path';
+import {
+  createDatabaseOptions,
+  DatabaseConfig,
+  DEFAULT_MIGRATIONS_GLOB,
+} from './database-options';
 
 const baseConfig: DatabaseConfig = {
   DB_HOST: 'localhost',
@@ -55,10 +60,12 @@ describe('createDatabaseOptions', () => {
     expect(options).not.toHaveProperty('ssl');
   });
 
-  it('defaults migrations to dist/database/migrations/*.js', () => {
+  it('defaults migrations to the migrations folder next to this file', () => {
     const options = createDatabaseOptions(baseConfig);
 
-    expect(options.migrations).toEqual(['dist/database/migrations/*.js']);
+    // jest는 src(.ts)에서 실행되므로 src/database/migrations/*.ts를 가리킵니다.
+    expect(options.migrations).toEqual([join(__dirname, 'migrations', '*.ts')]);
+    expect(DEFAULT_MIGRATIONS_GLOB).toBe(join(__dirname, 'migrations', '*.ts'));
   });
 
   it('uses provided migrations when specified', () => {

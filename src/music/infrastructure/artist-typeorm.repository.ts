@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { QueryFailedError, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
+import { isRowReferencedError } from '../../database/mariadb-errors';
 import { Artist } from '../entities/artist.entity';
 import { ArtistRepositoryPort } from '../application/ports/artist-repository.port';
 import { ForeignKeyConstraintError } from '../domain/music.errors';
@@ -36,20 +37,12 @@ export class ArtistTypeOrmRepository implements ArtistRepositoryPort {
     try {
       await this.repo.remove(artist);
     } catch (error) {
-      if (this.isForeignKeyViolation(error)) {
+      if (isRowReferencedError(error)) {
         throw new ForeignKeyConstraintError(
           'Cannot delete artist because tracks are linked to this artist',
         );
       }
       throw error;
     }
-  }
-
-  private isForeignKeyViolation(error: unknown): boolean {
-    if (!(error instanceof QueryFailedError)) {
-      return false;
-    }
-    const driverError = error.driverError as { code?: unknown } | undefined;
-    return driverError?.code === '23503';
   }
 }
