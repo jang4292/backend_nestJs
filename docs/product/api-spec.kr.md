@@ -67,6 +67,8 @@
 
 ## Legacy 음악 (`/music/legacy`)
 
+> **종료 예정:** 현재 API는 데이터 이관 전까지 호환 목적으로 남아 있습니다. 신규 클라이언트와 기능은 Catalog API만 사용하며, 이관·검증 후 Legacy API를 비활성화할 예정입니다. 실제 종료 시점은 배포 계획에 따릅니다.
+
 | Method | Path | 권한 | 요청 | 비고 |
 | --- | --- | --- | --- | --- |
 | GET | `/music/legacy/artists` | jwt | — | |

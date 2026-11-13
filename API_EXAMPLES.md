@@ -305,6 +305,9 @@ curl -X PATCH http://localhost:3000/music/playlists/1/tracks/reorder \
 
 ## 9. Legacy Music API (`/music/legacy`)
 
+> Compatibility examples only. New clients and features should use Catalog APIs.
+> Legacy endpoints will be disabled after data migration and verification.
+
 Access:
 
 - `GET /music/legacy/tracks` and `GET /music/legacy/tracks/:id` are public.
