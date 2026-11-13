@@ -26,8 +26,9 @@
         { "src": "docs/learning/nestjs-operational-stability-guide.kr.md", "desc": "모듈 구조, 계층, 오류 처리, 인증·인가, 품질 게이트" },
         { "src": "docs/music/README.md", "desc": "음악 모듈 문서 안내" },
         { "src": "docs/music/learning-guide.kr.md", "desc": "Artist·Track·Playlist 도메인과 요청 흐름" },
-        { "src": "docs/music/architecture.kr.md" },
-        { "src": "docs/music/decisions.md" },
+        { "src": "docs/music/api.kr.md", "desc": "Music REST API 레퍼런스: Catalog/Legacy endpoint, 요청·응답, 오류 계약" },
+        { "src": "docs/music/architecture.kr.md", "desc": "Legacy/Catalog 구조, 데이터 모델, 확정된 목표 정책" },
+        { "src": "docs/music/decisions.md", "desc": "확정 정책(2026-11-13), 구현 전 세부 기준, 잔여 항목" },
         { "src": "docs/music/api-reorganization-review.kr.md" },
         { "src": "docs/music/checklists.kr.md" },
         { "src": "docs/music/troubleshooting.kr.md" }

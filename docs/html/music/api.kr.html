@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/music/api.kr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>Music REST API 레퍼런스 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section" open><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="api.kr.html" data-page-id="docs/music/api.kr" aria-current="page">Music REST API 레퍼런스</a></li><li><a href="architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 후속 작업</a></li><li><a href="api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-13 · <code>c3d9557</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">아키텍처</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="music-rest-api-레퍼런스">Music REST API 레퍼런스</h1>
+<blockquote>
+<p>검토 기준일: 2026-11-13 · <code>src/music</code> controller 코드 기준</p>
+<p>전체 서비스 API 요약은 <a href="../product/api-spec.kr.html">제품 API 명세</a>, curl 예제는 <a href="../repo/API_EXAMPLES.html">API_EXAMPLES.md</a>를 참고합니다.
+Legacy API(<code>/music/legacy/*</code>)는 데이터 이관·검증 후 종료 예정입니다(<a href="decisions.html#21-catalog-%EB%8B%A8%EC%9D%BC-%EA%B8%B0%EC%A4%80-legacy-%EC%A2%85%EB%A3%8C">결정 문서 2.1</a>). 신규 클라이언트는 Catalog API만 사용합니다.</p>
+</blockquote>
+<h2 id="1-공통-사항"><a class="heading-anchor" href="#1-%EA%B3%B5%ED%86%B5-%EC%82%AC%ED%95%AD" aria-hidden="true" tabindex="-1">#</a>1. 공통 사항</h2>
+<h3 id="인증과-권한"><a class="heading-anchor" href="#%EC%9D%B8%EC%A6%9D%EA%B3%BC-%EA%B6%8C%ED%95%9C" aria-hidden="true" tabindex="-1">#</a>인증과 권한</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>권한 표기</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>public</td>
+<td>인증 불필요</td>
+</tr>
+<tr>
+<td>jwt</td>
+<td><code>Authorization: Bearer &lt;accessToken&gt;</code> 필요 (<code>@Authenticated()</code>)</td>
+</tr>
+<tr>
+<td>admin</td>
+<td>JWT + <code>users.role = &#39;admin&#39;</code> 필요 (<code>@AdminOnly()</code>). 일반 사용자 토큰이면 403</td>
+</tr>
+</tbody></table>
+</div>
+<p>모든 쓰기(POST/PATCH/DELETE)는 admin 전용입니다. 이 규칙은 <a href="https://github.com/jang4292/backend_nestJs/blob/c3d9557/src/music/music-authorization.spec.ts" target="_blank" rel="noopener noreferrer" class="source-link">music-authorization.spec.ts</a>가 메타데이터 수준에서 강제합니다.</p>
+<h3 id="공통-오류-envelope"><a class="heading-anchor" href="#%EA%B3%B5%ED%86%B5-%EC%98%A4%EB%A5%98-envelope" aria-hidden="true" tabindex="-1">#</a>공통 오류 envelope</h3>
+<p>모든 오류는 <code>GlobalExceptionFilter</code>를 거쳐 아래 형식으로 반환됩니다.</p>
+<pre><code class="language-json">{ &quot;ok&quot;: false, &quot;requestId&quot;: &quot;…&quot;, &quot;errorCode&quot;: &quot;NOT_FOUND&quot;, &quot;message&quot;: &quot;Track not found&quot; }
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>HTTP</th>
+<th>errorCode</th>
+<th>Music에서의 대표 상황</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>400</td>
+<td><code>BAD_REQUEST</code></td>
+<td>DTO 검증 실패, 날짜 형식 오류, position 중복, reorder 항목 불일치</td>
+</tr>
+<tr>
+<td>401</td>
+<td><code>UNAUTHORIZED</code></td>
+<td>토큰 없음·만료·변조</td>
+</tr>
+<tr>
+<td>403</td>
+<td><code>FORBIDDEN</code></td>
+<td>admin이 아닌 사용자의 쓰기 요청</td>
+</tr>
+<tr>
+<td>404</td>
+<td><code>NOT_FOUND</code></td>
+<td>Track/Playlist/Artist/AudioAsset 없음, 미공개 Playlist 공개 조회</td>
+</tr>
+<tr>
+<td>409</td>
+<td><code>FOREIGN_KEY_CONSTRAINT</code></td>
+<td>참조 중인 Artist/Track 삭제 시도</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="공통-검증-규칙"><a class="heading-anchor" href="#%EA%B3%B5%ED%86%B5-%EA%B2%80%EC%A6%9D-%EA%B7%9C%EC%B9%99" aria-hidden="true" tabindex="-1">#</a>공통 검증 규칙</h3>
+<ul>
+<li>경로 파라미터 ID는 정수입니다(<code>ParseIntPipe</code>). 정수가 아니면 400.</li>
+<li>목록 <code>limit</code>은 최대 100입니다.</li>
+<li><code>playDate</code>·<code>date</code>는 <code>YYYY-MM-DD</code> 형식입니다.</li>
+<li>BPM은 0~400, 문자열 필드는 선언된 최대 길이를 따릅니다.</li>
+</ul>
+<hr>
+<h2 id="2-catalog-api--music---현재-기준-모델"><a class="heading-anchor" href="#2-catalog-api--music---%ED%98%84%EC%9E%AC-%EA%B8%B0%EC%A4%80-%EB%AA%A8%EB%8D%B8" aria-hidden="true" tabindex="-1">#</a>2. Catalog API (<code>/music</code>) — 현재 기준 모델</h2>
+<p>구현: <a href="https://github.com/jang4292/backend_nestJs/blob/c3d9557/src/music/catalog/interface/catalog-music.controller.ts" target="_blank" rel="noopener noreferrer" class="source-link">catalog-music.controller.ts</a></p>
+<h3 id="21-track"><a class="heading-anchor" href="#21-track" aria-hidden="true" tabindex="-1">#</a>2.1 Track</h3>
+<h4 id="get-musictracks--공개-track-목록-public"><a class="heading-anchor" href="#get-musictracks--%EA%B3%B5%EA%B0%9C-track-%EB%AA%A9%EB%A1%9D-public" aria-hidden="true" tabindex="-1">#</a><code>GET /music/tracks</code> — 공개 Track 목록 (public)</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Query</th>
+<th>타입</th>
+<th>기본값</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>page</code></td>
+<td>int ≥ 1</td>
+<td>1</td>
+<td>페이지 번호</td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td>int 1~100</td>
+<td>100</td>
+<td>페이지 크기</td>
+</tr>
+</tbody></table>
+</div>
+<p>응답은 최신순(<code>id DESC</code>) <strong>배열</strong>입니다. 현재는 <code>total</code> 등 페이지 메타데이터가 없습니다(개선 예정, <a href="decisions.html#4-%EB%82%A8%EC%9D%80-%EA%B5%AC%ED%98%84-%EB%B0%8F-%EA%B2%80%EC%A6%9D-%ED%95%AD%EB%AA%A9">결정 문서 4장</a>).</p>
+<pre><code class="language-json">[{ &quot;id&quot;: 1, &quot;title&quot;: &quot;Song A&quot;, &quot;artist&quot;: &quot;Artist X&quot;, &quot;bpm&quot;: 120 }]
+</code></pre>
+<h4 id="get-musictracksid--공개-track-상세-public"><a class="heading-anchor" href="#get-musictracksid--%EA%B3%B5%EA%B0%9C-track-%EC%83%81%EC%84%B8-public" aria-hidden="true" tabindex="-1">#</a><code>GET /music/tracks/:id</code> — 공개 Track 상세 (public)</h4>
+<p>위와 같은 필드 구성의 단건. 없으면 404. 음원 URL은 포함하지 않습니다.</p>
+<h4 id="post-musictracks--track-등록-admin"><a class="heading-anchor" href="#post-musictracks--track-%EB%93%B1%EB%A1%9D-admin" aria-hidden="true" tabindex="-1">#</a><code>POST /music/tracks</code> — Track 등록 (admin)</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Body 필드</th>
+<th>타입</th>
+<th>필수</th>
+<th>제약</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>title</code></td>
+<td>string</td>
+<td>✅</td>
+<td>1~200자, 앞뒤 공백 제거</td>
+</tr>
+<tr>
+<td><code>artist</code></td>
+<td>string</td>
+<td>✅</td>
+<td>1~200자, 앞뒤 공백 제거</td>
+</tr>
+<tr>
+<td><code>bpm</code></td>
+<td>int</td>
+<td>—</td>
+<td>0~400</td>
+</tr>
+</tbody></table>
+</div>
+<p>Catalog Track의 artist는 <strong>문자열</strong>입니다(Legacy와 달리 Artist entity 참조가 아님).</p>
+<h4 id="patch-musictracksid--track-수정-admin"><a class="heading-anchor" href="#patch-musictracksid--track-%EC%88%98%EC%A0%95-admin" aria-hidden="true" tabindex="-1">#</a><code>PATCH /music/tracks/:id</code> — Track 수정 (admin)</h4>
+<p>Body는 <code>POST</code>와 같은 필드의 부분 수정입니다.</p>
+<h4 id="delete-musictracksid--track-삭제-admin"><a class="heading-anchor" href="#delete-musictracksid--track-%EC%82%AD%EC%A0%9C-admin" aria-hidden="true" tabindex="-1">#</a><code>DELETE /music/tracks/:id</code> — Track 삭제 (admin)</h4>
+<p>Playlist에 포함된 Track이면 FK <code>RESTRICT</code>로 409 <code>FOREIGN_KEY_CONSTRAINT</code>.</p>
+<pre><code class="language-json">{ &quot;deleted&quot;: true, &quot;id&quot;: 1 }
+</code></pre>
+<h3 id="22-audioasset-음원-파일-메타데이터"><a class="heading-anchor" href="#22-audioasset-%EC%9D%8C%EC%9B%90-%ED%8C%8C%EC%9D%BC-%EB%A9%94%ED%83%80%EB%8D%B0%EC%9D%B4%ED%84%B0" aria-hidden="true" tabindex="-1">#</a>2.2 AudioAsset (음원 파일 메타데이터)</h3>
+<p>AudioAsset은 현재 <strong>URL 메타데이터 단계</strong>입니다. 실제 파일 업로드와 재생 URL 발급은 미구현입니다. 저장 URL이 포함될 수 있어 조회도 admin 전용입니다.</p>
+<h4 id="post-musictrackstrackidaudio-assets--등록-admin"><a class="heading-anchor" href="#post-musictrackstrackidaudio-assets--%EB%93%B1%EB%A1%9D-admin" aria-hidden="true" tabindex="-1">#</a><code>POST /music/tracks/:trackId/audio-assets</code> — 등록 (admin)</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Body 필드</th>
+<th>타입</th>
+<th>필수</th>
+<th>제약</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>url</code></td>
+<td>string</td>
+<td>—</td>
+<td>http(s) 절대 URL, 2000자 이하</td>
+</tr>
+<tr>
+<td><code>duration</code></td>
+<td>int</td>
+<td>—</td>
+<td>≥ 0 (초)</td>
+</tr>
+<tr>
+<td><code>bpm</code></td>
+<td>int</td>
+<td>—</td>
+<td>0~400. <code>Track.bpm</code>과 독립(자동 동기화 없음)</td>
+</tr>
+</tbody></table>
+</div>
+<p>Track이 없으면 404.</p>
+<h4 id="get-musictrackstrackidaudio-assets--목록-admin"><a class="heading-anchor" href="#get-musictrackstrackidaudio-assets--%EB%AA%A9%EB%A1%9D-admin" aria-hidden="true" tabindex="-1">#</a><code>GET /music/tracks/:trackId/audio-assets</code> — 목록 (admin)</h4>
+<blockquote>
+<p><strong>알려진 이슈:</strong> 현재 없는 Track ID에도 빈 배열 <code>[]</code>을 반환합니다. 404 처리로 정리 예정입니다.</p>
+</blockquote>
+<h4 id="patch-musicaudio-assetsid--수정-admin"><a class="heading-anchor" href="#patch-musicaudio-assetsid--%EC%88%98%EC%A0%95-admin" aria-hidden="true" tabindex="-1">#</a><code>PATCH /music/audio-assets/:id</code> — 수정 (admin)</h4>
+<p>등록과 같은 필드의 부분 수정. 없으면 404.</p>
+<h4 id="delete-musicaudio-assetsid--삭제-admin"><a class="heading-anchor" href="#delete-musicaudio-assetsid--%EC%82%AD%EC%A0%9C-admin" aria-hidden="true" tabindex="-1">#</a><code>DELETE /music/audio-assets/:id</code> — 삭제 (admin)</h4>
+<pre><code class="language-json">{ &quot;deleted&quot;: true, &quot;id&quot;: 2 }
+</code></pre>
+<h3 id="23-공개-playlist-조회-public"><a class="heading-anchor" href="#23-%EA%B3%B5%EA%B0%9C-playlist-%EC%A1%B0%ED%9A%8C-public" aria-hidden="true" tabindex="-1">#</a>2.3 공개 Playlist 조회 (public)</h3>
+<p>공개 응답은 <a href="https://github.com/jang4292/backend_nestJs/blob/c3d9557/src/music/catalog/interface/presenters/catalog-playlist.presenter.ts" target="_blank" rel="noopener noreferrer" class="source-link">presenter</a>를 통과하며 <strong>음원 URL, object key, 내부 timestamp를 절대 포함하지 않습니다</strong>. <code>published</code> 상태만 노출됩니다.</p>
+<h4 id="get-musicpublicplaylists--공개-목록"><a class="heading-anchor" href="#get-musicpublicplaylists--%EA%B3%B5%EA%B0%9C-%EB%AA%A9%EB%A1%9D" aria-hidden="true" tabindex="-1">#</a><code>GET /music/public/playlists</code> — 공개 목록</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Query</th>
+<th>타입</th>
+<th>기본값</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>page</code></td>
+<td>int ≥ 1</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td>int 1~100</td>
+<td>20</td>
+<td></td>
+</tr>
+</tbody></table>
+</div>
+<p>정렬: <code>publishedAt DESC, id DESC</code>. 목록 항목에는 Track 상세 없이 <code>trackCount</code>만 포함됩니다.</p>
+<pre><code class="language-json">{
+  &quot;items&quot;: [
+    {
+      &quot;id&quot;: 7, &quot;title&quot;: &quot;Morning set&quot;, &quot;description&quot;: null,
+      &quot;playDate&quot;: null, &quot;anonymousPlayable&quot;: false, &quot;trackCount&quot;: 12
+    }
+  ],
+  &quot;total&quot;: 1, &quot;page&quot;: 1, &quot;limit&quot;: 20
+}
+</code></pre>
+<h4 id="get-musicpublicplaylistsid--공개-상세"><a class="heading-anchor" href="#get-musicpublicplaylistsid--%EA%B3%B5%EA%B0%9C-%EC%83%81%EC%84%B8" aria-hidden="true" tabindex="-1">#</a><code>GET /music/public/playlists/:id</code> — 공개 상세</h4>
+<p><code>published</code>가 아니거나 없으면 404. <code>tracks</code>는 <code>position</code> 오름차순입니다.</p>
+<pre><code class="language-json">{
+  &quot;id&quot;: 7, &quot;title&quot;: &quot;Morning set&quot;, &quot;description&quot;: null,
+  &quot;playDate&quot;: null, &quot;anonymousPlayable&quot;: false, &quot;trackCount&quot;: 2,
+  &quot;tracks&quot;: [
+    { &quot;position&quot;: 1, &quot;track&quot;: { &quot;id&quot;: 10, &quot;title&quot;: &quot;First&quot;, &quot;artist&quot;: &quot;Artist A&quot;, &quot;bpm&quot;: 100 } },
+    { &quot;position&quot;: 2, &quot;track&quot;: { &quot;id&quot;: 20, &quot;title&quot;: &quot;Second&quot;, &quot;artist&quot;: &quot;Artist B&quot;, &quot;bpm&quot;: 120 } }
+  ]
+}
+</code></pre>
+<p><code>anonymousPlayable</code>은 익명 재생 정책을 위한 값이며, 현재 실제 재생 API는 없습니다.</p>
+<h3 id="24-playlist-관리-admin"><a class="heading-anchor" href="#24-playlist-%EA%B4%80%EB%A6%AC-admin" aria-hidden="true" tabindex="-1">#</a>2.4 Playlist 관리 (admin)</h3>
+<p>관리 응답은 현재 entity를 그대로 반환합니다(응답 DTO 전환 예정).</p>
+<h4 id="post-musicplaylists--생성"><a class="heading-anchor" href="#post-musicplaylists--%EC%83%9D%EC%84%B1" aria-hidden="true" tabindex="-1">#</a><code>POST /music/playlists</code> — 생성</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Body 필드</th>
+<th>타입</th>
+<th>필수</th>
+<th>제약</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>title</code></td>
+<td>string</td>
+<td>✅</td>
+<td>1~200자</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>—</td>
+<td>500자 이하</td>
+</tr>
+<tr>
+<td><code>playDate</code></td>
+<td>string</td>
+<td>—</td>
+<td><code>YYYY-MM-DD</code>. 날짜당 개수 제한 없음</td>
+</tr>
+<tr>
+<td><code>anonymousPlayable</code></td>
+<td>boolean</td>
+<td>—</td>
+<td>기본 false</td>
+</tr>
+</tbody></table>
+</div>
+<p>항상 <code>status: &quot;draft&quot;</code>, <code>publishedAt: null</code>로 생성됩니다.</p>
+<h4 id="patch-musicplaylistsidpublish--공개-전환"><a class="heading-anchor" href="#patch-musicplaylistsidpublish--%EA%B3%B5%EA%B0%9C-%EC%A0%84%ED%99%98" aria-hidden="true" tabindex="-1">#</a><code>PATCH /music/playlists/:id/publish</code> — 공개 전환</h4>
+<p><code>status</code>를 <code>published</code>로 바꾸고 <code>publishedAt</code>을 현재 시각으로 기록합니다.</p>
+<blockquote>
+<p><strong>현재 동작:</strong> 상태 전이 제한이 없어 <code>archived</code>도 다시 publish할 수 있고, 재공개 시 <code>publishedAt</code>이 갱신됩니다. 목표 정책(<code>draft → published → archived</code>, archived→draft 복원)은 <a href="decisions.html#25-playlist-%EC%83%81%ED%83%9C-%EC%A0%84%EC%9D%B4">결정 문서 2.5</a> 참고.</p>
+</blockquote>
+<h4 id="post-musicplaylistsplaylistidtracks--track-추가"><a class="heading-anchor" href="#post-musicplaylistsplaylistidtracks--track-%EC%B6%94%EA%B0%80" aria-hidden="true" tabindex="-1">#</a><code>POST /music/playlists/:playlistId/tracks</code> — Track 추가</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Body 필드</th>
+<th>타입</th>
+<th>필수</th>
+<th>제약</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>trackId</code></td>
+<td>int</td>
+<td>✅</td>
+<td>≥ 1</td>
+</tr>
+<tr>
+<td><code>position</code></td>
+<td>int</td>
+<td>✅</td>
+<td>≥ 1. 같은 Playlist 내 중복 불가(DB unique)</td>
+</tr>
+<tr>
+<td><code>note</code></td>
+<td>string</td>
+<td>—</td>
+<td>255자 이하</td>
+</tr>
+</tbody></table>
+</div>
+<ul>
+<li>Playlist 또는 Track이 없으면 404.</li>
+<li>이미 사용 중인 <code>position</code>이면 400 (<code>Playlist position is already occupied</code>). 동시 요청으로 발생한 DB unique 위반도 같은 400으로 변환됩니다.</li>
+<li>동일 Track을 다른 position으로 여러 번 추가하는 것은 허용됩니다(확정 정책).</li>
+</ul>
+<h4 id="patch-musicplaylistsplaylistidtracksreorder--전체-순서-변경"><a class="heading-anchor" href="#patch-musicplaylistsplaylistidtracksreorder--%EC%A0%84%EC%B2%B4-%EC%88%9C%EC%84%9C-%EB%B3%80%EA%B2%BD" aria-hidden="true" tabindex="-1">#</a><code>PATCH /music/playlists/:playlistId/tracks/reorder</code> — 전체 순서 변경</h4>
+<pre><code class="language-json">{ &quot;items&quot;: [ { &quot;id&quot;: 2, &quot;position&quot;: 1 }, { &quot;id&quot;: 1, &quot;position&quot;: 2 } ] }
+</code></pre>
+<p>규칙:</p>
+<ol>
+<li>Playlist의 <strong>모든 항목을 정확히 한 번씩</strong> 포함해야 합니다. 누락·중복·타 Playlist 항목이면 400.</li>
+<li><code>position</code> 중복이 있으면 400.</li>
+<li>임시 음수 position을 거쳐 최종 position을 저장하며 transaction으로 묶입니다.</li>
+<li>성공 시 <code>position ASC</code>로 정렬된 전체 항목(Track 포함)을 반환합니다.</li>
+</ol>
+<blockquote>
+<p><strong>알려진 한계:</strong> 항목 조회가 transaction 밖에서 수행되고, 항목 수 상한이 없으며 2N회 UPDATE합니다(감사 DB-8, 개선 예정).</p>
+</blockquote>
+<hr>
+<h2 id="3-legacy-api--musiclegacy---종료-예정"><a class="heading-anchor" href="#3-legacy-api--musiclegacy---%EC%A2%85%EB%A3%8C-%EC%98%88%EC%A0%95" aria-hidden="true" tabindex="-1">#</a>3. Legacy API (<code>/music/legacy</code>) — 종료 예정</h2>
+<p>구현: <a href="https://github.com/jang4292/backend_nestJs/blob/c3d9557/src/music/interface/music.controller.ts" target="_blank" rel="noopener noreferrer" class="source-link">music.controller.ts</a> · 테이블: <code>legacy_artist</code>, <code>legacy_track</code>, <code>legacy_playlist</code>, <code>legacy_playlist_track</code></p>
+<blockquote>
+<p>데이터 이관·검증 후 비활성화 예정입니다. 신규 기능을 추가하지 않습니다.</p>
+</blockquote>
+<h3 id="31-artist"><a class="heading-anchor" href="#31-artist" aria-hidden="true" tabindex="-1">#</a>3.1 Artist</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>권한</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GET</td>
+<td><code>/music/legacy/artists</code></td>
+<td>jwt</td>
+<td>전체 목록</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/legacy/artists/:id</code></td>
+<td>jwt</td>
+<td>없으면 404</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/music/legacy/artists</code></td>
+<td>admin</td>
+<td><code>{name(1~200자, unique), description?(≤500자)}</code></td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/music/legacy/artists/:id</code></td>
+<td>admin</td>
+<td>부분 수정</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/music/legacy/artists/:id</code></td>
+<td>admin</td>
+<td>연결된 Track이 있으면 409 <code>FOREIGN_KEY_CONSTRAINT</code></td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="32-track"><a class="heading-anchor" href="#32-track" aria-hidden="true" tabindex="-1">#</a>3.2 Track</h3>
+<p>Legacy Track은 Artist를 <strong>필수 참조</strong>합니다(<code>artistId</code>).</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>권한</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GET</td>
+<td><code>/music/legacy/tracks</code></td>
+<td>public</td>
+<td>검색·필터·페이지네이션(아래)</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/legacy/tracks/full</code></td>
+<td>jwt</td>
+<td>위와 동일 + <code>createdAt</code>/<code>updatedAt</code></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/legacy/tracks/:id</code></td>
+<td>public</td>
+<td>공개 필드 단건</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/legacy/tracks/:id/full</code></td>
+<td>jwt</td>
+<td>전체 필드 단건</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/music/legacy/tracks</code></td>
+<td>admin</td>
+<td><code>{title(1~200자), artistId(≥1), bpm?(0~400), lengthSec?(≥0)}</code></td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/music/legacy/tracks/:id</code></td>
+<td>admin</td>
+<td>부분 수정. 없는 <code>artistId</code>면 404</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/music/legacy/tracks/:id</code></td>
+<td>admin</td>
+<td><code>{deleted: true, id}</code></td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>목록 Query 파라미터</strong> (<a href="https://github.com/jang4292/backend_nestJs/blob/c3d9557/src/music/interface/dto/list-tracks-query.dto.ts" target="_blank" rel="noopener noreferrer" class="source-link">list-tracks-query.dto.ts</a>):</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Query</th>
+<th>타입</th>
+<th>기본값</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>search</code></td>
+<td>string ≤100자</td>
+<td>—</td>
+<td>title/artist 통합 부분 검색</td>
+</tr>
+<tr>
+<td><code>artistId</code></td>
+<td>int ≥ 1</td>
+<td>—</td>
+<td>Artist ID 필터</td>
+</tr>
+<tr>
+<td><code>artistName</code></td>
+<td>string ≤100자</td>
+<td>—</td>
+<td>Artist명 부분 검색</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>string ≤100자</td>
+<td>—</td>
+<td>제목 부분 검색</td>
+</tr>
+<tr>
+<td><code>minBpm</code> / <code>maxBpm</code></td>
+<td>int ≥ 0</td>
+<td>—</td>
+<td>BPM 범위</td>
+</tr>
+<tr>
+<td><code>page</code></td>
+<td>int ≥ 1</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td>int 1~100</td>
+<td>20</td>
+<td></td>
+</tr>
+<tr>
+<td><code>sortBy</code></td>
+<td><code>id</code>·<code>title</code>·<code>artistName</code>·<code>bpm</code>·<code>createdAt</code></td>
+<td><code>id</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>sortOrder</code></td>
+<td><code>ASC</code>·<code>DESC</code></td>
+<td><code>DESC</code></td>
+<td></td>
+</tr>
+</tbody></table>
+</div>
+<p>검색어의 <code>%</code>, <code>_</code>, <code>\</code>는 문자 그대로 매칭합니다(이스케이프 처리됨).</p>
+<p><strong>응답</strong> (<code>items</code> + 페이지 메타데이터 — Catalog와 다른 형식):</p>
+<pre><code class="language-json">{
+  &quot;items&quot;: [
+    { &quot;id&quot;: 1, &quot;title&quot;: &quot;Song A&quot;, &quot;artist&quot;: { &quot;id&quot;: 3, &quot;name&quot;: &quot;Artist X&quot; }, &quot;bpm&quot;: 120, &quot;lengthSec&quot;: 210 }
+  ],
+  &quot;total&quot;: 1, &quot;page&quot;: 1, &quot;limit&quot;: 20
+}
+</code></pre>
+<p><code>full</code> 변형은 각 항목에 <code>createdAt</code>, <code>updatedAt</code>이 추가됩니다.</p>
+<h3 id="33-playlist"><a class="heading-anchor" href="#33-playlist" aria-hidden="true" tabindex="-1">#</a>3.3 Playlist</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>권한</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GET</td>
+<td><code>/music/legacy/playlists</code></td>
+<td>jwt</td>
+<td><code>?date=YYYY-MM-DD</code> 선택 필터</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/legacy/playlists/by-date</code></td>
+<td>jwt</td>
+<td><code>?date=YYYY-MM-DD</code> <strong>필수</strong>. 없거나 형식 오류면 400</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/music/legacy/playlists/:id</code></td>
+<td>jwt</td>
+<td>포함된 Track과 함께 반환</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/music/legacy/playlists</code></td>
+<td>admin</td>
+<td><code>{name(1~200자), playDate?(YYYY-MM-DD), description?(≤500자)}</code></td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/music/legacy/playlists/:id</code></td>
+<td>admin</td>
+<td>부분 수정</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/music/legacy/playlists/:id</code></td>
+<td>admin</td>
+<td>관계 행 cascade 삭제</td>
+</tr>
+</tbody></table>
+</div>
+<blockquote>
+<p><code>by-date</code>는 단건을 반환하지만 <code>playDate</code>에 unique 제약이 없습니다. 확정 정책상 날짜당 개수 제한이 없으므로, 같은 날짜가 여럿이면 어떤 한 건이 반환되는지는 보장되지 않습니다.</p>
+</blockquote>
+<h3 id="34-playlisttrack-관계-관리"><a class="heading-anchor" href="#34-playlisttrack-%EA%B4%80%EA%B3%84-%EA%B4%80%EB%A6%AC" aria-hidden="true" tabindex="-1">#</a>3.4 PlaylistTrack (관계 관리)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>권한</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GET</td>
+<td><code>/music/legacy/playlists/:playlistId/tracks</code></td>
+<td>jwt</td>
+<td>아래 요약 형식</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/music/legacy/playlists/:playlistId/tracks</code></td>
+<td>admin</td>
+<td><code>{trackId(≥1), seq(≥1), note?(≤255자)}</code></td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/music/legacy/playlists/:playlistId/tracks/:playlistTrackId</code></td>
+<td>admin</td>
+<td><code>{seq?, note?}</code></td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/music/legacy/playlists/:playlistId/tracks/:playlistTrackId</code></td>
+<td>admin</td>
+<td><code>{deleted: true, playlistTrackId}</code></td>
+</tr>
+</tbody></table>
+</div>
+<p><strong>목록 응답 형식:</strong></p>
+<pre><code class="language-json">[
+  {
+    &quot;playlistTrackId&quot;: 5, &quot;seq&quot;: 1, &quot;note&quot;: &quot;Opening track&quot;,
+    &quot;track&quot;: { &quot;id&quot;: 1, &quot;title&quot;: &quot;Song A&quot;, &quot;artist&quot;: &quot;Artist X&quot;, &quot;bpm&quot;: 120, &quot;lengthSec&quot;: 210 }
+  }
+]
+</code></pre>
+<blockquote>
+<p>Legacy <code>seq</code>에는 DB unique 제약이 없어 중복 순서가 저장될 수 있습니다. Catalog의 <code>position</code>(unique)과 다른 동작입니다.</p>
+</blockquote>
+<hr>
+<h2 id="4-catalog와-legacy-차이-요약"><a class="heading-anchor" href="#4-catalog%EC%99%80-legacy-%EC%B0%A8%EC%9D%B4-%EC%9A%94%EC%95%BD" aria-hidden="true" tabindex="-1">#</a>4. Catalog와 Legacy 차이 요약</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>항목</th>
+<th>Catalog (<code>/music</code>)</th>
+<th>Legacy (<code>/music/legacy</code>)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Artist 표현</td>
+<td>Track의 <code>artist</code> 문자열</td>
+<td>별도 Artist entity + FK</td>
+</tr>
+<tr>
+<td>순서 필드</td>
+<td><code>position</code> (DB unique)</td>
+<td><code>seq</code> (제약 없음)</td>
+</tr>
+<tr>
+<td>Track 목록 응답</td>
+<td>배열(메타데이터 없음)</td>
+<td><code>{items, total, page, limit}</code></td>
+</tr>
+<tr>
+<td>Track 검색</td>
+<td>미지원(페이지만)</td>
+<td>search/filter/sort 지원</td>
+</tr>
+<tr>
+<td>Playlist 공개</td>
+<td><code>draft/published/archived</code> 상태 + 공개 presenter</td>
+<td>상태 없음, jwt 조회</td>
+</tr>
+<tr>
+<td>Track 삭제 시 Playlist 관계</td>
+<td><code>RESTRICT</code> → 409</td>
+<td><code>CASCADE</code> 삭제</td>
+</tr>
+<tr>
+<td>상태</td>
+<td>기준 모델(확장 대상)</td>
+<td>종료 예정(이관 후 비활성화)</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="5-관련-문서"><a class="heading-anchor" href="#5-%EA%B4%80%EB%A0%A8-%EB%AC%B8%EC%84%9C" aria-hidden="true" tabindex="-1">#</a>5. 관련 문서</h2>
+<ul>
+<li><a href="decisions.html">결정 및 후속 작업</a> — 확정 정책, 미구현 항목, 알려진 이슈의 원본 기록</li>
+<li><a href="architecture.kr.html">설계 및 아키텍처</a> — 계층 구조, 데이터 모델, 요청 흐름</li>
+<li><a href="../product/api-spec.kr.html">제품 API 명세</a> — 서비스 전체 API 요약표</li>
+<li><a href="../repo/API_EXAMPLES.html">API_EXAMPLES.md</a> — curl 실행 예제</li>
+<li>Swagger: 개발 환경에서 <code>/api-docs</code> (production 비노출)</li>
+</ul>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="learning-guide.kr.html"><span>이전</span>Music 학습 가이드</a><a class="pager-next" href="architecture.kr.html"><span>다음</span>Music 설계 및 아키텍처</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/c3d9557/docs/music/api.kr.md" target="_blank" rel="noopener noreferrer"><code>docs/music/api.kr.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-13 · develop <code>c3d9557</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-%EA%B3%B5%ED%86%B5-%EC%82%AC%ED%95%AD">1. 공통 사항</a></li><li class="toc-3"><a href="#%EC%9D%B8%EC%A6%9D%EA%B3%BC-%EA%B6%8C%ED%95%9C">인증과 권한</a></li><li class="toc-3"><a href="#%EA%B3%B5%ED%86%B5-%EC%98%A4%EB%A5%98-envelope">공통 오류 envelope</a></li><li class="toc-3"><a href="#%EA%B3%B5%ED%86%B5-%EA%B2%80%EC%A6%9D-%EA%B7%9C%EC%B9%99">공통 검증 규칙</a></li><li class="toc-2"><a href="#2-catalog-api--music---%ED%98%84%EC%9E%AC-%EA%B8%B0%EC%A4%80-%EB%AA%A8%EB%8D%B8">2. Catalog API ( /music ) — 현재 기준 모델</a></li><li class="toc-3"><a href="#21-track">2.1 Track</a></li><li class="toc-3"><a href="#22-audioasset-%EC%9D%8C%EC%9B%90-%ED%8C%8C%EC%9D%BC-%EB%A9%94%ED%83%80%EB%8D%B0%EC%9D%B4%ED%84%B0">2.2 AudioAsset (음원 파일 메타데이터)</a></li><li class="toc-3"><a href="#23-%EA%B3%B5%EA%B0%9C-playlist-%EC%A1%B0%ED%9A%8C-public">2.3 공개 Playlist 조회 (public)</a></li><li class="toc-3"><a href="#24-playlist-%EA%B4%80%EB%A6%AC-admin">2.4 Playlist 관리 (admin)</a></li><li class="toc-2"><a href="#3-legacy-api--musiclegacy---%EC%A2%85%EB%A3%8C-%EC%98%88%EC%A0%95">3. Legacy API ( /music/legacy ) — 종료 예정</a></li><li class="toc-3"><a href="#31-artist">3.1 Artist</a></li><li class="toc-3"><a href="#32-track">3.2 Track</a></li><li class="toc-3"><a href="#33-playlist">3.3 Playlist</a></li><li class="toc-3"><a href="#34-playlisttrack-%EA%B4%80%EA%B3%84-%EA%B4%80%EB%A6%AC">3.4 PlaylistTrack (관계 관리)</a></li><li class="toc-2"><a href="#4-catalog%EC%99%80-legacy-%EC%B0%A8%EC%9D%B4-%EC%9A%94%EC%95%BD">4. Catalog와 Legacy 차이 요약</a></li><li class="toc-2"><a href="#5-%EA%B4%80%EB%A0%A8-%EB%AC%B8%EC%84%9C">5. 관련 문서</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>
