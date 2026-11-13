@@ -53,8 +53,8 @@ async function bootstrap() {
     }),
   );
 
-  // API docs (개발 환경에서만 노출 — 프로덕션에서 API 스펙 노출 방지)
-  if (configService.get<string>('NODE_ENV') !== 'production') {
+  // API docs는 명시적으로 활성화하고 production에서는 env 검증 단계에서 거부합니다.
+  if (configService.get<boolean>('SWAGGER_ENABLED', false)) {
     const swaggerConfig = new DocumentBuilder()
       .setTitle('Backend NestJs API')
       .setVersion('1.0')

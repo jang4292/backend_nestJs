@@ -22,6 +22,7 @@ describe('validateAppEnv', () => {
     expect(env).toMatchObject({
       PORT: 4000,
       NODE_ENV: 'development',
+      SWAGGER_ENABLED: false,
       DB_TYPE: 'mariadb',
       DB_PORT: 13306,
       DB_SYNCHRONIZE: false,
@@ -38,6 +39,35 @@ describe('validateAppEnv', () => {
         GOOGLE_ALLOWED_AUDIENCES: 'web-client.apps.googleusercontent.com',
       }),
     ).toThrow('JWT_SECRET is required.');
+  });
+
+  describe('SWAGGER_ENABLED', () => {
+    it('parses an explicit opt-in outside production', () => {
+      expect(
+        validateAppEnv({ ...baseEnv, SWAGGER_ENABLED: 'true' }).SWAGGER_ENABLED,
+      ).toBe(true);
+    });
+
+    it('defaults to disabled', () => {
+      expect(validateAppEnv(baseEnv).SWAGGER_ENABLED).toBe(false);
+    });
+
+    it('rejects invalid values', () => {
+      expect(() =>
+        validateAppEnv({ ...baseEnv, SWAGGER_ENABLED: 'yes' }),
+      ).toThrow('SWAGGER_ENABLED must be true or false.');
+    });
+
+    it('rejects enabling Swagger in production', () => {
+      expect(() =>
+        validateAppEnv({
+          ...baseEnv,
+          NODE_ENV: 'production',
+          CORS_ORIGIN: 'none',
+          SWAGGER_ENABLED: 'true',
+        }),
+      ).toThrow('SWAGGER_ENABLED must be false when NODE_ENV=production.');
+    });
   });
 
   it('requires Google allowed audiences when Google is enabled', () => {

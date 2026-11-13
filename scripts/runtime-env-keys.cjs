@@ -14,6 +14,7 @@ const RUNTIME_ENV_KEYS = Object.freeze([
   'ENV_FILE',
   'PORT',
   'NODE_ENV',
+  'SWAGGER_ENABLED',
   'TRUST_PROXY',
   // Database
   'DB_TYPE',

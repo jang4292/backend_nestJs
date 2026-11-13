@@ -179,8 +179,11 @@ Before enabling a provider, complete
 
 ## API
 
-- Swagger: `http://localhost:3000/api-docs` in development and test. It is
-  disabled in production.
+- Swagger: `http://localhost:3000/api-docs` when `SWAGGER_ENABLED=true`
+  (enabled by the development and test templates). It defaults to disabled;
+  startup rejects enabling it in production. The Nest Swagger compiler plugin
+  derives request schemas from `*.dto.ts` validation rules. Keep response DTOs
+  concrete and use the shared error envelope for documented error responses.
 - Route table with access levels (55 routes):
   [docs/product/api-spec.kr.md](docs/product/api-spec.kr.md).
 - curl examples: [API_EXAMPLES.md](API_EXAMPLES.md).

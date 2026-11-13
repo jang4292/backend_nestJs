@@ -321,4 +321,4 @@ Legacy Track은 Artist를 **필수 참조**합니다(`artistId`).
 - [설계 및 아키텍처](architecture.kr.md) — 계층 구조, 데이터 모델, 요청 흐름
 - [제품 API 명세](../product/api-spec.kr.md) — 서비스 전체 API 요약표
 - [API_EXAMPLES.md](../../API_EXAMPLES.md) — curl 실행 예제
-- Swagger: 개발 환경에서 `/api-docs` (production 비노출)
+- Swagger: `SWAGGER_ENABLED=true`인 개발·테스트 환경에서 `/api-docs` (기본 비활성, production 활성화 거부)

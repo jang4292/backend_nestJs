@@ -11,6 +11,7 @@ export const MIN_PRODUCTION_JWT_SECRET_LENGTH = 32;
 export interface AppEnv {
   PORT: number;
   NODE_ENV: NodeEnvironment;
+  SWAGGER_ENABLED: boolean;
   DB_TYPE: 'mariadb';
   DB_HOST: string;
   DB_PORT: number;
@@ -72,6 +73,11 @@ const DEFAULT_ALLOWED_ISSUERS =
 export function validateAppEnv(config: RawEnv): AppEnv {
   // 환경변수는 앱 기동 전에 파싱합니다. 잘못된 설정은 외부 OAuth 호출이나 DB 연결보다 먼저 실패시킵니다.
   const nodeEnv = parseNodeEnv(config.NODE_ENV);
+  const swaggerEnabled = parseBoolean(
+    config.SWAGGER_ENABLED,
+    'SWAGGER_ENABLED',
+    false,
+  );
   const dbSynchronize = parseBoolean(
     config.DB_SYNCHRONIZE,
     'DB_SYNCHRONIZE',
@@ -150,6 +156,10 @@ export function validateAppEnv(config: RawEnv): AppEnv {
     throw new Error(
       'CORS_ORIGIN is required when NODE_ENV=production (use CORS_ORIGIN=none to disable CORS explicitly).',
     );
+  }
+
+  if (nodeEnv === 'production' && swaggerEnabled) {
+    throw new Error('SWAGGER_ENABLED must be false when NODE_ENV=production.');
   }
 
   // synchronize는 entity와 다른 컬럼·인덱스를 자동으로 삭제할 수 있어(데이터 손실) 어떤 환경에서도 쓰지 않습니다.
@@ -265,6 +275,7 @@ export function validateAppEnv(config: RawEnv): AppEnv {
   return {
     PORT: parseInteger(config.PORT, 'PORT', 3000, { min: 1 }),
     NODE_ENV: nodeEnv,
+    SWAGGER_ENABLED: swaggerEnabled,
     DB_TYPE: 'mariadb',
     DB_HOST: optionalString(config.DB_HOST) ?? 'localhost',
     DB_PORT: parseInteger(config.DB_PORT, 'DB_PORT', 3306, { min: 1 }),

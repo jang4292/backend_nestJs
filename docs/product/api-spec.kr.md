@@ -1,7 +1,7 @@
 # API 명세 (라우트·권한)
 
 > 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
-> 빌드된 컨트롤러 메타데이터에서 추출한 전체 라우트 55개입니다. 요청·응답 예시는 [API_EXAMPLES.md](../../API_EXAMPLES.md)를, 실행 중인 서버에서는 Swagger `/api-docs`(production 제외)를 참고하세요.
+> 빌드된 컨트롤러 메타데이터에서 추출한 전체 라우트 55개입니다. 요청·응답 예시는 [API_EXAMPLES.md](../../API_EXAMPLES.md)를 참고하세요. Swagger UI `/api-docs`는 `SWAGGER_ENABLED=true`일 때만 제공되며 production에서는 활성화할 수 없습니다.
 
 권한 표기:
 
