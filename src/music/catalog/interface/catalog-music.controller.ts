@@ -9,8 +9,14 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AdminOnly } from '../../../auth/session/interface/auth-route.decorators';
+import { ApiDefaultErrorResponse } from '../../../common/http/api-contract.decorators';
 import { CatalogMusicService } from '../catalog-music.service';
 import { CreateAudioAssetDto } from './dto/create-audio-asset.dto';
 import { CreateCatalogTrackDto } from './dto/create-catalog-track.dto';
@@ -22,25 +28,41 @@ import { ListPublicPlaylistsQueryDto } from './dto/list-public-playlists-query.d
 import { ListCatalogTracksQueryDto } from './dto/list-catalog-tracks-query.dto';
 import { ReorderCatalogPlaylistDto } from './dto/reorder-catalog-playlist.dto';
 import {
+  AudioAssetResponseDto,
+  CatalogPlaylistResponseDto,
+  CatalogPlaylistTrackResponseDto,
+  CatalogTrackResponseDto,
+  CatalogTrackSummaryResponseDto,
+  DeleteResourceResponseDto,
+} from './dto/catalog-music-response.dto';
+import {
   PaginatedPublicPlaylistsResponse,
+  PublicPlaylistResponse,
   toPublicPlaylistResponse,
 } from './presenters/catalog-playlist.presenter';
 
-@ApiTags('music')
+@ApiTags('music-catalog')
 @Controller('music')
+@ApiDefaultErrorResponse()
 export class CatalogMusicController {
   constructor(private readonly musicService: CatalogMusicService) {}
 
   @ApiOperation({ summary: '트랙 등록' })
+  @ApiCreatedResponse({ type: CatalogTrackResponseDto })
   @AdminOnly()
   @Post('tracks')
-  createTrack(@Body() dto: CreateCatalogTrackDto) {
+  createTrack(
+    @Body() dto: CreateCatalogTrackDto,
+  ): Promise<CatalogTrackResponseDto> {
     return this.musicService.createTrack(dto);
   }
 
   @ApiOperation({ summary: '트랙 목록 조회' })
+  @ApiOkResponse({ type: CatalogTrackSummaryResponseDto, isArray: true })
   @Get('tracks')
-  listTracks(@Query() query: ListCatalogTracksQueryDto) {
+  listTracks(
+    @Query() query: ListCatalogTracksQueryDto,
+  ): Promise<CatalogTrackSummaryResponseDto[]> {
     return this.musicService.listTracks(query).then((tracks) =>
       tracks.map((track) => ({
         id: track.id,
@@ -52,8 +74,11 @@ export class CatalogMusicController {
   }
 
   @ApiOperation({ summary: '트랙 상세 조회' })
+  @ApiOkResponse({ type: CatalogTrackSummaryResponseDto })
   @Get('tracks/:id')
-  getTrack(@Param('id', ParseIntPipe) id: number) {
+  getTrack(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<CatalogTrackSummaryResponseDto> {
     return this.musicService.getTrack(id).then((track) => ({
       id: track.id,
       title: track.title,
@@ -63,41 +88,50 @@ export class CatalogMusicController {
   }
 
   @ApiOperation({ summary: '트랙 수정' })
+  @ApiOkResponse({ type: CatalogTrackResponseDto })
   @AdminOnly()
   @Patch('tracks/:id')
   updateTrack(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCatalogTrackDto,
-  ) {
+  ): Promise<CatalogTrackResponseDto> {
     return this.musicService.updateTrack(id, dto);
   }
 
   @ApiOperation({ summary: '트랙 삭제' })
+  @ApiOkResponse({ type: DeleteResourceResponseDto })
   @AdminOnly()
   @Delete('tracks/:id')
-  deleteTrack(@Param('id', ParseIntPipe) id: number) {
+  deleteTrack(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<DeleteResourceResponseDto> {
     return this.musicService.deleteTrack(id);
   }
 
   @ApiOperation({ summary: '트랙 음원 파일 등록' })
+  @ApiCreatedResponse({ type: AudioAssetResponseDto })
   @AdminOnly()
   @Post('tracks/:trackId/audio-assets')
   createAudioAsset(
     @Param('trackId', ParseIntPipe) trackId: number,
     @Body() dto: CreateAudioAssetDto,
-  ) {
+  ): Promise<AudioAssetResponseDto> {
     return this.musicService.createAudioAsset(trackId, dto);
   }
 
   @ApiOperation({ summary: '트랙 음원 파일 목록 조회' })
+  @ApiOkResponse({ type: AudioAssetResponseDto, isArray: true })
   // AudioAsset에는 저장된 음원 URL이 포함될 수 있으므로 인증된 관리 조회입니다.
   @AdminOnly()
   @Get('tracks/:trackId/audio-assets')
-  listAudioAssets(@Param('trackId', ParseIntPipe) trackId: number) {
+  listAudioAssets(
+    @Param('trackId', ParseIntPipe) trackId: number,
+  ): Promise<AudioAssetResponseDto[]> {
     return this.musicService.listAudioAssets(trackId);
   }
 
   @ApiOperation({ summary: '공개 Playlist 목록 조회' })
+  @ApiOkResponse({ type: PaginatedPublicPlaylistsResponse })
   // 공개 화면은 메타데이터만 읽습니다. 음원 접근과 URL 발급은 별도 정책입니다.
   @Get('public/playlists')
   async listPublicPlaylists(
@@ -116,61 +150,76 @@ export class CatalogMusicController {
   }
 
   @ApiOperation({ summary: '공개 Playlist 상세 및 Track 순서 조회' })
+  @ApiOkResponse({ type: PublicPlaylistResponse })
   @Get('public/playlists/:id')
-  getPublicPlaylist(@Param('id', ParseIntPipe) id: number) {
+  getPublicPlaylist(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<PublicPlaylistResponse> {
     return this.musicService
       .getPublicPlaylist(id)
       .then((playlist) => toPublicPlaylistResponse(playlist));
   }
 
   @ApiOperation({ summary: 'Playlist 등록' })
+  @ApiCreatedResponse({ type: CatalogPlaylistResponseDto })
   @AdminOnly()
   @Post('playlists')
-  createPlaylist(@Body() dto: CreateCatalogPlaylistDto) {
+  createPlaylist(
+    @Body() dto: CreateCatalogPlaylistDto,
+  ): Promise<CatalogPlaylistResponseDto> {
     return this.musicService.createPlaylist(dto);
   }
 
   @ApiOperation({ summary: 'Playlist 공개 전환' })
+  @ApiOkResponse({ type: CatalogPlaylistResponseDto })
   @AdminOnly()
   @Patch('playlists/:id/publish')
-  publishPlaylist(@Param('id', ParseIntPipe) id: number) {
+  publishPlaylist(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<CatalogPlaylistResponseDto> {
     return this.musicService.publishPlaylist(id);
   }
 
   @ApiOperation({ summary: 'Playlist에 Track 추가' })
+  @ApiCreatedResponse({ type: CatalogPlaylistTrackResponseDto })
   @AdminOnly()
   @Post('playlists/:playlistId/tracks')
   addTrackToPlaylist(
     @Param('playlistId', ParseIntPipe) playlistId: number,
     @Body() dto: AddCatalogPlaylistTrackDto,
-  ) {
+  ): Promise<CatalogPlaylistTrackResponseDto> {
     return this.musicService.addTrackToPlaylist(playlistId, dto);
   }
 
   @ApiOperation({ summary: 'Playlist Track 순서 변경' })
+  @ApiOkResponse({ type: CatalogPlaylistTrackResponseDto, isArray: true })
   @AdminOnly()
   @Patch('playlists/:playlistId/tracks/reorder')
   reorderPlaylist(
     @Param('playlistId', ParseIntPipe) playlistId: number,
     @Body() dto: ReorderCatalogPlaylistDto,
-  ) {
+  ): Promise<CatalogPlaylistTrackResponseDto[]> {
     return this.musicService.reorderPlaylist(playlistId, dto);
   }
 
   @ApiOperation({ summary: '음원 파일 수정' })
+  @ApiOkResponse({ type: AudioAssetResponseDto })
   @AdminOnly()
   @Patch('audio-assets/:id')
   updateAudioAsset(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateAudioAssetDto,
-  ) {
+  ): Promise<AudioAssetResponseDto> {
     return this.musicService.updateAudioAsset(id, dto);
   }
 
   @ApiOperation({ summary: '음원 파일 삭제' })
+  @ApiOkResponse({ type: DeleteResourceResponseDto })
   @AdminOnly()
   @Delete('audio-assets/:id')
-  deleteAudioAsset(@Param('id', ParseIntPipe) id: number) {
+  deleteAudioAsset(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<DeleteResourceResponseDto> {
     return this.musicService.deleteAudioAsset(id);
   }
 }

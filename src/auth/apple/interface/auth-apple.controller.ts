@@ -8,6 +8,11 @@ import {
   UseFilters,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiDefaultErrorResponse,
+  ApiProviderUnavailableResponse,
+  ApiSuccessEnvelope,
+} from '../../../common/http/api-contract.decorators';
 import { successResponse } from '../../../common/http/api-response';
 import { RequestIdService } from '../../../common/request-id/request-id.service';
 import type { RequestWithId } from '../../../common/request-id/request-with-id';
@@ -48,6 +53,8 @@ const wrapUnexpected = (cause: unknown) =>
 
 @Controller('auth/apple')
 @ApiTags('auth/apple')
+@ApiDefaultErrorResponse()
+@ApiProviderUnavailableResponse()
 @UseFilters(SocialAuthExceptionFilter)
 @SocialProviderRoute('apple')
 export class AuthAppleController {
@@ -64,6 +71,7 @@ export class AuthAppleController {
 
   @Post('verify-id-token')
   @ApiOperation({ summary: 'Apple ID token 검증' })
+  @ApiSuccessEnvelope()
   @HttpCode(HttpStatus.OK)
   async verifyIdToken(
     @Body() dto: VerifyIdTokenDto,
@@ -84,6 +92,7 @@ export class AuthAppleController {
 
   @Post('exchange-code')
   @ApiOperation({ summary: 'Apple authorization code 교환' })
+  @ApiSuccessEnvelope()
   @HttpCode(HttpStatus.OK)
   async exchangeCode(@Body() dto: ExchangeCodeDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);
@@ -103,6 +112,7 @@ export class AuthAppleController {
 
   @Post('login')
   @ApiOperation({ summary: 'Apple social login' })
+  @ApiSuccessEnvelope()
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: AppleLoginDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);

@@ -8,6 +8,11 @@ import {
   UseFilters,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiDefaultErrorResponse,
+  ApiProviderUnavailableResponse,
+  ApiSuccessEnvelope,
+} from '../../../common/http/api-contract.decorators';
 import { successResponse } from '../../../common/http/api-response';
 import { RequestIdService } from '../../../common/request-id/request-id.service';
 import type { RequestWithId } from '../../../common/request-id/request-with-id';
@@ -48,6 +53,8 @@ const wrapUnexpected = (cause: unknown) =>
 
 @Controller('auth/google')
 @ApiTags('auth/google')
+@ApiDefaultErrorResponse()
+@ApiProviderUnavailableResponse()
 @UseFilters(SocialAuthExceptionFilter)
 @SocialProviderRoute('google')
 export class AuthGoogleController {
@@ -64,6 +71,7 @@ export class AuthGoogleController {
 
   @Post('verify-id-token')
   @ApiOperation({ summary: 'Google ID token 검증' })
+  @ApiSuccessEnvelope()
   @HttpCode(HttpStatus.OK)
   async verifyIdToken(
     @Body() dto: VerifyIdTokenDto,
@@ -84,6 +92,7 @@ export class AuthGoogleController {
 
   @Post('exchange-code')
   @ApiOperation({ summary: 'Google authorization code 교환' })
+  @ApiSuccessEnvelope()
   @HttpCode(HttpStatus.OK)
   async exchangeCode(@Body() dto: ExchangeCodeDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);
@@ -104,6 +113,7 @@ export class AuthGoogleController {
 
   @Post('login')
   @ApiOperation({ summary: 'Google social login' })
+  @ApiSuccessEnvelope()
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: GoogleLoginDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);

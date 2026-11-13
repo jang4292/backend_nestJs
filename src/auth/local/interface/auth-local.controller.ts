@@ -1,5 +1,11 @@
 import { Controller, Post, Body } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiProperty,
+  ApiTags,
+} from '@nestjs/swagger';
+import { ApiDefaultErrorResponse } from '../../../common/http/api-contract.decorators';
 import { Throttle } from '@nestjs/throttler';
 import {
   PublicUser,
@@ -8,18 +14,23 @@ import {
 import { LocalLoginUseCase } from '../application/use-cases/local-login.use-case';
 import { LoginDto } from './dto/login.dto';
 
-export interface LocalLoginResponse {
-  access_token: string;
-  user: PublicUser;
+export class LocalLoginResponse {
+  @ApiProperty()
+  access_token!: string;
+
+  @ApiProperty({ type: PublicUser })
+  user!: PublicUser;
 }
 
 @Controller('auth')
 @ApiTags('auth')
+@ApiDefaultErrorResponse()
 export class AuthLocalController {
   constructor(private readonly localLoginUseCase: LocalLoginUseCase) {}
 
   @Post('login')
   @ApiOperation({ summary: '로컬 계정 로그인' })
+  @ApiCreatedResponse({ type: LocalLoginResponse })
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   async login(@Body() loginDto: LoginDto): Promise<LocalLoginResponse> {
     const { user, session } = await this.localLoginUseCase.execute(loginDto);

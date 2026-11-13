@@ -8,6 +8,11 @@ import {
   UseFilters,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiDefaultErrorResponse,
+  ApiProviderUnavailableResponse,
+  ApiSuccessEnvelope,
+} from '../../../common/http/api-contract.decorators';
 import { successResponse } from '../../../common/http/api-response';
 import { RequestIdService } from '../../../common/request-id/request-id.service';
 import type { RequestWithId } from '../../../common/request-id/request-with-id';
@@ -45,6 +50,8 @@ const wrapUnexpected = (cause: unknown) =>
 
 @Controller('auth/facebook')
 @ApiTags('auth/facebook')
+@ApiDefaultErrorResponse()
+@ApiProviderUnavailableResponse()
 @UseFilters(SocialAuthExceptionFilter)
 @SocialProviderRoute('facebook')
 export class AuthFacebookController {
@@ -60,6 +67,7 @@ export class AuthFacebookController {
 
   @Post('exchange-code')
   @ApiOperation({ summary: 'Facebook authorization code 교환' })
+  @ApiSuccessEnvelope()
   @HttpCode(HttpStatus.OK)
   async exchangeCode(@Body() dto: ExchangeCodeDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);
@@ -79,6 +87,7 @@ export class AuthFacebookController {
 
   @Post('login')
   @ApiOperation({ summary: 'Facebook social login' })
+  @ApiSuccessEnvelope()
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: FacebookLoginDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);

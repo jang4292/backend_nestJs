@@ -4,6 +4,7 @@ import {
   ApiForbiddenResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { ApiErrorResponseDto } from '../../../common/http/api-contract.dto';
 import { UserRole } from '../../../users/domain/user-role.enum';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { Roles } from './roles.decorator';
@@ -15,6 +16,7 @@ export function Authenticated(): MethodDecorator & ClassDecorator {
     ApiBearerAuth(),
     ApiUnauthorizedResponse({
       description: 'Bearer token이 없거나 유효하지 않음',
+      type: ApiErrorResponseDto,
     }),
     UseGuards(JwtAuthGuard),
   );
@@ -26,8 +28,12 @@ export function AdminOnly(): MethodDecorator & ClassDecorator {
     ApiBearerAuth(),
     ApiUnauthorizedResponse({
       description: 'Bearer token이 없거나 유효하지 않음',
+      type: ApiErrorResponseDto,
     }),
-    ApiForbiddenResponse({ description: 'admin 역할이 아님' }),
+    ApiForbiddenResponse({
+      description: 'admin 역할이 아님',
+      type: ApiErrorResponseDto,
+    }),
     Roles(UserRole.ADMIN),
     UseGuards(JwtAuthGuard, RolesGuard),
   );

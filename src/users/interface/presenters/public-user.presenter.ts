@@ -1,16 +1,32 @@
+import { ApiProperty } from '@nestjs/swagger';
 import type { User } from '../../entities/user.entity';
-import type { UserRole } from '../../domain/user-role.enum';
+import { UserRole } from '../../domain/user-role.enum';
 
-export interface PublicUser {
-  id: number;
-  username: string;
-  email: string | null;
-  name: string | null;
-  role: UserRole;
+export class PublicUser {
+  @ApiProperty({ type: 'integer' })
+  id!: number;
+
+  @ApiProperty()
+  username!: string;
+
+  @ApiProperty({ type: String, nullable: true })
+  email!: string | null;
+
+  @ApiProperty({ type: String, nullable: true })
+  name!: string | null;
+
+  @ApiProperty({ enum: UserRole })
+  role!: UserRole;
+
   /** Linked SNS provider names, e.g. ['google', 'kakao'] */
-  providers: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  @ApiProperty({ type: [String] })
+  providers!: string[];
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  createdAt!: Date;
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  updatedAt!: Date;
 }
 
 export function toPublicUser(user: User): PublicUser {

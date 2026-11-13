@@ -1,14 +1,26 @@
 import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiOkResponse,
+  ApiOperation,
+  ApiProperty,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { DataSource } from 'typeorm';
+import { ApiDefaultErrorResponse } from './common/http/api-contract.decorators';
 import { AppService } from './app.service';
 
-export interface HealthResponse {
-  status: 'ok' | 'degraded';
-  timestamp: string;
-  database: 'up' | 'down';
+export class HealthResponse {
+  @ApiProperty({ enum: ['ok', 'degraded'] })
+  status!: 'ok' | 'degraded';
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  timestamp!: string;
+
+  @ApiProperty({ enum: ['up', 'down'] })
+  database!: 'up' | 'down';
 }
 
 @Controller()
@@ -20,6 +32,9 @@ export class AppController {
   ) {}
 
   @Get()
+  @ApiOperation({ summary: '애플리케이션 환영 메시지' })
+  @ApiOkResponse({ type: String })
+  @ApiDefaultErrorResponse()
   getHello(): string {
     return this.appService.getHello();
   }
@@ -31,6 +46,12 @@ export class AppController {
   @Get('health')
   @SkipThrottle()
   @ApiOperation({ summary: '애플리케이션 및 데이터베이스 상태 확인' })
+  @ApiOkResponse({ type: HealthResponse })
+  @ApiResponse({
+    status: HttpStatus.SERVICE_UNAVAILABLE,
+    description: '데이터베이스 연결 상태가 down입니다.',
+    type: HealthResponse,
+  })
   async getHealth(
     @Res({ passthrough: true }) res?: Response,
   ): Promise<HealthResponse> {

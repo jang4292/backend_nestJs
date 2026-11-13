@@ -8,6 +8,11 @@ import {
   UseFilters,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiDefaultErrorResponse,
+  ApiProviderUnavailableResponse,
+  ApiSuccessEnvelope,
+} from '../../../common/http/api-contract.decorators';
 import { successResponse } from '../../../common/http/api-response';
 import { RequestIdService } from '../../../common/request-id/request-id.service';
 import type { RequestWithId } from '../../../common/request-id/request-with-id';
@@ -45,6 +50,8 @@ const wrapUnexpected = (cause: unknown) =>
 
 @Controller('auth/kakao')
 @ApiTags('auth/kakao')
+@ApiDefaultErrorResponse()
+@ApiProviderUnavailableResponse()
 @UseFilters(SocialAuthExceptionFilter)
 @SocialProviderRoute('kakao')
 export class AuthKakaoController {
@@ -60,6 +67,7 @@ export class AuthKakaoController {
 
   @Post('exchange-code')
   @ApiOperation({ summary: 'Kakao authorization code 교환' })
+  @ApiSuccessEnvelope()
   @HttpCode(HttpStatus.OK)
   async exchangeCode(@Body() dto: ExchangeCodeDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);
@@ -79,6 +87,7 @@ export class AuthKakaoController {
 
   @Post('login')
   @ApiOperation({ summary: 'Kakao social login' })
+  @ApiSuccessEnvelope()
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: KakaoLoginDto, @Req() req: RequestWithId) {
     const requestId = this.getRequestId(req);

@@ -1,30 +1,63 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { CatalogPlaylist } from '../../entities/catalog-playlist.entity';
 
-export interface PublicPlaylistTrackResponse {
-  position: number;
-  track: {
-    id: number;
-    title: string;
-    artist: string;
-    bpm: number | null;
-  };
+export class PublicPlaylistTrackCatalogTrackResponse {
+  @ApiProperty({ type: 'integer' })
+  id!: number;
+
+  @ApiProperty()
+  title!: string;
+
+  @ApiProperty()
+  artist!: string;
+
+  @ApiProperty({ type: 'integer', nullable: true })
+  bpm!: number | null;
 }
 
-export interface PublicPlaylistResponse {
-  id: number;
-  title: string;
-  description: string | null;
-  playDate: string | null;
-  anonymousPlayable: boolean;
-  trackCount: number;
+export class PublicPlaylistTrackResponse {
+  @ApiProperty({ type: 'integer' })
+  position!: number;
+
+  @ApiProperty({ type: PublicPlaylistTrackCatalogTrackResponse })
+  track!: PublicPlaylistTrackCatalogTrackResponse;
+}
+
+export class PublicPlaylistResponse {
+  @ApiProperty({ type: 'integer' })
+  id!: number;
+
+  @ApiProperty()
+  title!: string;
+
+  @ApiProperty({ type: String, nullable: true })
+  description!: string | null;
+
+  @ApiProperty({ type: String, format: 'date', nullable: true })
+  playDate!: string | null;
+
+  @ApiProperty()
+  anonymousPlayable!: boolean;
+
+  @ApiProperty({ type: 'integer' })
+  trackCount!: number;
+
+  @ApiPropertyOptional({ type: [PublicPlaylistTrackResponse] })
   tracks?: PublicPlaylistTrackResponse[];
 }
 
-export interface PaginatedPublicPlaylistsResponse {
-  items: PublicPlaylistResponse[];
-  total: number;
-  page: number;
-  limit: number;
+export class PaginatedPublicPlaylistsResponse {
+  @ApiProperty({ type: [PublicPlaylistResponse] })
+  items!: PublicPlaylistResponse[];
+
+  @ApiProperty({ type: 'integer' })
+  total!: number;
+
+  @ApiProperty({ type: 'integer' })
+  page!: number;
+
+  @ApiProperty({ type: 'integer' })
+  limit!: number;
 }
 
 export function toPublicPlaylistResponse(
