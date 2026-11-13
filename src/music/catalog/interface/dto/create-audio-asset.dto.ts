@@ -13,13 +13,13 @@ export class CreateAudioAssetDto {
   @MaxLength(2000)
   url?: string;
 
-  @ApiPropertyOptional({ minimum: 0 })
+  @ApiPropertyOptional({ type: 'integer', minimum: 0 })
   @IsOptional()
   @IsInt()
   @Min(0)
   duration?: number;
 
-  @ApiPropertyOptional({ minimum: 0, maximum: 400 })
+  @ApiPropertyOptional({ type: 'integer', minimum: 0, maximum: 400 })
   @IsOptional()
   @IsInt()
   @Min(0)

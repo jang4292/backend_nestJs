@@ -29,7 +29,11 @@ export class ListTracksQueryDto {
   @MaxLength(SEARCH_TERM_MAX_LENGTH)
   search?: string;
 
-  @ApiPropertyOptional({ description: '아티스트 ID 필터' })
+  @ApiPropertyOptional({
+    type: 'integer',
+    minimum: 1,
+    description: '아티스트 ID 필터',
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -48,28 +52,33 @@ export class ListTracksQueryDto {
   @MaxLength(SEARCH_TERM_MAX_LENGTH)
   title?: string;
 
-  @ApiPropertyOptional({ description: '최소 BPM' })
+  @ApiPropertyOptional({ type: 'integer', minimum: 0, description: '최소 BPM' })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(0)
   minBpm?: number;
 
-  @ApiPropertyOptional({ description: '최대 BPM' })
+  @ApiPropertyOptional({ type: 'integer', minimum: 0, description: '최대 BPM' })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(0)
   maxBpm?: number;
 
-  @ApiPropertyOptional({ default: 1 })
+  @ApiPropertyOptional({ type: 'integer', minimum: 1, default: 1 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   page?: number = 1;
 
-  @ApiPropertyOptional({ default: 20 })
+  @ApiPropertyOptional({
+    type: 'integer',
+    minimum: 1,
+    maximum: 100,
+    default: 20,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()

@@ -22,19 +22,19 @@ export class CreateTrackDto {
   @MaxLength(200)
   title: string;
 
-  @ApiProperty({ minimum: 1 })
+  @ApiProperty({ type: 'integer', minimum: 1 })
   @IsInt()
   @Min(1)
   artistId: number;
 
-  @ApiPropertyOptional({ minimum: 0, maximum: 400 })
+  @ApiPropertyOptional({ type: 'integer', minimum: 0, maximum: 400 })
   @IsOptional()
   @IsInt()
   @Min(0)
   @Max(400)
   bpm?: number;
 
-  @ApiPropertyOptional({ minimum: 0 })
+  @ApiPropertyOptional({ type: 'integer', minimum: 0 })
   @IsOptional()
   @IsInt()
   @Min(0)
