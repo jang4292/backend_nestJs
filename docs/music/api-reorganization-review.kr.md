@@ -245,14 +245,29 @@ Repository port는 entity CRUD의 단순 복사보다 유스케이스가 필요�
 - 공개 presenter를 통한 AudioAsset URL 비노출
 - MariaDB용 `CreateCatalogPlaylistSchema` Migration
 
-이 구현은 기존 Legacy API를 제거하지 않는다. Legacy API는 `/music/legacy`와 `legacy_*` 테이블에 남아 있으며, Catalog는 `/music` 및 `/music/public` 경로를 사용한다. 따라서 이 문서의 기존 위험 분석 중 owner/role, presigned playback, Legacy-to-Catalog 이관은 여전히 후속 과제다.
+이 구현은 당시 기존 Legacy API를 제거하지 않았다. Legacy API는 `/music/legacy`와 `legacy_*` 테이블에 남아 있으며, Catalog는 `/music` 및 `/music/public` 경로를 사용한다. 이후 확정된 목표와 구현 잔여 상태는 13장을 기준으로 한다.
 
 ## 12. 2026-11-08 이후 상태
 
 | 이 문서의 과제 | 상태 |
 | --- | --- |
-| P0 변경 권한·소유권 모델 부재 | **부분 해결**: `users.role` + `@AdminOnly()`로 모든 음악 쓰기를 admin으로 제한. 사용자별 ownerId는 제품 결정 대기 |
+| P0 변경 권한·소유권 모델 부재 | **부분 해결**: `users.role` + `@AdminOnly()`로 모든 음악 쓰기를 admin으로 제한. 현재 확정된 Catalog는 전역 운영자 관리 모델이며 사용자별 ownerId는 범위에 없음 |
 | DB unique/FK 위반의 일관된 409 | **해결**: `mariadb-errors.ts`, `DomainError`, `GlobalExceptionFilter` 중앙 매핑. Artist 삭제 500 버그(PostgreSQL 코드 판별) 수정 |
 | PostgreSQL 기준 가정 | **정리**: MariaDB 전용. 본문의 PostgreSQL 서술은 MariaDB로 교체 |
-| Playlist 날짜·Track 중복 정책 | 미결([결정 문서](decisions.md)) |
-| transaction boundary·use-case 분리, presigned playback, Legacy→Catalog 이관 | 미결(로드맵 P1/P2) |
+| Playlist 날짜·Track 중복 정책 | **정책 확정**: 날짜당 제한 없음, 동일 Track 중복 허용. 현재 DB/API 반영은 후속 구현 |
+| Playlist 관리 순서와 재생 순서 | **정책 확정**: 별도 값으로 관리. 현재 Catalog의 단일 `position`을 보완해야 함 |
+| Soft delete·완전 삭제 | **정책 확정**: Music 레코드 전체 soft delete, 완전 삭제는 별도 관리자 처리. 구현과 보존 기준은 후속 작업 |
+| Playlist 상태·재생 정책 | **방향 확정**: archived→draft 복원, soft delete와 상태 분리, 공개 메타데이터와 익명 재생 분리. API/저장소 구현은 후속 작업 |
+| Catalog 기준화·Legacy 종료 | **정책 확정**: 데이터 이관·검증 후 Legacy API 종료, 테이블은 복구·감사 목적 보존. 이관/cutover는 후속 작업 |
+| transaction boundary·use-case 분리·OpenAPI 완성 | 미결(로드맵 P1/P2) |
+
+## 13. 2026-11-13 사용자 확정 정책
+
+다음 항목은 제품 정책으로 확정되었으며, 현재 코드에 모두 구현되었다는 의미는 아니다. 구현 기준과 미결 세부사항은 [결정 및 후속 작업](decisions.md)을 따른다.
+
+- Catalog를 유일한 Music 기준으로 사용하고, Legacy 데이터를 이관·검증한 뒤 Legacy API를 종료한다. Legacy 테이블은 복구·감사 가능하도록 보존한다.
+- 날짜당 Playlist 수와 Playlist 내 동일 Track 수에는 제한을 두지 않는다.
+- Playlist 관리/표시 순서와 실제 재생 순서를 별도 값으로 관리한다.
+- Playlist 항목을 포함한 Music 레코드는 soft delete하며, 완전 삭제는 별도 관리자 처리로 한다.
+- Playlist 상태는 `draft → published → archived`로 전이하고 archived는 draft로 복원할 수 있다. soft delete는 공개 상태와 분리한다.
+- 공개 Playlist 메타데이터와 음원 재생을 분리한다. `anonymousPlayable`에 따라 익명 재생을 허용하고, 만료되는 서명 URL을 사용하는 방향이다.
