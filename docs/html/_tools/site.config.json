@@ -1,6 +1,6 @@
 {
   "title": "Backend NestJS 학습 사이트",
-  "description": "NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.",
+  "description": "NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 다국어 사전·학습 플랫폼 설계 초안을 정리한 사이트입니다.",
   "home": "docs/README.md",
   "lang": "ko",
   "sections": [
@@ -29,6 +29,9 @@
         { "src": "docs/music/api.kr.md", "desc": "Music REST API 레퍼런스: Catalog/Legacy endpoint, 요청·응답, 오류 계약" },
         { "src": "docs/music/architecture.kr.md", "desc": "Legacy/Catalog 구조, 데이터 모델, 확정된 목표 정책" },
         { "src": "docs/music/decisions.md", "desc": "확정 정책(2026-11-13), 구현 전 세부 기준, 잔여 항목" },
+        { "src": "docs/architecture/AS_IS.md", "desc": "현재 음악 API 저장소 조사 결과와 확인/미확인 현황" },
+        { "src": "docs/architecture/TO_BE.md", "desc": "다국어 사전·학습 플랫폼 목표 아키텍처와 결정 항목" },
+        { "src": "docs/architecture/ADMIN_LIVE_API.md", "desc": "관리자/사용자 API 경계와 보안 통제" },
         { "src": "docs/music/api-reorganization-review.kr.md" },
         { "src": "docs/music/checklists.kr.md" },
         { "src": "docs/music/troubleshooting.kr.md" }
@@ -39,6 +42,7 @@
       "pages": [
         { "src": "docs/learning/database-schema-management.kr.md", "desc": "DB·테이블 생성, migration 적용·검증·롤백, 다른 DB 보호" },
         { "src": "docs/learning/database-improvement-guide.kr.md", "desc": "남은 DB 과제의 우선순위와 단계" },
+        { "src": "docs/database/ERD.md", "desc": "다국어 어휘·개념·한자·게시·학습 데이터 모델 초안" },
         { "src": "docs/deployment/database-environments.kr.md", "desc": "Local / Test / Prod 설정과 명령" },
         { "src": "docs/music/database/mariadb-operations.md" }
       ]
@@ -48,6 +52,7 @@
       "pages": [
         { "src": "docs/learning/api-security-guide.kr.md", "desc": "위협 모델, 인증·인가, 외부 IdP 검증, 직접 점검하는 방법" },
         { "src": "docs/learning/security-guide.kr.md", "desc": "시크릿 흐름, push 전 점검, DB 권한" },
+        { "src": "docs/operations/SECURITY.md", "desc": "신규 Admin/Live API 및 외부 import의 보안 설계" },
         { "src": "docs/audit/2026-11-09-security-audit.kr.md", "desc": "2026-11-09 보안 전수 감사 결과" }
       ]
     },
@@ -65,8 +70,21 @@
       "title": "배포·운영",
       "pages": [
         { "src": "docs/deployment/mariadb-systemd.kr.md", "desc": "EC2 + PM2 배포, 스모크 테스트, 롤백" },
+        { "src": "docs/architecture/ENVIRONMENTS.md", "desc": "LOCAL / DEV / PROD 격리 제안" },
+        { "src": "docs/architecture/INFRASTRUCTURE.md", "desc": "NAS / Mini PC / EC2 역할과 read-only 조사 항목" },
+        { "src": "docs/api/API_SPEC.md", "desc": "다국어 사전·학습 API 계약 초안" },
+        { "src": "docs/operations/DEPLOYMENT.md", "desc": "CI → DEV → PROD 배포 게이트와 롤백" },
+        { "src": "docs/operations/BACKUP_RECOVERY.md", "desc": "독립 백업과 격리 복원 절차" },
         { "src": "docs/learning/deployment-secrets-checklist.kr.md" },
         { "src": "README.md", "desc": "저장소 README(영문): 설치, 실행, 검증" }
+      ]
+    },
+    {
+      "title": "구현 계획",
+      "pages": [
+        { "src": "docs/plans/IMPLEMENTATION_PLAN.md", "desc": "Phase 0–8 범위·선행조건·검증·위험" },
+        { "src": "docs/plans/TASK_CHECKLIST.md", "desc": "P0/P1/P2 의사결정 및 작업 체크리스트" },
+        { "src": "docs/prompts/PHASE_PROMPTS.md", "desc": "사용자 요청에 포함된 단계별 실행 프롬프트" }
       ]
     },
     {
