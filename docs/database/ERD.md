@@ -1,7 +1,40 @@
-# 다국어 사전·학습 MariaDB 데이터 모델 초안
+# 다국어 사전·학습 MariaDB 데이터 모델
 
-> 최신화 기준: 2026-11-14 · develop `a38e885`
-> **목표 모델 제안**이며 현재 저장소의 Entity/Schema가 아닙니다. 실제 Migration 작성 전 요구사항·데이터 샘플·라이선스를 검증해야 합니다.
+> 최신화 기준: 2026-11-14 · dictionary MVP 작업 트리
+> 0절은 구현된 MVP이며, 1~8절은 학습·문자·import 등을 포함한 **미구현 장기 모델 제안**입니다.
+
+## 0. 구현된 사전 MVP
+
+동일 앱에 `dictionary_` 접두사의 12개 테이블을 추가합니다. 기존 `users`의 `int` ID와 역할을 재사용하고 음악 테이블을 변경하지 않습니다.
+
+```mermaid
+erDiagram
+  dictionary_languages ||--o{ dictionary_lexemes : contains
+  dictionary_lexemes ||--o{ dictionary_revisions : versions
+  dictionary_sources ||--o{ dictionary_revisions : attributes
+  dictionary_revisions ||--o{ dictionary_forms : has
+  dictionary_revisions ||--o{ dictionary_senses : has
+  dictionary_senses ||--o{ dictionary_sense_concepts : maps
+  dictionary_concepts ||--o{ dictionary_sense_concepts : maps
+  dictionary_publications ||--o{ dictionary_publication_entries : includes
+  dictionary_revisions ||--o{ dictionary_publication_entries : publishes
+  dictionary_publications ||--o| dictionary_publication_state : current
+```
+
+| 테이블 | 구현 내용 |
+|---|---|
+| `dictionary_languages` | 5개 언어 태그·이름·script seed |
+| `dictionary_sources`, `dictionary_concepts` | 수동 출처·라이선스와 언어 독립 개념 |
+| `dictionary_lexemes`, `dictionary_revisions` | 언어와 현재 version, immutable 콘텐츠 및 draft/review/approved 상태 |
+| `dictionary_forms`, `dictionary_senses`, `dictionary_sense_concepts` | revision별 표기·뜻 및 개념 연결 |
+| `dictionary_publications`, `dictionary_publication_entries`, `dictionary_publication_state` | 완전한 게시 스냅샷, lexeme/revision 연결, 단일 현재 포인터 |
+| `dictionary_audit_logs` | actor, action, 대상, revision 참조, request ID, reason, 시각 |
+
+- 사전 ID/FK는 기존 사용자 FK와 호환되는 signed `INT`입니다. revision의 `(lexemeId, version)`은 unique이며 publication entry는 `(revisionId, lexemeId)` 복합 FK로 올바른 어휘에 연결됩니다.
+- 참조 무결성은 `RESTRICT`를 기본으로 하며 사용자 actor 참조는 사용자 삭제 시 `SET NULL`입니다. revision 상태와 publication-state 단일 ID는 DB `CHECK`로도 보호합니다.
+- 문자열 컬럼과 테이블은 `utf8mb4_bin`이고 원문과 NFC·소문자 검색 키를 따로 보관합니다. 현재 지원 범위와 응답은 [API 계약](../api/API_SPEC.md)을 참고합니다.
+- 시간 컬럼은 `DATETIME(3)`입니다. DB 기본 시각과 애플리케이션 시각이 일치하도록 운영 DB 세션과 앱의 시간대 설정을 검증해야 하며, 현재 코드만으로 UTC 설정을 보장하지 않습니다.
+- Migration revert는 데이터나 수정·추가한 언어 seed가 있으면 거부합니다. MariaDB DDL은 암묵적으로 커밋되므로 migration 실패 시 부분 스키마가 남을 수 있습니다. **서비스 중인 DB에 실행하지 말고** 백업 및 별도 승인 절차를 따릅니다. 스키마/검색 부하와 실제 운영 DB 호환성은 아직 검증하지 않았습니다.
 
 ## 1. 모델링 원칙
 

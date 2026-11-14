@@ -1,140 +1,107 @@
-# 다국어 사전 REST API 초안
+# 다국어 사전 REST API
 
-> 최신화 기준: 2026-11-14 · develop `a38e885`
-> 제안된 미래 계약입니다. 현재 저장소의 기존 API 계약은 `/api/v1` prefix 없이 운영되는 것으로 문서화되어 있습니다. 전체 앱에 prefix를 일괄 추가하지 말고, 기존 client 호환성을 보존하면서 신규 dictionary route만 버저닝해야 합니다.
+> 최신화 기준: 2026-11-14 · dictionary MVP 작업 트리
+> 이 문서는 현재 구현된 사전 API를 설명합니다. 기존 음악·인증 API에는 전역 prefix를 추가하지 않습니다.
 
-## 1. 공통 규칙
+## 공통 규칙
 
-- Base URL: `https://<host>/api/v1`; JSON UTF-8.
-- `id`는 공개 가능한 opaque/string ID 권장. DB의 auto-increment 정수 노출 여부는 결정할 것.
-- Live는 게시된 publication을 대상으로 하고 `publicationId` 및 `contentRevision`을 응답 metadata에 기록합니다.
-- 페이지네이션: `limit` 기본 20, 최대 100; `cursor` opaque token. 검색 응답 순서는 `(language, normalized match rank, stable id)`로 안정화합니다.
-- 선택 필터: BCP-47 `language`, script/region, part-of-speech, status(관리자만), concept, include fields.
-- 문자열 검색은 literal query와 길이 상한을 사용합니다. SQL wildcard 검색식을 사용자 입력 그대로 적용하지 않습니다.
-- Mutation에는 `Idempotency-Key`를 받는 operation을 명시하고, Admin mutation은 `X-Request-Id`를 감사 이벤트와 연결합니다.
-- 응답에는 DB Entity를 직접 직렬화하지 않고 전용 DTO/presenter를 사용합니다.
+- 사전과 health 경로는 `/api/v1`을 사용하며 JSON UTF-8로 요청하고 응답합니다. ID는 정수입니다.
+- Public 조회는 현재 publication의 승인된 revision만 반환하며, 출처의 이름·라이선스·attribution·URL을 함께 제공합니다.
+- Public 목록의 `limit`은 기본 20, 최대 100이며 `cursor`는 opaque token입니다. 정렬은 lexeme ID 오름차순입니다. 다음 페이지 요청에는 같은 검색 조건을 사용해야 하며, publication이 바뀌면 409를 반환하므로 첫 페이지부터 다시 조회합니다.
+- 검색은 lemma와 forms에 대해 NFC 정규화·소문자 변환 후 **접두사**를 비교합니다. `%`, `_`, `!`는 와일드카드가 아닌 문자 그대로 취급합니다. 언어별 형태소 분석이나 fuzzy 검색은 지원하지 않습니다.
+- 관리자 API는 Bearer JWT와 `admin` 역할이 필요합니다. actor는 토큰에서 결정하며 요청 body에서 받지 않습니다. 쓰기와 감사 기록은 같은 트랜잭션에서 처리합니다.
+- Swagger를 명시적으로 활성화한 비운영 환경에서는 `/api-docs`에서 DTO와 응답 스키마를 확인할 수 있습니다.
 
-### 응답 Envelope
-
-현재 앱의 공통 error envelope와 호환을 우선하고, 성공 응답을 새 API에 적용합니다.
-
-```json
-{
-  "ok": true,
-  "requestId": "4b9e...",
-  "data": { "id": "lex_123", "publicationId": "pub_2026_01" },
-  "meta": { "nextCursor": null }
-}
-```
-
-```json
-{
-  "ok": false,
-  "requestId": "4b9e...",
-  "errorCode": "VALIDATION_FAILED",
-  "message": "Request validation failed",
-  "details": [{ "field": "language", "code": "UNSUPPORTED_LANGUAGE" }]
-}
-```
-
-## 2. API 그룹
-
-### Dictionary (public)
-
-| Method / path | 목적·인증 | Query/Body | 정상 / 주요 오류 |
-|---|---|---|---|
-| `GET /languages` | 공개 지원 언어 조회 | `active=true` | 200 |
-| `GET /lexemes` | 공개 검색 | `q`, `language`, `script`, `pos`, `conceptId`, `cursor`, `limit` | 200; 400 잘못된 filter |
-| `GET /lexemes/{lexemeId}` | 어휘·forms·senses 조회 | `include=examples,translations,pronunciations` | 200; 404 |
-| `GET /concepts/{conceptId}` | 언어 독립 의미 조회 | `language[]`, `cursor`, `limit` | 200; 404 |
-| `GET /concepts/{conceptId}/translations` | 연결된 다국어 sense 조회 | `sourceLanguage`, `targetLanguage[]` | 200; 404 |
-| `GET /characters/{codepoint}` | 문자 코드/표기·variants 조회 | codepoint는 `U+` 없는 hex | 200; 400/404 |
-| `GET /characters/{codepoint}/readings` | 언어별 독음·출처 요약 | `language[]`, `script` | 200; 404 |
-
-예: `GET /api/v1/lexemes?q=行&language=ja&limit=20`.
-
-### Study (authenticated user)
-
-| Method / path | 목적 | Request | 정상 / 주요 오류 |
-|---|---|---|---|
-| `POST /study/sessions` | 학습 세션 생성 | `{ deckId?, language, targetLanguage?, mode, limit }` | 201; 400/403 |
-| `GET /study/sessions/{sessionId}/questions` | 세션 문제 조회 | `cursor`, `limit` | 200; 403/404 |
-| `POST /study/sessions/{sessionId}/answers` | 답 제출·복습 상태 기록 | `{ cardId, answer, idempotencyKey? }` | 201; 400/403/409 |
-| `GET /study/progress` | 개인 학습 진행도 | `from`, `to`, `deckId?` | 200 |
-| `GET /study/reviews` | due 복습 카드 | `dueBefore`, `cursor`, `limit` | 200 |
-
-보안 규칙: 사용자 소유권은 인증 token의 `sub`에서 정하며 body/query의 사용자 ID를 신뢰하지 않습니다. 답변 응답은 grade, 다음 복습 시각, 사용한 immutable `contentRevisionId`를 반환합니다. 정답이 필요 없는 문제 응답에 answer 필드를 노출하지 않습니다.
-
-### Admin (authenticated, admin role + restricted network)
-
-| Method / path | 목적 | 주요 입력/응답 |
-|---|---|---|
-| `POST /admin/lexemes` | draft lexeme 생성 | `languageTag`, `lemma`, `forms[]`, `partOfSpeech`; 201 |
-| `PATCH /admin/lexemes/{id}` | 신규 revision 편집 | 수정 fields + `expectedVersion`; 200/409 |
-| `POST /admin/concepts` | concept draft 생성 | `description`; 201 |
-| `POST /admin/sense-concepts` | sense/concept 연결 검수 | `senseId`, `conceptId`, `relationType`; 201 |
-| `POST /admin/character-readings` | 언어별 독음 편집 | character, language, reading metadata; 201 |
-| `POST /admin/import-jobs` | 출처 등록 및 import job 생성 | `sourceId`, `sourceVersion`, `checksum`, `idempotencyKey`; 202 |
-| `GET /admin/import-jobs/{id}` | staging/import 상태 확인 | 200; 404 |
-| `POST /admin/import-jobs/{id}/review` | 검수/반려 결과 기록 | entry IDs, decisions, reason; 200/409 |
-| `POST /admin/publications` | 승인 revision 집합 게시 | `{ revisionIds[], expectedCurrentPublicationId?, reason }`; 201 |
-| `POST /admin/publications/{id}/revoke` | 공개 철회/이전 버전 복구 workflow | `{ reason }`; 202 |
-| `GET /admin/audit-logs` | 변경 이력 조회 | actor, entity, date range, cursor; 200 |
-
-위 API는 정확한 Request/Response DTO, pagination, sorting, validation, 권한 decorator와 Swagger operation을 구현 시 명시합니다. Admin writes는 actor ID, reason, request ID, before/after revision을 기록합니다.
-
-### System
-
-| Method / path | 용도 | 응답 |
-|---|---|---|
-| `GET /health/live` | process liveness | 200, 프로세스만 확인; 외부 dependency 조회 없음 |
-| `GET /health/ready` | readiness | DB 등 필수 dependency 확인; 준비 불가 시 503 |
-
-## 3. DTO 예시
-
-### 검색
-
-```http
-GET /api/v1/lexemes?q=行&language=ja&cursor=&limit=20
-```
+성공 응답 예:
 
 ```json
 {
   "ok": true,
   "requestId": "req-123",
-  "data": [{
-    "id": "lex_123",
-    "language": "ja",
-    "forms": [{ "text": "行", "script": "Jpan", "type": "kanji" }],
-    "senses": [{ "id": "sense_1", "partOfSpeech": "verb", "glosses": ["..."] }]
-  }],
-  "meta": { "publicationId": "pub_42", "nextCursor": null }
+  "data": { "publicationId": null, "items": [], "nextCursor": null }
 }
 ```
 
-예시 gloss의 실제 텍스트는 라이선스·데이터 fixture 승인 전에는 사용하지 않습니다.
+오류 응답 예:
 
-## 4. HTTP 상태/오류 정책
+```json
+{
+  "ok": false,
+  "requestId": "req-123",
+  "errorCode": "BAD_REQUEST",
+  "message": "Invalid cursor"
+}
+```
 
-| Status | 사용처 |
+## Public
+
+| Method / path | 입력 | 결과 |
+|---|---|---|
+| `GET /api/v1/languages` | 없음 | 지원 언어 `en`, `ko`, `ja`, `zh-Hans`, `zh-Hant` |
+| `GET /api/v1/lexemes` | `q?`(최대 100자), `language?`, `cursor?`, `limit?` | `{ publicationId, items, nextCursor }`; 게시물이 없으면 빈 목록 |
+| `GET /api/v1/lexemes/{id}` | 정수 ID | 게시된 어휘·forms·senses·source·`contentRevisionId`·`publicationId`; 없으면 404 |
+| `GET /api/v1/concepts/{id}` | `language?`, `cursor?`, `limit?` | 게시된 개념과 연결 어휘; 게시된 연결이 없으면 404 |
+| `GET /api/v1/concepts/{id}/translations` | `targetLanguage?`, `cursor?`, `limit?` | 같은 개념에 연결된 게시 어휘; 개념이 공개되지 않으면 404 |
+| `GET /api/v1/health/live` | 없음 | 프로세스 생존 확인 |
+| `GET /api/v1/health/ready` | 없음 | DB `SELECT 1`; 실패하면 503 |
+
+`language`와 `targetLanguage`는 위 다섯 태그 중 하나입니다. Concept 응답은 검색 목록과 같은 필드에 `concept: { id, description }`을 추가합니다. 기존 `/health`도 유지됩니다.
+
+## Admin
+
+관리자 목록은 `page`(기본 1)와 `limit`(기본 20, 최대 100)을 사용하고 `{ items, total, page, limit }`을 반환합니다.
+
+| Method / path | 목적과 입력 | 성공 |
+|---|---|---|
+| `POST /api/v1/admin/sources` | 출처 생성: `name`, `license`, `attribution`, `url?` | 201 |
+| `GET /api/v1/admin/sources` | 출처 목록 | 200 |
+| `POST /api/v1/admin/concepts` | 개념 생성: `description` | 201 |
+| `GET /api/v1/admin/concepts` | 개념 목록 | 200 |
+| `POST /api/v1/admin/lexemes` | 초안 생성: `languageTag`, `lemma`, `sourceId`, `senses`, `partOfSpeech?`, `forms?` | 201 |
+| `GET /api/v1/admin/lexemes` | 어휘 목록, `status?` 필터 | 200 |
+| `GET /api/v1/admin/lexemes/{id}` | 현재 revision 상세 | 200 |
+| `PATCH /api/v1/admin/lexemes/{id}` | `expectedVersion`과 변경할 콘텐츠 필드로 새 초안 생성 | 200 |
+| `POST /api/v1/admin/lexemes/{id}/submit` | `expectedVersion`으로 초안 검수 요청 | 200 |
+| `POST /api/v1/admin/lexemes/{id}/approve` | `expectedVersion`, `reason`으로 검수 중 revision 승인 | 200 |
+| `GET /api/v1/admin/publications/current` | `{ publicationId }`, 최초에는 `null` | 200 |
+| `POST /api/v1/admin/publications` | `revisionIds`, `expectedCurrentPublicationId?`, `reason`으로 게시 | 201 |
+| `GET /api/v1/admin/audit-logs` | 감사 로그 목록 | 200 |
+
+어휘 생성 예:
+
+```json
+{
+  "languageTag": "ko",
+  "lemma": "예시",
+  "sourceId": 1,
+  "forms": [{ "text": "예시", "script": "Hang", "type": "variant" }],
+  "senses": [{ "definition": "직접 작성한 뜻", "conceptIds": [1] }]
+}
+```
+
+`senses`는 1~20개, `forms`는 최대 20개입니다. 각 sense의 `conceptIds`는 최대 20개이며 기존 개념을 참조합니다. 변경하지 않은 필드는 이전 revision에서 복사되고, 편집할 때마다 새 `draft` revision이 만들어집니다. 상태는 `draft → in_review → approved` 순서로 진행합니다. 수정·제출·승인 시 `expectedVersion`이 오래되었거나 상태가 맞지 않으면 409입니다.
+
+게시 요청 예:
+
+```json
+{
+  "revisionIds": [1, 2],
+  "expectedCurrentPublicationId": null,
+  "reason": "검수 완료"
+}
+```
+
+승인된 revision만 게시할 수 있습니다. 게시 트랜잭션은 이전 스냅샷에서 요청에 없는 어휘를 유지하고 지정한 어휘만 새 revision으로 교체한 뒤 현재 publication 포인터를 원자적으로 바꿉니다. `expectedCurrentPublicationId`를 생략하면 `null`로 간주하므로 최초 게시 이후에는 현재 ID를 전달해야 합니다. 동시에 다른 게시가 완료되거나 이미 같은/더 최신 revision이 공개된 경우 409입니다. 단일 요청은 최대 100개 revision을 받습니다.
+
+## 상태와 운영 제한
+
+| 상태 | 의미 |
 |---|---|
-| 200 | 조회/성공한 부분 수정 |
-| 201 | 생성 및 publication revision 생성 |
-| 202 | 비동기 import/revoke job 접수 |
-| 400 | DTO/필터/locale/codepoint 오류 |
-| 401 / 403 | 미인증 / 권한 또는 리소스 소유권 불일치 |
-| 404 | 존재하지 않거나 호출자가 볼 수 없는 리소스 |
-| 409 | optimistic version, 중복 idempotency, publication 상태 충돌 |
-| 422 | 도메인 검증 실패(출처 누락, 연결 불가능한 sense 등) |
-| 429 | 사용자/IP/job rate limit |
-| 503 | readiness 실패 또는 의존성 일시 장애 |
+| 400 | DTO, 필터, cursor 또는 참조 검증 실패 |
+| 401 / 403 | 미인증 / admin 권한 부족 |
+| 404 | 존재하지 않거나 게시되지 않은 리소스 |
+| 409 | version, review 상태, publication 또는 cursor 충돌 |
+| 429 | 공통 요청 제한 |
+| 503 | readiness에서 DB 연결 실패 |
 
-외부 데이터 제공자 오류 원문, SQL 오류, 민감한 import payload는 API 응답에 포함하지 않습니다. Public endpoint에는 rate limit, query length 제한, cursor 검증을 적용합니다.
-
-## 5. 버저닝·호환성
-
-- 신규 dictionary route만 `/api/v1`로 시작합니다. 현 음악/auth route에 global prefix를 씌우지 않습니다.
-- 응답 필드의 additive change는 v1 내에서 허용하되 필드 제거/의미 변경/권한 변경은 breaking change로 취급합니다.
-- OpenAPI JSON을 CI에서 생성/검증해 Admin/Live UI 계약과 동기화합니다.
-- deprecation은 응답 header/문서로 사전 고지하고, 클라이언트 전환 및 사용량 확인 후 제거합니다.
-
+출처 정보는 수동 등록만 제공하며 라이선스의 적법성이나 재배포 가능 여부를 자동 검증하지 않습니다. 외부 데이터는 가져오지 않았습니다. MFA, 관리자 네트워크 제한, 출처 승인 절차와 배포 환경은 별도 운영 검증이 필요합니다. 문자·독음 API, 학습, import job, 게시 취소/롤백, idempotency key는 MVP에 구현되지 않았습니다.

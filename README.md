@@ -1,12 +1,12 @@
 # NestJS Backend API
 
-> Last updated: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11` ·
+> Last updated: 2026-11-14 · dictionary MVP working tree ·
 > Documentation index (Korean): [docs/README.md](docs/README.md)
 
-A NestJS 11 backend that provides local JWT authentication, user profiles, and
-music catalog and playlist APIs. It runs on MariaDB through TypeORM. Settings
-are validated at startup, and the schema changes only through versioned
-migrations.
+A NestJS 11 backend that provides local JWT authentication, user profiles,
+music catalog and playlist APIs, and a multilingual dictionary MVP. It runs on
+MariaDB through TypeORM. Settings are validated at startup, and the schema
+changes only through versioned migrations.
 
 ## Features
 
@@ -14,6 +14,8 @@ migrations.
   `currentPassword`.
 - Minimal RBAC: music write APIs are admin-only (`users.role`).
 - Music catalog (tracks, audio assets, playlists) and legacy music APIs.
+- Dictionary search, concept lookup, admin review/publication and source
+  attribution; see the [dictionary API](docs/api/API_SPEC.md).
 - Social login modules for Google, Apple, Kakao, Naver and Facebook.
   **They are currently all disabled; only local login is used.** Each provider
   is opt-in, see [SNS login](#sns-login).
@@ -213,6 +215,7 @@ src/
   auth/          session (JWT, RBAC), local login, shared SNS kernel, 5 providers
   users/         domain, use-cases, ports/adapters, controller, presenters
   music/         legacy (/music/legacy) and catalog (/music) modules
+  dictionary/    public and admin dictionary, review and publication
 scripts/         typeorm-env.cjs, check-env.cjs, runtime-env-keys.cjs, export-secrets-env.cjs
 test/            e2e (runs against MariaDB)
 ```
@@ -222,6 +225,17 @@ test/            e2e (runs against MariaDB)
 ```bash
 npm run lint:check && npm run format:check && npm run typecheck && npx jest && npm run build
 npm run db:setup:test && npm run test:e2e      # needs .env.test.local
+```
+
+The dictionary and catalog concurrency E2E suites are skipped unless
+`ISOLATED_DATABASE_E2E=true` is set. Enable it **only** for a disposable,
+dedicated local `*_test` database: these suites create users/content and change
+the current publication; they do not clean up the database. The test guard
+checks the loopback host and name, but cannot prove a database is disposable.
+After configuring a private test instance and running its migrations:
+
+```bash
+ISOLATED_DATABASE_E2E=true npm run test:e2e -- --runInBand
 ```
 
 GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs
@@ -235,7 +249,7 @@ on every pull request and on every push to `develop` and `main`:
   2. assert that nothing is pending
   3. revert and re-apply the latest migration
   4. run the schema drift check (report-only for now, audit item DB-12)
-  5. run e2e
+  5. run e2e, including the opt-in dictionary and concurrency suites
 
 ## Documentation
 

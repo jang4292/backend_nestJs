@@ -1,6 +1,6 @@
 # 기능 명세 (기획)
 
-> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-14 · dictionary MVP 작업 트리
 > 현재 구현을 기준으로 정리한 명세입니다. "정책 미확정" 표시는 제품 결정이 필요한 항목입니다.
 
 ## 1. 계정
@@ -107,6 +107,12 @@
 | 오류 응답 | `{ ok: false, requestId, errorCode, message }`. 5xx 메시지는 일반화하고 비밀값은 마스킹합니다 |
 | 요청 ID | `x-request-id`가 영문·숫자·`. _ : = + / -` 128자 이하면 그대로 쓰고, 아니면 새 UUID를 생성합니다. 응답 헤더로 돌려줍니다(CORS 노출) |
 | 입력 검증 | 전역 `ValidationPipe(whitelist, forbidNonWhitelisted, transform)`. 모든 문자열 입력에 길이 상한(DB 컬럼 길이 이하) |
-| 요청 제한 | 전역 `THROTTLE_LIMIT`/`THROTTLE_TTL`(기본 10회/60초), 로그인 IP당 5회/분 + 계정당 실패 10회/15분, `/health` 제외. proxy 뒤에서는 `TRUST_PROXY` 필수 |
+| 요청 제한 | 전역 `THROTTLE_LIMIT`/`THROTTLE_TTL`(기본 10회/60초), 로그인 IP당 5회/분 + 계정당 실패 10회/15분, `/health` 및 `/api/v1/health/*` 제외. proxy 뒤에서는 `TRUST_PROXY` 필수 |
 | CORS | `CORS_ORIGIN` 쉼표 목록, `*` 금지 |
 | 문서 | Swagger `/api-docs`. production에서는 비노출 |
+
+## 5. 다국어 사전 MVP
+
+- 5개 언어의 어휘·표기·뜻을 개념으로 연결하고, 공개 API는 게시된 콘텐츠만 제공합니다.
+- 관리자는 출처를 등록하고 초안 생성·편집, 검수 요청, 승인 및 publication을 수행합니다.
+- 검색 정규화·페이지네이션·요청 계약은 [사전 API 명세](../api/API_SPEC.md)를 참고합니다. 외부 데이터 import와 학습 기능은 미구현입니다.
