@@ -18,6 +18,11 @@ import { CatalogMusicController } from './music/catalog/interface/catalog-music.
 import { CatalogMusicService } from './music/catalog/catalog-music.service';
 import { UsersController } from './users/interface/users.controller';
 import { UsersService } from './users/users.service';
+import { DictionaryAdminController } from './dictionary/interface/dictionary-admin.controller';
+import { DictionaryLiveController } from './dictionary/interface/dictionary-live.controller';
+import { DictionaryHealthController } from './dictionary/interface/dictionary-health.controller';
+import { DictionaryAdminService } from './dictionary/application/dictionary-admin.service';
+import { DictionaryLiveService } from './dictionary/application/dictionary-live.service';
 
 describe('OpenAPI contract', () => {
   let document: OpenAPIObject;
@@ -31,6 +36,9 @@ describe('OpenAPI contract', () => {
         AuthGoogleController,
         CatalogMusicController,
         MusicController,
+        DictionaryAdminController,
+        DictionaryLiveController,
+        DictionaryHealthController,
       ],
       providers: [
         { provide: AppService, useValue: {} },
@@ -43,6 +51,8 @@ describe('OpenAPI contract', () => {
         { provide: RequestIdService, useValue: {} },
         { provide: CatalogMusicService, useValue: {} },
         { provide: MusicService, useValue: {} },
+        { provide: DictionaryAdminService, useValue: {} },
+        { provide: DictionaryLiveService, useValue: {} },
       ],
     }).compile();
     const app = moduleRef.createNestApplication();
@@ -161,6 +171,41 @@ describe('OpenAPI contract', () => {
     expect(
       document.components?.schemas?.[ApiErrorResponseDto.name],
     ).toBeDefined();
+  });
+
+  it('documents concrete dictionary envelopes and administrator authorization', () => {
+    const search = document.paths['/api/v1/lexemes']?.get;
+    expect(search?.security).toBeUndefined();
+    expect(responseSchema(search, '200')).toEqual({
+      $ref: '#/components/schemas/DictionarySearchResponseDto',
+    });
+    expect(document.components?.schemas?.DictionarySearchDataDto).toMatchObject(
+      {
+        properties: {
+          publicationId: { type: 'integer', nullable: true },
+          items: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/DictionaryPublicLexemeDto' },
+          },
+          nextCursor: { type: 'string', nullable: true },
+        },
+      },
+    );
+
+    const create = document.paths['/api/v1/admin/lexemes']?.post;
+    expect(create?.security).toEqual([{ bearer: [] }]);
+    expect(requestBodySchema(create)).toEqual({
+      $ref: '#/components/schemas/CreateDictionaryLexemeDto',
+    });
+    expect(responseSchema(create, '201')).toEqual({
+      $ref: '#/components/schemas/DictionaryAdminLexemeResponseDto',
+    });
+    expect(responseSchema(create, '401')).toEqual({
+      $ref: '#/components/schemas/ApiErrorResponseDto',
+    });
+    expect(responseSchema(create, '403')).toEqual({
+      $ref: '#/components/schemas/ApiErrorResponseDto',
+    });
   });
 });
 

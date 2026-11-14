@@ -23,6 +23,7 @@ import { MusicModule } from './music/music.module';
 import { CatalogMusicModule } from './music/catalog/catalog-music.module';
 import { createDatabaseOptions } from './database/database-options';
 import { MigrationStatusService } from './database/migration-status.service';
+import { DictionaryModule } from './dictionary/dictionary.module';
 
 // NODE_ENV별 env 파일(.env / .env.test.local / .env.production, ENV_FILE로 재지정 가능)
 const envFilePath = resolveEnvFilePath();
@@ -98,6 +99,7 @@ assertEnvFileAvailable(envFilePath);
     CommonModule,
     MusicModule,
     CatalogMusicModule,
+    DictionaryModule,
   ],
   controllers: [AppController],
   providers: [

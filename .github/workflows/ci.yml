@@ -82,6 +82,8 @@ jobs:
       DB_PASSWORD: ci-test-password
       DB_DATABASE: app_db_test
       JWT_SECRET: ci-only-test-secret-0123456789abcdefghijklmn
+      # 이 job의 MariaDB 서비스는 일회용이며 테스트가 publication과 재생목록을 변경합니다.
+      ISOLATED_DATABASE_E2E: 'true'
     steps:
       - uses: actions/checkout@v4
         with:
