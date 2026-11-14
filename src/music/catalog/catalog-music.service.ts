@@ -166,25 +166,39 @@ export class CatalogMusicService {
     playlistId: number,
     dto: AddCatalogPlaylistTrackDto,
   ): Promise<CatalogPlaylistTrack> {
-    const playlist = await this.getPlaylist(playlistId);
-    const track = await this.trackRepo.findById(dto.trackId);
-    if (!track) {
-      throw new NotFoundException('Track not found');
-    }
-    const existingPosition = await this.playlistTrackRepo.findOne({
-      where: { playlist: { id: playlistId }, position: dto.position },
-    });
-    if (existingPosition) {
-      throw new BadRequestException('Playlist position is already occupied');
-    }
     try {
-      return await this.playlistTrackRepo.save(
-        this.playlistTrackRepo.create({
-          playlist,
-          track,
-          position: dto.position,
-          note: dto.note ?? null,
-        }),
+      return await this.playlistTrackRepo.manager.transaction(
+        async (manager) => {
+          const playlist = await manager.findOne(CatalogPlaylist, {
+            where: { id: playlistId },
+            lock: { mode: 'pessimistic_write' },
+          });
+          if (!playlist) throw new NotFoundException('Playlist not found');
+
+          const track = await manager.findOne(CatalogTrack, {
+            where: { id: dto.trackId },
+            relations: ['audioAssets'],
+          });
+          if (!track) throw new NotFoundException('Track not found');
+
+          const repository = manager.getRepository(CatalogPlaylistTrack);
+          const existingPosition = await repository.findOne({
+            where: { playlist: { id: playlistId }, position: dto.position },
+          });
+          if (existingPosition) {
+            throw new BadRequestException(
+              'Playlist position is already occupied',
+            );
+          }
+          return repository.save(
+            repository.create({
+              playlist,
+              track,
+              position: dto.position,
+              note: dto.note ?? null,
+            }),
+          );
+        },
       );
     } catch (error) {
       if (isDuplicateEntryError(error)) {
@@ -198,50 +212,49 @@ export class CatalogMusicService {
     playlistId: number,
     dto: ReorderCatalogPlaylistDto,
   ): Promise<CatalogPlaylistTrack[]> {
-    await this.getPlaylist(playlistId);
-    const items = await this.playlistTrackRepo.find({
-      where: { playlist: { id: playlistId } },
-    });
-    const itemIds = new Set(items.map((item) => item.id));
-    const requestedIds = new Set(dto.items.map((item) => item.id));
-    const positions = new Set(dto.items.map((item) => item.position));
+    return this.playlistTrackRepo.manager.transaction(async (manager) => {
+      const playlist = await manager.findOne(CatalogPlaylist, {
+        where: { id: playlistId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!playlist) throw new NotFoundException('Playlist not found');
 
-    if (
-      items.length !== dto.items.length ||
-      requestedIds.size !== items.length ||
-      [...itemIds].some((id) => !requestedIds.has(id)) ||
-      positions.size !== dto.items.length
-    ) {
-      throw new BadRequestException(
-        'Reorder must include every playlist item exactly once',
-      );
-    }
-
-    const positionById = new Map(
-      dto.items.map((item) => [item.id, item.position]),
-    );
-    // 위치를 교환할 때 중간 UPDATE가 unique constraint와 충돌하지 않도록
-    // 임시 음수 position을 거친 뒤 최종 값을 저장합니다.
-    await this.playlistTrackRepo.manager.transaction(async (manager) => {
       const repository = manager.getRepository(CatalogPlaylistTrack);
-      await Promise.all(
-        items.map((item, index) =>
-          repository.update(item.id, { position: -(index + 1) }),
-        ),
-      );
-      await Promise.all(
-        items.map((item) =>
-          repository.update(item.id, {
-            position: positionById.get(item.id)!,
-          }),
-        ),
-      );
-    });
+      const items = await repository.find({
+        where: { playlist: { id: playlistId } },
+      });
+      const itemIds = new Set(items.map((item) => item.id));
+      const requestedIds = new Set(dto.items.map((item) => item.id));
+      const positions = new Set(dto.items.map((item) => item.position));
 
-    return this.playlistTrackRepo.find({
-      where: { playlist: { id: playlistId } },
-      relations: { track: true },
-      order: { position: 'ASC' },
+      if (
+        items.length !== dto.items.length ||
+        requestedIds.size !== items.length ||
+        [...itemIds].some((id) => !requestedIds.has(id)) ||
+        positions.size !== dto.items.length
+      ) {
+        throw new BadRequestException(
+          'Reorder must include every playlist item exactly once',
+        );
+      }
+
+      const positionById = new Map(
+        dto.items.map((item) => [item.id, item.position]),
+      );
+      // 위치 교환 중 unique constraint와 충돌하지 않도록 임시 음수 값을 거칩니다.
+      for (const [index, item] of items.entries()) {
+        await repository.update(item.id, { position: -(index + 1) });
+      }
+      for (const item of items) {
+        await repository.update(item.id, {
+          position: positionById.get(item.id)!,
+        });
+      }
+      return repository.find({
+        where: { playlist: { id: playlistId } },
+        relations: { track: true },
+        order: { position: 'ASC' },
+      });
     });
   }
 
