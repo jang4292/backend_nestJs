@@ -1,0 +1,175 @@
+:root {
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: #172c31;
+  background: #f3f6f4;
+  line-height: 1.5;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+header {
+  background: #163b3c;
+  color: #fff;
+  padding: 2rem max(5vw, 1rem);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+header h1 {
+  margin: 0.15rem 0;
+  font-size: 2.1rem;
+}
+header p {
+  margin: 0;
+  color: #cae0d8;
+}
+header small {
+  letter-spacing: 0.12em;
+  color: #9bd2b8;
+}
+main {
+  max-width: 1240px;
+  margin: auto;
+  padding: 1.5rem;
+}
+nav {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 1.2rem 0;
+}
+.card {
+  background: #fff;
+  border: 1px solid #dce6e0;
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 20px #1b3f3a08;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  align-items: end;
+  gap: 0.6rem;
+  margin: 0.8rem 0;
+}
+.row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: end;
+  margin: 0.8rem 0;
+}
+label {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.88rem;
+  color: #49625d;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+input,
+select,
+button {
+  font: inherit;
+  border: 1px solid #bed0c5;
+  border-radius: 7px;
+  padding: 0.52rem 0.7rem;
+  min-width: 0;
+}
+input[type='checkbox'] {
+  width: auto;
+}
+button {
+  background: #17634f;
+  border-color: #17634f;
+  color: white;
+  cursor: pointer;
+}
+button:hover {
+  background: #104b3c;
+}
+.secondary {
+  background: white;
+  color: #175644;
+}
+h2 {
+  font-size: 1.2rem;
+  margin: 0.2rem 0 0.6rem;
+}
+.hint {
+  color: #647a74;
+  font-size: 0.88rem;
+}
+.entry {
+  padding: 0.55rem 0;
+  border-bottom: 1px solid #ecf1ee;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.entry:last-child {
+  border: 0;
+}
+.entry span {
+  flex: 1;
+}
+.bar {
+  background: #e3efe8;
+  height: 8px;
+  border-radius: 10px;
+  width: 100%;
+  overflow: hidden;
+}
+.bar i {
+  display: block;
+  height: 100%;
+  background: #38a77a;
+}
+#message:not(:empty) {
+  padding: 0.8rem;
+  background: #e4f2e9;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+#message.error {
+  background: #fae9e6;
+  color: #8d2e22;
+}
+audio {
+  width: 100%;
+  margin-top: 1rem;
+}
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid #79bda1;
+  outline-offset: 2px;
+}
+@media (max-width: 700px) {
+  .columns {
+    grid-template-columns: 1fr;
+  }
+  header {
+    align-items: flex-start;
+    gap: 1rem;
+    flex-direction: column;
+  }
+  .row input:not([type='checkbox']) {
+    flex: 1 1 140px;
+  }
+}
