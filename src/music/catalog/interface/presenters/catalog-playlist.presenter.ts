@@ -17,6 +17,12 @@ export class PublicPlaylistTrackCatalogTrackResponse {
 
 export class PublicPlaylistTrackResponse {
   @ApiProperty({ type: 'integer' })
+  id!: number;
+
+  @ApiProperty()
+  hasSelectedAudio!: boolean;
+
+  @ApiProperty({ type: 'integer' })
   position!: number;
 
   @ApiProperty({ type: PublicPlaylistTrackCatalogTrackResponse })
@@ -79,6 +85,8 @@ export function toPublicPlaylistResponse(
     ...(includeTracks
       ? {
           tracks: items.map((item) => ({
+            id: item.id,
+            hasSelectedAudio: item.audioAssetId != null,
             position: item.position,
             track: {
               id: item.track.id,

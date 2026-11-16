@@ -55,10 +55,14 @@ describe('toPublicPlaylistResponse', () => {
       trackCount: 2,
       tracks: [
         {
+          id: 1,
+          hasSelectedAudio: false,
           position: 1,
           track: { id: 10, title: 'First', artist: 'Artist A', bpm: 100 },
         },
         {
+          id: 2,
+          hasSelectedAudio: false,
           position: 2,
           track: { id: 20, title: 'Second', artist: 'Artist B', bpm: 120 },
         },

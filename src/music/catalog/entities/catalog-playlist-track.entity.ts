@@ -29,6 +29,19 @@ export class CatalogPlaylistTrack {
   @JoinColumn({ name: 'trackId' })
   track!: CatalogTrack;
 
+  @Column({ type: 'int', nullable: true })
+  audioAssetId!: number | null;
+
+  @ManyToOne('AudioAsset', { nullable: true, onDelete: 'RESTRICT' })
+  @JoinColumn({
+    name: 'audioAssetId',
+    foreignKeyConstraintName: 'FK_music_playlist_asset',
+  })
+  audioAsset?: unknown;
+
+  @Column({ type: 'int', nullable: true })
+  displayPosition!: number | null;
+
   @Column({ type: 'int' })
   // 한 Playlist 안의 재생 순서이며 DB unique index로 중복을 막습니다.
   position!: number;

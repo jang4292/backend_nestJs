@@ -2,6 +2,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -22,6 +24,25 @@ export class CatalogTrack {
 
   @Column({ type: 'int', nullable: true })
   bpm!: number | null;
+
+  @Column({ type: 'int', nullable: true })
+  workId!: number | null;
+
+  @ManyToOne('MusicWork', { nullable: true, onDelete: 'RESTRICT' })
+  @JoinColumn({
+    name: 'workId',
+    foreignKeyConstraintName: 'FK_music_track_work',
+  })
+  work?: unknown;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  recordingType!: string | null;
+
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  recordingLocation!: string | null;
+
+  @Column({ type: 'date', nullable: true })
+  recordingDate!: string | null;
 
   @OneToMany(() => AudioAsset, (audioAsset) => audioAsset.track)
   audioAssets!: AudioAsset[];

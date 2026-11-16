@@ -24,6 +24,15 @@ export class AudioAsset {
   @Column({ type: 'varchar', length: 2000, nullable: true })
   url!: string | null;
 
+  @Column({ type: 'varchar', length: 80, nullable: true })
+  storageKey!: string | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  contentType!: string | null;
+
+  @Column({ type: 'int', nullable: true })
+  sizeBytes!: number | null;
+
   @Column({ type: 'int', nullable: true })
   duration!: number | null;
 

@@ -12,6 +12,7 @@ import { CatalogPlaylist } from '../music/catalog/entities/catalog-playlist.enti
 import { CatalogPlaylistTrack } from '../music/catalog/entities/catalog-playlist-track.entity';
 import { SocialAccount } from '../users/entities/social-account.entity';
 import { User } from '../users/entities/user.entity';
+import { musicManagementEntities } from '../music/catalog/management/music-management.entities';
 import { dictionaryEntities } from '../dictionary/entities/dictionary.entities';
 
 export type ReadCaFile = (filePath: string, encoding: BufferEncoding) => string;
@@ -59,6 +60,7 @@ export const databaseEntities = [
   CatalogPlaylist,
   CatalogPlaylistTrack,
   ...dictionaryEntities,
+  ...musicManagementEntities,
 ];
 
 export function createDatabaseOptions(

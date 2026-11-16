@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Inject,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -77,7 +78,13 @@ export class CatalogMusicService {
   }
 
   async deleteTrack(id: number): Promise<{ deleted: true; id: number }> {
-    await this.trackRepo.remove(await this.getTrack(id));
+    const track = await this.getTrack(id);
+    if (track.audioAssets?.some((asset) => asset.storageKey)) {
+      throw new ConflictException(
+        'Track contains uploaded audio that requires storage cleanup',
+      );
+    }
+    await this.trackRepo.remove(track);
     return { deleted: true, id };
   }
 
@@ -114,7 +121,12 @@ export class CatalogMusicService {
   }
 
   async deleteAudioAsset(id: number): Promise<{ deleted: true; id: number }> {
-    await this.audioAssetRepo.remove(await this.getAudioAsset(id));
+    const asset = await this.getAudioAsset(id);
+    if (asset.storageKey)
+      throw new ConflictException(
+        'Uploaded audio removal requires storage cleanup',
+      );
+    await this.audioAssetRepo.remove(asset);
     return { deleted: true, id };
   }
 
@@ -195,6 +207,7 @@ export class CatalogMusicService {
               playlist,
               track,
               position: dto.position,
+              displayPosition: dto.position,
               note: dto.note ?? null,
             }),
           );

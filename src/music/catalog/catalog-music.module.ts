@@ -1,3 +1,7 @@
+import { LocalAudioController } from './management/local-audio.controller';
+import { LocalAudioService } from './management/local-audio.service';
+import { MusicManagementController } from './management/music-management.controller';
+import { MusicManagementService } from './management/music-management.service';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AUDIO_ASSET_REPOSITORY_PORT } from './application/ports/audio-asset-repository.port';
@@ -20,9 +24,15 @@ import { CatalogMusicController } from './interface/catalog-music.controller';
       CatalogPlaylistTrack,
     ]),
   ],
-  controllers: [CatalogMusicController],
+  controllers: [
+    CatalogMusicController,
+    MusicManagementController,
+    LocalAudioController,
+  ],
   providers: [
     CatalogMusicService,
+    MusicManagementService,
+    LocalAudioService,
     CatalogTrackTypeOrmRepository,
     {
       provide: CATALOG_TRACK_REPOSITORY_PORT,
