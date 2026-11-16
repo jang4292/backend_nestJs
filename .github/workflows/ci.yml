@@ -23,7 +23,7 @@ jobs:
           # 이후 단계에서 GITHUB_TOKEN이 .git/config에 남지 않게 합니다.
           persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -90,7 +90,7 @@ jobs:
           # 이후 단계에서 GITHUB_TOKEN이 .git/config에 남지 않게 합니다.
           persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
