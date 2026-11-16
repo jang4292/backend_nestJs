@@ -1,6 +1,6 @@
 # Music REST API 레퍼런스
 
-> 검토 기준일: 2026-11-13 · `src/music` controller 코드 기준
+> 검토 기준일: 2026-11-16 · `src/music` 구현 및 2026-11-14 동시성 수정 대조
 >
 > 전체 서비스 API 요약은 [제품 API 명세](../product/api-spec.kr.md), curl 예제는 [API_EXAMPLES.md](../../API_EXAMPLES.md)를 참고합니다.
 > Legacy API(`/music/legacy/*`)는 데이터 이관·검증 후 종료 예정입니다([결정 문서 2.1](decisions.md#21-catalog-단일-기준-legacy-종료)). 신규 클라이언트는 Catalog API만 사용합니다.
@@ -200,10 +200,11 @@ Track이 없으면 404.
 
 1. Playlist의 **모든 항목을 정확히 한 번씩** 포함해야 합니다. 누락·중복·타 Playlist 항목이면 400.
 2. `position` 중복이 있으면 400.
-3. 임시 음수 position을 거쳐 최종 position을 저장하며 transaction으로 묶입니다.
-4. 성공 시 `position ASC`로 정렬된 전체 항목(Track 포함)을 반환합니다.
+3. Playlist 행을 `pessimistic_write` 잠금으로 보호하고 항목을 transaction 안에서 읽고 씁니다. 같은 Playlist의 추가와 재정렬은 직렬화되므로, 잠금 대기 중 새 항목이 추가되면 오래된 재정렬 요청은 400으로 거부됩니다.
+4. 임시 음수 position을 거쳐 최종 position을 저장하며 transaction으로 묶입니다.
+5. 성공 시 `position ASC`로 정렬된 전체 항목(Track 포함)을 반환합니다.
 
-> **알려진 한계:** 항목 조회가 transaction 밖에서 수행되고, 항목 수 상한이 없으며 2N회 UPDATE합니다(감사 DB-8, 개선 예정).
+> **남은 최적화:** 항목 수 상한은 없고, 재정렬 시 항목마다 임시·최종 위치를 저장해 2N회 UPDATE합니다. 동시 수정 정합성은 잠금과 격리된 MariaDB E2E로 검증합니다.
 
 ---
 

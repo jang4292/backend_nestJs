@@ -1,6 +1,6 @@
 # Music 설계 및 아키텍처
 
-> 검토 기준일: 2026-11-13 · 현재 구현과 확정된 목표 정책을 구분
+> 검토 기준일: 2026-11-16 · 현재 구현과 확정된 목표 정책을 구분
 
 ## 1. 현재 아키텍처
 
@@ -107,15 +107,17 @@ reorder는 다음 원칙을 사용합니다.
 1. 요청에는 Playlist의 모든 item이 한 번씩 포함되어야 합니다.
 2. item ID가 다른 Playlist 소속이면 거부합니다.
 3. position 중복을 거부합니다.
-4. 임시 음수 position을 저장한 뒤 최종 position을 저장합니다.
-5. 작업은 transaction으로 묶습니다.
+4. 추가와 재정렬은 transaction에서 Playlist 행을 `pessimistic_write`로 잠가 같은 Playlist의 편집을 직렬화합니다.
+5. 재정렬은 잠금을 얻은 뒤 현재 항목 전체를 읽고 요청 항목과 대조합니다. 잠금 대기 중 항목이 추가되면 오래된 재정렬 요청을 거부해 변경을 보존합니다.
+6. 임시 음수 position을 저장한 뒤 최종 position을 저장합니다.
+7. 작업은 transaction으로 묶습니다.
 
 ## 6. 설계상 현재 한계
 
 - Catalog와 Legacy에 Track/Playlist 이름이 중복됩니다.
 - Catalog Playlist 관리 기능은 아직 별도 application use case가 아니라 `CatalogMusicService`에 집중되어 있습니다.
 - 권한은 user/admin 두 단계이며 사용자별 소유권이나 editor 역할은 없습니다. 현재 확정된 목표에도 개인·공유 Playlist는 포함되지 않습니다([결정 문서](decisions.md#2-사용자가-확정한-목표-정책-2026-11-13)).
-- 재정렬은 기존 항목을 트랜잭션 밖에서 읽고, 항목 수 상한 없이 2N회 UPDATE합니다(감사 DB-8).
+- 재정렬은 Playlist 잠금과 transaction 안에서 현재 항목을 확인합니다. 다만 항목 수 상한은 없고 2N회 UPDATE하므로 대량 재정렬 비용은 남은 최적화 항목입니다.
 - AudioAsset은 URL 메타데이터 저장만 지원하며 S3 upload/delete lifecycle은 구현하지 않았습니다.
 - Catalog의 현재 `position`은 단일 순서 값입니다. 관리 순서와 재생 순서를 분리하는 목표 정책은 아직 구현되지 않았습니다.
 - 현재는 soft delete와 관리자 purge 흐름이 없습니다. 목표는 활성 Catalog 레코드를 soft delete하고 Legacy 테이블은 이관 후 불변 snapshot으로 보존하는 것입니다.

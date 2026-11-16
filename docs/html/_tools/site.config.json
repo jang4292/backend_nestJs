@@ -17,6 +17,7 @@
       "pages": [
         { "src": "docs/product/features.kr.md", "desc": "계정, SNS, 음악 기능 규칙과 정책" },
         { "src": "docs/product/api-spec.kr.md", "desc": "전체 라우트, 권한, 오류 envelope" },
+        { "src": "docs/api/API_SPEC.md", "desc": "구현된 다국어 사전 REST API 계약" },
         { "src": "API_EXAMPLES.md", "desc": "curl 예시(영문)" }
       ]
     },
@@ -72,7 +73,6 @@
         { "src": "docs/deployment/mariadb-systemd.kr.md", "desc": "EC2 + PM2 배포, 스모크 테스트, 롤백" },
         { "src": "docs/architecture/ENVIRONMENTS.md", "desc": "LOCAL / DEV / PROD 격리 제안" },
         { "src": "docs/architecture/INFRASTRUCTURE.md", "desc": "NAS / Mini PC / EC2 역할과 read-only 조사 항목" },
-        { "src": "docs/api/API_SPEC.md", "desc": "다국어 사전·학습 API 계약 초안" },
         { "src": "docs/operations/DEPLOYMENT.md", "desc": "CI → DEV → PROD 배포 게이트와 롤백" },
         { "src": "docs/operations/BACKUP_RECOVERY.md", "desc": "독립 백업과 격리 복원 절차" },
         { "src": "docs/learning/deployment-secrets-checklist.kr.md" },

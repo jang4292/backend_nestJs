@@ -1,13 +1,12 @@
 # 문서 인덱스
 
-> 최신화 기준: 2026-11-14 · dictionary MVP 작업 트리
-> 모든 문서 상단에 `최신화 기준`(마지막으로 코드와 대조한 날짜·커밋)이 표기되어 있습니다.
-> `이력 문서`는 작성 시점에 고정된 기록이며, 이후 변경은 반영하지 않습니다.
+> 최신화 기준: 2026-11-16 · documentation review
+> 구현 문서는 마지막 코드 대조 기준을 표시하고, `이력 문서`는 작성 시점에 고정된 기록으로 이후 변경을 반영하지 않습니다.
 
 ## 처음 읽는 순서
 
 1. [서비스 개요](product/overview.kr.md): 무엇을 하는 서버인지
-2. [기능 명세](product/features.kr.md) → [API 명세](product/api-spec.kr.md): 규칙, 정책, 라우트, 권한
+2. [기능 명세](product/features.kr.md) → [핵심 API 명세](product/api-spec.kr.md): 규칙, 정책, 라우트, 권한. 사전 계약은 [사전 API](api/API_SPEC.md)를 참고
 3. [아키텍처 학습 가이드](learning/nestjs-operational-stability-guide.kr.md): 코드 구조와 계층
 4. [DB·스키마 관리 학습 가이드](learning/database-schema-management.kr.md): DB·테이블을 누가 언제 만들고, migration을 어떻게 적용하고 검증하는지
 5. [환경별 DB·설정 가이드](deployment/database-environments.kr.md): Local / Test / Prod 연결과 명령(처음 연결: `db:check` → `db:setup`), DB 삭제 안전 원칙

@@ -1,6 +1,6 @@
 # NestJS Backend API
 
-> Last updated: 2026-11-14 · dictionary MVP working tree ·
+> Last updated: 2026-11-16 · documentation review ·
 > Documentation index (Korean): [docs/README.md](docs/README.md)
 
 A NestJS 11 backend that provides local JWT authentication, user profiles,
@@ -186,13 +186,16 @@ Before enabling a provider, complete
   startup rejects enabling it in production. The Nest Swagger compiler plugin
   derives request schemas from `*.dto.ts` validation rules. Keep response DTOs
   concrete and use the shared error envelope for documented error responses.
-- Route table with access levels (55 routes):
-  [docs/product/api-spec.kr.md](docs/product/api-spec.kr.md).
+- Core account, SNS and music route table (55 routes):
+  [docs/product/api-spec.kr.md](docs/product/api-spec.kr.md). Dictionary and its
+  dedicated health routes are documented in the
+  [dictionary API specification](docs/api/API_SPEC.md).
 - curl examples: [API_EXAMPLES.md](API_EXAMPLES.md).
 
 | Area | Routes | Access |
 | --- | --- | --- |
 | System | `GET /`, `GET /health` | public |
+| Dictionary health | `GET /api/v1/health/live`, `GET /api/v1/health/ready` | public |
 | Accounts | `POST /users/register`, `POST /auth/login` | public |
 | Profile | `GET/PATCH /users/profile` | JWT |
 | SNS login | `POST /auth/{google,apple,kakao,naver,facebook}/{login,exchange-code}`, `POST /auth/{google,apple}/verify-id-token` | public (503 while disabled) |
@@ -200,6 +203,8 @@ Before enabling a provider, complete
 | Catalog writes | tracks, audio assets, playlists (create/update/delete/publish/reorder), `GET /music/tracks/:trackId/audio-assets` | **admin** |
 | Legacy reads | `GET /music/legacy/tracks(/:id)` public; artists, playlists, `tracks/full` | JWT |
 | Legacy writes | `POST/PATCH/DELETE /music/legacy/**` | **admin** |
+| Dictionary public | `GET /api/v1/languages`, `/lexemes`, `/lexemes/:id`, `/concepts/:id`, `/concepts/:id/translations` | public |
+| Dictionary admin | `/api/v1/admin/**` for sources, concepts, lexemes, review, publication and audit logs | **admin** |
 
 Public responses never include audio URLs or internal storage identifiers.
 

@@ -1,6 +1,6 @@
 # Music API 결정 및 후속 작업
 
-> 검토 기준일: 2026-11-13 · 현재 코드와 Music 문서 및 최신 감사 로드맵 대조
+> 검토 기준일: 2026-11-16 · 현재 코드와 Music 문서 및 최신 감사 로드맵 대조
 
 이 문서는 현재 구현 상태, 사용자가 확정한 목표 정책, 구현 전에 정리할 세부 설계·검증 항목을 구분합니다. 목표 정책이 코드에 이미 반영되었다고 오해하지 않도록 상태를 분리해 기록합니다.
 
@@ -11,7 +11,7 @@
 - Legacy(`legacy_*`, `/music/legacy/*`)와 Catalog(`/music/*`, `/music/public/*`)가 현재 공존합니다. Catalog에는 별도 테이블과 API가 있지만, Legacy 종료와 데이터 이관은 아직 구현되지 않았습니다.
 - Catalog의 Track과 AudioAsset은 1:N입니다. `Track.bpm`과 `AudioAsset.bpm`은 별도 의미를 가지며 자동 동기화하지 않습니다.
 - Catalog Playlist 상태는 `draft`, `published`, `archived`입니다. 공개 조회는 `published`만 대상으로 합니다.
-- Catalog Playlist에는 현재 `position` 하나만 있어 실제 재생 순서로 사용합니다. `(playlistId, position)` DB 유일 제약이 있습니다. 순서 변경은 transaction을 사용하지만, 항목 조회는 transaction 밖에서 이루어지고 재정렬 항목 수 제한은 없습니다(4장 참조).
+- Catalog Playlist에는 현재 `position` 하나만 있어 실제 재생 순서로 사용합니다. `(playlistId, position)` DB 유일 제약이 있습니다. 항목 추가와 재정렬은 Playlist 행을 잠근 transaction 안에서 실행해 같은 Playlist의 동시 편집을 직렬화합니다. 재정렬 항목 수 제한은 없고 2N회 UPDATE합니다(4장 참조).
 - 공개 Playlist 응답은 presenter를 통과하며 AudioAsset URL과 내부 저장소 정보를 포함하지 않습니다.
 - AudioAsset은 현재 메타데이터 단계입니다. 실제 파일 업로드·삭제와 재생 URL 발급은 구현 범위에 포함되지 않습니다.
 - MariaDB FK 참조 오류는 409 `FOREIGN_KEY_CONSTRAINT`로 변환합니다. 기존 migration 파일은 수정하지 않고 schema 변경은 새 migration으로 추가합니다.
@@ -78,7 +78,7 @@ Track 하나에 여러 AudioAsset을 둘 수 있지만 기본 재생 파일과 f
 - Legacy 이관의 dry-run, 데이터 검증, cutover/rollback 절차를 마련한 후 Legacy 경로를 비활성화합니다.
 - soft delete, 복구, 관리자 완전 삭제를 구현하고 DB FK, 조회 필터, 감사 이력을 검증합니다.
 - 관리 순서와 재생 순서의 독립 변경을 transaction으로 처리하고 동시 수정 및 soft-deleted 순서 제약을 테스트합니다.
-- 현재 재정렬의 transaction 밖 조회, 2N UPDATE, 항목 수 상한 부재를 함께 개선합니다.
+- 현재 재정렬은 Playlist 행 잠금 후 transaction 안에서 항목을 읽고 검증합니다. 남은 개선은 2N UPDATE를 줄이고 적절한 항목 수 상한을 정하는 것입니다.
 - `draft → published → archived` 및 `archived → draft` 전이와 soft delete의 독립성을 테스트합니다.
 
 ### 우선순위 1: 공개 API 계약

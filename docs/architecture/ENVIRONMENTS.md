@@ -9,14 +9,14 @@
 |---|---|---|---|
 | 목적 | 개발·Migration 작성·테스트·샘플 데이터 | 통합·배포·네트워크 검증, 비실데이터 import | 사용자 Live/Admin 운영 |
 | API | 개발자 Mac/PC `localhost` | 초기에는 Mini PC 검토, 검증이 안 되면 저비용 EC2 DEV | AWS EC2, 별도 도메인/인증서 |
-| DB | 개발 PC 로컬 MariaDB 또는 격리된 테스트 인스턴스 | 전용 `dictionary_dev` DB | 전용 `dictionary_prod` DB, 운영 API만 접근 |
+| DB | 개발 PC 로컬 MariaDB 또는 격리된 테스트 인스턴스(목표) | 전용 DB(이름은 환경 설정으로 결정) | 전용 DB(이름은 환경 설정으로 결정), 운영 API만 접근 |
 | 데이터 | 가짜·샘플·가명화 데이터 | 합성/검수 데이터; PROD 사용자 데이터 금지 | 승인 콘텐츠 및 PROD 사용자 정보 |
 | 인증/시크릿 | 개발 전용 `.env` | DEV 전용 key/DB 계정 | Secret Manager 또는 제한 권한 파일 |
 | DB 권한 | 개인 로컬 계정 | DEV 전용 런타임과 migrator | 별도 runtime 계정(read/write 필요한 최소 권한)과 migrator(DDL) |
 | 로그 | debug 허용, 민감정보 금지 | 운영과 유사한 구조, 비식별화 | 최소한의 구조화 로그, 접근·보존 통제 |
 | 배포 | 로컬 직접 실행 | CI 통과 후 수동/자동 배포 | 승인된 tag/release + 배포 승인 |
 
-현 [README](../../README.md)의 LOCAL은 현재 공유 DEV MariaDB를 연결합니다. 목표 LOCAL 요구와 상충하므로 Phase 2에서 로컬 MariaDB 기본을 도입하거나, 연결이 필요한 개발자에게 SSH tunnel 기반 DEV 접근을 별도로 제공해야 합니다.
+현 [README](../../README.md)의 LOCAL은 현재 공유 DEV MariaDB의 `app_db_dev`를 연결하고, Test는 `app_db_test`를 사용합니다. PROD DB 이름은 `DB_DATABASE` 설정을 따릅니다. `dictionary_dev`/`dictionary_prod`는 현재 설정값이 아니므로 이 문서에서 특정 이름을 고정하지 않습니다. 목표 LOCAL 요구와 상충하므로 Phase 2에서 로컬 MariaDB 기본을 도입하거나, 연결이 필요한 개발자에게 SSH tunnel 기반 DEV 접근을 별도로 제공해야 합니다.
 
 ## 2. 환경변수와 자격 증명
 
