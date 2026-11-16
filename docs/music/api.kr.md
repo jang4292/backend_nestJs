@@ -1,6 +1,6 @@
 # Music REST API 레퍼런스
 
-> 검토 기준일: 2026-11-16 · `src/music` 구현 및 2026-11-14 동시성 수정 대조
+> 검토 기준일: 2026-11-17 · 스테이징된 `src/music` 구현 기준; 실제 DB migration 적용 여부는 환경별 확인
 >
 > 전체 서비스 API 요약은 [제품 API 명세](../product/api-spec.kr.md), curl 예제는 [API_EXAMPLES.md](../../API_EXAMPLES.md)를 참고합니다.
 > Legacy API(`/music/legacy/*`)는 데이터 이관·검증 후 종료 예정입니다([결정 문서 2.1](decisions.md#21-catalog-단일-기준-legacy-종료)). 신규 클라이언트는 Catalog API만 사용합니다.
@@ -15,7 +15,7 @@
 | jwt | `Authorization: Bearer <accessToken>` 필요 (`@Authenticated()`) |
 | admin | JWT + `users.role = 'admin'` 필요 (`@AdminOnly()`). 일반 사용자 토큰이면 403 |
 
-모든 쓰기(POST/PATCH/DELETE)는 admin 전용입니다. 이 규칙은 [music-authorization.spec.ts](../../src/music/music-authorization.spec.ts)가 메타데이터 수준에서 강제합니다.
+모든 쓰기(POST/PATCH/DELETE)는 admin 전용입니다. [music-authorization.spec.ts](../../src/music/music-authorization.spec.ts)는 기존 Catalog·Legacy 컨트롤러의 쓰기 권한을 검사하며 새 관리·업로드 컨트롤러는 이 검사에 아직 포함되지 않습니다.
 
 ### 공통 오류 envelope
 
@@ -73,7 +73,7 @@
 | `artist` | string | ✅ | 1~200자, 앞뒤 공백 제거 |
 | `bpm` | int | — | 0~400 |
 
-Catalog Track의 artist는 **문자열**입니다(Legacy와 달리 Artist entity 참조가 아님).
+Catalog Track의 `artist`는 호환성을 위한 표시 문자열입니다. 정규 아티스트·별칭과 공동 참여자는 관리 API에서 별도로 연결하며, 자동 동기화하지 않습니다.
 
 #### `PATCH /music/tracks/:id` — Track 수정 (admin)
 
@@ -81,7 +81,7 @@ Body는 `POST`와 같은 필드의 부분 수정입니다.
 
 #### `DELETE /music/tracks/:id` — Track 삭제 (admin)
 
-Playlist에 포함된 Track이면 FK `RESTRICT`로 409 `FOREIGN_KEY_CONSTRAINT`.
+Playlist 또는 사용 기록에 참조되는 Track은 FK `RESTRICT`로 409입니다. 로컬 업로드 파일이 있는 Track도 저장소 정리 기능이 없어 409로 거부됩니다.
 
 ```json
 { "deleted": true, "id": 1 }
@@ -89,7 +89,7 @@ Playlist에 포함된 Track이면 FK `RESTRICT`로 409 `FOREIGN_KEY_CONSTRAINT`.
 
 ### 2.2 AudioAsset (음원 파일 메타데이터)
 
-AudioAsset은 현재 **URL 메타데이터 단계**입니다. 실제 파일 업로드와 재생 URL 발급은 미구현입니다. 저장 URL이 포함될 수 있어 조회도 admin 전용입니다.
+기존 URL 메타데이터 등록과 별도로 로컬 파일 업로드·Range 재생을 지원합니다. AudioAsset 관리 조회에는 URL이나 내부 저장소 필드가 포함될 수 있어 admin 전용입니다. 기존 외부 URL만 있는 Asset은 재생 파일로 선택할 수 없습니다. S3 및 서명 URL은 미구현입니다.
 
 #### `POST /music/tracks/:trackId/audio-assets` — 등록 (admin)
 
@@ -110,6 +110,8 @@ Track이 없으면 404.
 등록과 같은 필드의 부분 수정. 없으면 404.
 
 #### `DELETE /music/audio-assets/:id` — 삭제 (admin)
+
+로컬 업로드 파일은 저장소 정리 기능이 없어 409로 거부합니다. Playlist 항목 또는 사용 기록에서 참조하는 Asset도 FK에 의해 삭제할 수 없습니다.
 
 ```json
 { "deleted": true, "id": 2 }
@@ -149,13 +151,13 @@ Track이 없으면 404.
   "id": 7, "title": "Morning set", "description": null,
   "playDate": null, "anonymousPlayable": false, "trackCount": 2,
   "tracks": [
-    { "position": 1, "track": { "id": 10, "title": "First", "artist": "Artist A", "bpm": 100 } },
-    { "position": 2, "track": { "id": 20, "title": "Second", "artist": "Artist B", "bpm": 120 } }
+    { "id": 1, "hasSelectedAudio": false, "position": 1, "track": { "id": 10, "title": "First", "artist": "Artist A", "bpm": 100 } },
+    { "id": 2, "hasSelectedAudio": true, "position": 2, "track": { "id": 20, "title": "Second", "artist": "Artist B", "bpm": 120 } }
   ]
 }
 ```
 
-`anonymousPlayable`은 익명 재생 정책을 위한 값이며, 현재 실제 재생 API는 없습니다.
+`hasSelectedAudio`는 해당 항목의 파일 ID 선택 여부입니다. 공개 콘텐츠 경로는 `published` 및 `anonymousPlayable=true`를 요구하고, 인증 콘텐츠 경로는 `published`와 JWT를 요구합니다. 실제 파일이 없거나 파일이 트랙과 일치하지 않으면 404입니다.
 
 ### 2.4 Playlist 관리 (admin)
 
@@ -205,6 +207,27 @@ Track이 없으면 404.
 5. 성공 시 `position ASC`로 정렬된 전체 항목(Track 포함)을 반환합니다.
 
 > **남은 최적화:** 항목 수 상한은 없고, 재정렬 시 항목마다 임시·최종 위치를 저장해 2N회 UPDATE합니다. 동시 수정 정합성은 잠금과 격리된 MariaDB E2E로 검증합니다.
+
+### 2.5 음악 관리, 파일 업로드 및 재생
+
+상세 모델·요청 예시·통계 기준과 제한은 [카탈로그·사용 기록 초안](catalog-usage-prototype.kr.md)을 참고합니다. `/music/management/*`는 모두 admin 전용입니다.
+
+| Method | Path | 권한 | 용도 |
+| --- | --- | --- | --- |
+| GET / POST | `/music/management/artists`, `/music/management/artists/:id/aliases` | admin | 정규 아티스트 및 별칭 등록·조회 |
+| GET / POST | `/music/management/works` | admin | 작품 목록·등록 |
+| PATCH | `/music/management/recordings/:id` | admin | 작품·참여 아티스트·녹음 메타데이터 지정 |
+| GET | `/music/management/playlists`, `/music/management/playlists/:id` | admin | Playlist 및 항목 조회 |
+| PATCH | `/music/management/playlist-items/:id/asset` | admin | 해당 트랙의 업로드 파일 선택·해제 |
+| GET / POST | `/music/management/usages`, `/music/management/usages/:id` | admin | 사용 회차 생성·목록·상세. POST는 `/usages`만 지원 |
+| PATCH / POST | `/music/management/usages/:id/items/:itemId`, `/music/management/usages/:id/confirm` | admin | 초안 사용 횟수 변경·회차 확정 |
+| GET | `/music/management/statistics` | admin | 확정 회차의 녹음·작품·파일·아티스트 사용 횟수 집계 |
+| POST | `/music/tracks/:id/upload` | admin | `multipart/form-data`의 `file`로 최대 50 MiB 로컬 음원 업로드 |
+| GET | `/music/management/audio-assets/:id/content` | admin | 업로드된 파일 직접 재생 |
+| GET | `/music/public/playlists/:playlistId/items/:itemId/content` | public | 공개 및 익명 재생 허용 Playlist의 선택 파일 |
+| GET | `/music/playlists/:playlistId/items/:itemId/content` | jwt | 공개 Playlist의 선택 파일 |
+
+재생 경로는 단일 HTTP Range를 지원합니다. 기존 파일 URL을 프록시하지 않습니다. 오류 JSON envelope은 일반 API 기준이며 바이너리 응답의 Range 오류는 `416`과 `Content-Range`를 반환합니다.
 
 ---
 
@@ -308,8 +331,8 @@ Legacy Track은 Artist를 **필수 참조**합니다(`artistId`).
 
 | 항목 | Catalog (`/music`) | Legacy (`/music/legacy`) |
 | --- | --- | --- |
-| Artist 표현 | Track의 `artist` 문자열 | 별도 Artist entity + FK |
-| 순서 필드 | `position` (DB unique) | `seq` (제약 없음) |
+| Artist 표현 | Track의 표시 문자열 + 선택적 정규 아티스트·별칭·공동 참여자 | 별도 Artist entity + FK |
+| 순서 필드 | `position` (DB unique), `displayPosition` 저장만 | `seq` (제약 없음) |
 | Track 목록 응답 | 배열(메타데이터 없음) | `{items, total, page, limit}` |
 | Track 검색 | 미지원(페이지만) | search/filter/sort 지원 |
 | Playlist 공개 | `draft/published/archived` 상태 + 공개 presenter | 상태 없음, jwt 조회 |

@@ -255,17 +255,17 @@ Repository port는 entity CRUD의 단순 복사보다 유스케이스가 필요�
 | DB unique/FK 위반의 일관된 409 | **해결**: `mariadb-errors.ts`, `DomainError`, `GlobalExceptionFilter` 중앙 매핑. Artist 삭제 500 버그(PostgreSQL 코드 판별) 수정 |
 | PostgreSQL 기준 가정 | **정리**: MariaDB 전용. 본문의 PostgreSQL 서술은 MariaDB로 교체 |
 | Playlist 날짜·Track 중복 정책 | **정책 확정**: 날짜당 제한 없음, 동일 Track 중복 허용. 현재 DB/API 반영은 후속 구현 |
-| Playlist 관리 순서와 재생 순서 | **정책 확정**: 별도 값으로 관리. 현재 Catalog의 단일 `position`을 보완해야 함 |
+| Playlist 관리 순서와 재생 순서 | **부분 구현**: `displayPosition` 저장 필드가 추가되었으나 독립 편집·정렬은 미구현 |
 | Soft delete·완전 삭제 | **정책 확정**: Music 레코드 전체 soft delete, 완전 삭제는 별도 관리자 처리. 구현과 보존 기준은 후속 작업 |
-| Playlist 상태·재생 정책 | **방향 확정**: archived→draft 복원, soft delete와 상태 분리, 공개 메타데이터와 익명 재생 분리. API/저장소 구현은 후속 작업 |
-| Catalog 기준화·Legacy 종료 | **정책 확정**: 데이터 이관·검증 후 Legacy API 종료, 테이블은 복구·감사 목적 보존. 이관/cutover는 후속 작업 |
+| Playlist 상태·재생 정책 | **부분 구현**: 로컬 업로드와 권한별 직접 재생이 추가됨. 상태 전이·soft delete·S3는 후속 작업 |
+| Catalog 기준화·Legacy 종료 | **정책 변경**: 백업 및 이관·검증 후 Legacy API·코드와 테이블 정리. 이관/cutover는 미구현 |
 | transaction boundary·use-case 분리·OpenAPI 완성 | 미결(로드맵 P1/P2) |
 
 ## 13. 2026-11-13 사용자 확정 정책
 
-다음 항목은 제품 정책으로 확정되었으며, 현재 코드에 모두 구현되었다는 의미는 아니다. 구현 기준과 미결 세부사항은 [결정 및 후속 작업](decisions.md)을 따른다.
+다음 항목은 2026-11-13 당시 결정의 기록이며 현재 코드에 모두 구현되었다는 의미는 아니다. 2026-11-16의 Legacy 테이블 정리 결정이 이전 보존 방침을 대체한다. 최신 구현과 미결 세부사항은 [결정 및 후속 작업](decisions.md)을 따른다.
 
-- Catalog를 유일한 Music 기준으로 사용하고, Legacy 데이터를 이관·검증한 뒤 Legacy API를 종료한다. Legacy 테이블은 복구·감사 가능하도록 보존한다.
+- Catalog를 유일한 Music 기준으로 사용한다. 당시 Legacy 테이블 보존 방침은 이후 백업·이관 검증 뒤 테이블까지 정리하는 방향으로 변경되었다.
 - 날짜당 Playlist 수와 Playlist 내 동일 Track 수에는 제한을 두지 않는다.
 - Playlist 관리/표시 순서와 실제 재생 순서를 별도 값으로 관리한다.
 - Playlist 항목을 포함한 Music 레코드는 soft delete하며, 완전 삭제는 별도 관리자 처리로 한다.

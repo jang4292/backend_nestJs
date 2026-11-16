@@ -1,7 +1,7 @@
 # API 명세 (라우트·권한)
 
 > 최신화 기준: 2026-11-14 · dictionary MVP 작업 트리
-> 기존 인증·음악 컨트롤러의 라우트 55개를 정리합니다. 이후 추가된 [사전·관리·health API](../api/API_SPEC.md)는 별도 명세를 참고하세요. 요청·응답 예시는 [API_EXAMPLES.md](../../API_EXAMPLES.md)를 참고하세요. Swagger UI `/api-docs`는 `SWAGGER_ENABLED=true`일 때만 제공되며 production에서는 활성화할 수 없습니다.
+> 기존 인증·음악 컨트롤러의 라우트와 추가된 Music 관리 API를 정리합니다. 이후 추가된 [사전·관리·health API](../api/API_SPEC.md)는 별도 명세를 참고하세요. 요청·응답 예시는 [API_EXAMPLES.md](../../API_EXAMPLES.md)를 참고하세요. Swagger UI `/api-docs`는 `SWAGGER_ENABLED=true`일 때만 제공되며 production에서는 활성화할 수 없습니다.
 
 권한 표기:
 
@@ -64,6 +64,14 @@
 | PATCH | `/music/playlists/:id/publish` | admin | — | `published`로 변경 |
 | POST | `/music/playlists/:playlistId/tracks` | admin | `{trackId, position, note?}` | position 중복 시 400 |
 | PATCH | `/music/playlists/:playlistId/tracks/reorder` | admin | `{items:[{id, position}]}` | 기존 항목 전체 필수 |
+| POST | `/music/tracks/:id/upload` | admin | multipart `file` | 로컬 파일, 최대 50 MiB |
+| GET | `/music/management/audio-assets/:id/content` | admin | `Range` 선택 | 로컬 파일 직접 재생 |
+| GET | `/music/public/playlists/:playlistId/items/:itemId/content` | public | `Range` 선택 | 공개 및 익명 재생 허용 목록만 |
+| GET | `/music/playlists/:playlistId/items/:itemId/content` | jwt | `Range` 선택 | 공개 목록만 |
+| GET / POST | `/music/management/artists`, `/music/management/artists/:id/aliases`, `/music/management/works` | admin | 이름·별칭·제목 | 목록은 최대 100개 |
+| PATCH | `/music/management/recordings/:id`, `/music/management/playlist-items/:id/asset` | admin | 녹음 정보 또는 `{audioAssetId}` | 트랙 소속 로컬 파일 선택 |
+| GET / POST / PATCH | `/music/management/usages...` | admin | 사용 회차·항목·확정 | 상세 경로와 제약은 [Music API](../music/api.kr.md#25-음악-관리-파일-업로드-및-재생) 참조 |
+| GET | `/music/management/statistics` | admin | `from`, `to`, `location?` | 확정 회차 사용 횟수 |
 
 ## Legacy 음악 (`/music/legacy`)
 

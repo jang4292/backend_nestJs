@@ -163,8 +163,8 @@ UsersController (interface)            ── DTO 검증, PublicUser로 변환
   - 테이블: `legacy_*`
 - `/music`
   - 구조: 새 Catalog. `CatalogMusicService`, Track 1:N AudioAsset, Playlist 상태와 position
-  - 테이블: `track`, `audio_asset`, `playlist`, `playlist_track`
-- 공개 응답은 presenter를 거쳐 음원 URL과 내부 정보를 제외합니다.
+  - 테이블: `track`, `audio_asset`, `playlist`, `playlist_track` 및 정규 아티스트·작품·사용 회차 관련 `music_*` 테이블
+- 공개 응답은 presenter를 거쳐 음원 URL과 내부 정보를 제외합니다. 관리자 로컬 파일 업로드 및 공개 정책·JWT 기반 Range 재생은 추가되었으며 S3는 미구현입니다.
 - 현재 한계: `CatalogMusicService`는 use-case가 없는 큰 서비스이고, `MusicService`는 그대로 전달만 하는 facade입니다(로드맵 P2).
 
 자세한 내용은 [Music 아키텍처](../music/architecture.kr.md)를 참고하세요.

@@ -303,6 +303,51 @@ curl -X PATCH http://localhost:3000/music/playlists/1/tracks/reorder \
 - The reorder request must include every existing item exactly once.
 - `(playlistId, position)` is unique, so an occupied position returns 400.
 
+## Music Management and Local Audio
+
+Apply the new migration to a verified test database before trying these routes.
+IDs below are examples; use IDs returned by your own requests.
+
+```bash
+# Admin: create a canonical artist and a work, then associate a recording.
+curl -X POST http://localhost:3000/music/management/artists \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" \
+  -d '{"name":"Artist X"}'
+curl -X POST http://localhost:3000/music/management/works \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" \
+  -d '{"title":"Song A"}'
+curl -X PATCH http://localhost:3000/music/management/recordings/1 \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" \
+  -d '{"workId":1,"artistIds":[1],"recordingType":"live"}'
+
+# Upload a file, then select the returned audio asset ID for a playlist item.
+curl -X POST http://localhost:3000/music/tracks/1/upload \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" -F 'file=@/path/to/audio.mp3'
+curl -X PATCH http://localhost:3000/music/management/playlist-items/1/asset \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" \
+  -d '{"audioAssetId":1}'
+
+# Snapshot a usage, adjust its item count if needed, and confirm it.
+curl -X POST http://localhost:3000/music/management/usages \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" \
+  -d '{"playlistId":1,"usedAt":"2026-01-15T12:00:00Z","location":"Seoul"}'
+curl -X PATCH http://localhost:3000/music/management/usages/1/items/1 \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" \
+  -d '{"playCount":2}'
+curl -X POST http://localhost:3000/music/management/usages/1/confirm \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN"
+curl -G http://localhost:3000/music/management/statistics \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" \
+  --data-urlencode 'from=2026-01-01T00:00:00Z' \
+  --data-urlencode 'to=2026-02-01T00:00:00Z'
+```
+
+The statistics count confirmed playlist usage, not actual listening. Playback
+uses the selected local file; anonymous playback additionally requires a
+published playlist with `anonymousPlayable=true`. Legacy URLs are not proxied.
+See the [music prototype guide](docs/music/catalog-usage-prototype.kr.md) for
+storage, browser setup, access rules and unfinished migration work.
+
 ## 9. Legacy Music API (`/music/legacy`)
 
 > Compatibility examples only. New clients and features should use Catalog APIs.

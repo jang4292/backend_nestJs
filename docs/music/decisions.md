@@ -1,6 +1,6 @@
 # Music API 결정 및 후속 작업
 
-> 검토 기준일: 2026-11-16 · 현재 코드와 Music 문서 및 최신 감사 로드맵 대조
+> 검토 기준일: 2026-11-17 · 스테이징된 코드 및 이후 사용자 결정 대조; DB 적용 여부는 환경별 확인
 
 이 문서는 현재 구현 상태, 사용자가 확정한 목표 정책, 구현 전에 정리할 세부 설계·검증 항목을 구분합니다. 목표 정책이 코드에 이미 반영되었다고 오해하지 않도록 상태를 분리해 기록합니다.
 
@@ -11,16 +11,18 @@
 - Legacy(`legacy_*`, `/music/legacy/*`)와 Catalog(`/music/*`, `/music/public/*`)가 현재 공존합니다. Catalog에는 별도 테이블과 API가 있지만, Legacy 종료와 데이터 이관은 아직 구현되지 않았습니다.
 - Catalog의 Track과 AudioAsset은 1:N입니다. `Track.bpm`과 `AudioAsset.bpm`은 별도 의미를 가지며 자동 동기화하지 않습니다.
 - Catalog Playlist 상태는 `draft`, `published`, `archived`입니다. 공개 조회는 `published`만 대상으로 합니다.
-- Catalog Playlist에는 현재 `position` 하나만 있어 실제 재생 순서로 사용합니다. `(playlistId, position)` DB 유일 제약이 있습니다. 항목 추가와 재정렬은 Playlist 행을 잠근 transaction 안에서 실행해 같은 Playlist의 동시 편집을 직렬화합니다. 재정렬 항목 수 제한은 없고 2N회 UPDATE합니다(4장 참조).
+- Catalog Playlist의 `position`은 실제 재생 순서입니다. `displayPosition` 필드는 추가되었으나 독립 편집·정렬 API는 없습니다. `(playlistId, position)` DB 유일 제약이 있습니다. 항목 추가와 재정렬은 Playlist 행을 잠근 transaction 안에서 실행해 같은 Playlist의 동시 편집을 직렬화합니다. 재정렬 항목 수 제한은 없고 2N회 UPDATE합니다(4장 참조).
 - 공개 Playlist 응답은 presenter를 통과하며 AudioAsset URL과 내부 저장소 정보를 포함하지 않습니다.
-- AudioAsset은 현재 메타데이터 단계입니다. 실제 파일 업로드·삭제와 재생 URL 발급은 구현 범위에 포함되지 않습니다.
+- AudioAsset은 기존 URL 메타데이터와 로컬 업로드 파일을 지원합니다. Playlist 항목에 선택된 로컬 파일을 공개 정책 또는 JWT에 따라 Range로 직접 전달합니다. S3·서명 URL 및 업로드 파일 삭제/복구는 미구현입니다.
 - MariaDB FK 참조 오류는 409 `FOREIGN_KEY_CONSTRAINT`로 변환합니다. 기존 migration 파일은 수정하지 않고 schema 변경은 새 migration으로 추가합니다.
 
 ## 2. 사용자가 확정한 목표 정책 (2026-11-13)
 
+2026-11-16에 Legacy 정리와 로컬 재생에 대한 후속 결정이 반영되었습니다.
+
 ### 2.1 Catalog 단일 기준, Legacy 종료
 
-Catalog를 Music 데이터의 단일 기준으로 사용합니다. Legacy 기능과 API는 종료하고 사용하지 않습니다. 기존 Legacy 데이터는 Catalog로 이관·검증한 뒤 Legacy API를 비활성화하며, Legacy 테이블은 복구·감사 가능한 불변 snapshot으로 보존하는 방향입니다. 아직 이관·비활성화 코드는 구현되지 않았습니다.
+Catalog를 Music 데이터의 단일 기준으로 사용합니다. Legacy 기능과 API는 종료하고 사용하지 않습니다. 기존 Legacy 데이터는 Catalog로 이관·검증한 뒤 Legacy API·코드와 테이블을 정리합니다. 2026-11-16에 이전의 테이블 보존 방향을 변경했습니다. 백업·복구 검증이 선행되어야 하며 이관·제거 코드는 아직 구현되지 않았습니다.
 
 ### 2.2 날짜 및 동일 Track 중복
 
@@ -29,11 +31,11 @@ Catalog를 Music 데이터의 단일 기준으로 사용합니다. Legacy 기능
 
 ### 2.3 관리 순서와 재생 순서 분리
 
-Playlist 항목의 **관리/표시 순서**와 **실제 재생 순서**는 별도 값으로 기록합니다. 현재 Catalog의 `position` 하나만 사용하는 구현은 목표와 다르므로, 필드와 API 계약을 보완해야 합니다.
+Playlist 항목의 **관리/표시 순서**와 **실제 재생 순서**는 별도 값으로 기록합니다. 현재 `displayPosition` 필드는 저장되지만 별도 편집·정렬 및 API 계약은 미구현입니다.
 
 ### 2.4 Soft delete와 완전 삭제
 
-활성 Catalog 데이터는 soft delete를 사용합니다. Playlist 항목을 포함해 Catalog 레코드를 삭제할 때는 복구 가능한 상태로 남기고, 완전 삭제는 별도의 관리자 처리로 분리합니다. Legacy 테이블은 이관 후 불변 snapshot으로 보존하며 일반 삭제 대상에 포함하지 않습니다. 삭제·복구·완전 삭제 이력과 접근 통제를 구현해야 하며, 아직 코드에는 반영되지 않았습니다.
+활성 Catalog 데이터는 soft delete를 사용합니다. Playlist 항목을 포함해 Catalog 레코드를 삭제할 때는 복구 가능한 상태로 남기고, 완전 삭제는 별도의 관리자 처리로 분리합니다. Legacy 정리는 백업과 이관 검증을 마친 뒤 별도로 수행합니다. 삭제·복구·완전 삭제 이력과 접근 통제를 구현해야 하며, 아직 코드에는 반영되지 않았습니다.
 
 ### 2.5 Playlist 상태 전이
 
@@ -41,7 +43,7 @@ Playlist 공개 상태와 soft delete는 서로 독립된 상태로 관리합니
 
 ### 2.6 재생 접근 정책
 
-`published`는 Playlist 메타데이터 공개를 뜻하며, 음원 재생 허용과는 분리합니다. `anonymousPlayable=true`인 공개 Playlist의 활성 음원만 익명 재생을 허용하고, 그 외 재생에는 인증을 요구합니다. 저장 URL을 공개 응답에 직접 노출하지 않고 짧은 만료 시간의 URL 발급 방식으로 제공하는 방향입니다.
+`published`는 Playlist 메타데이터 공개를 뜻하며, 음원 재생 허용과는 분리합니다. `anonymousPlayable=true`인 공개 Playlist의 활성 음원만 익명 재생을 허용하고, 그 외 재생에는 인증을 요구합니다. 현재는 저장 URL을 공개하지 않고 서버가 로컬 파일을 직접 전달합니다. S3와 만료 URL 발급은 향후 작업입니다.
 
 ## 3. 구현 전에 구체화할 세부 기준
 
@@ -50,8 +52,8 @@ Playlist 공개 상태와 soft delete는 서로 독립된 상태로 관리합니
 ### 3.1 Legacy 데이터 이관과 종료 절차
 
 - Legacy Artist/Track/Playlist/PlaylistTrack을 Catalog 모델로 매핑하고 이관 전후 건수·관계·중복 데이터를 대조합니다.
-- Legacy Track의 `artistId`는 Catalog의 artist 문자열로, Legacy PlaylistTrack의 `seq`는 재생 순서로 변환합니다. 관리 순서 값과 과거 ID를 보존할 방법도 정합니다.
-- 이관 검증 후 Legacy API를 비활성화합니다. Legacy 테이블의 보존 기간과 최종 purge 시점은 별도로 승인합니다.
+- Legacy Artist와 Track을 정규 아티스트·녹음에 매핑하고 표시용 `artist` 문자열을 유지합니다. Legacy PlaylistTrack의 `seq`와 과거 ID를 보존·대조할 방법을 정합니다. 불명확한 작품 관계나 과거 사용 기록은 추정하지 않습니다.
+- 이관 및 백업·복구 검증 후 Legacy API·코드와 테이블을 제거합니다. 운영 실행과 롤백 절차는 이관 구현 전에 구체화합니다.
 
 ### 3.2 순서 필드와 API 의미
 
@@ -69,7 +71,7 @@ Playlist 공개 상태와 soft delete는 서로 독립된 상태로 관리합니
 
 ### 3.4 재생 URL과 AudioAsset 세부사항
 
-Track 하나에 여러 AudioAsset을 둘 수 있지만 기본 재생 파일과 format/quality 선택 기준은 없습니다. 재생 기능 구현 전에 TTL, Range 요청, CORS, 오디오 파일 교체·삭제 시 URL 처리와 기본 Asset 선택 기준을 정합니다.
+관리자는 Playlist 항목에 로컬 AudioAsset을 명시적으로 선택하고 Range 재생을 사용할 수 있습니다. 자동 품질 선택, 파일 교체·삭제 lifecycle, S3·서명 URL과 TTL은 미구현입니다. 브라우저 CORS와 실제 Range 동작은 격리 환경에서 검증해야 합니다.
 
 ## 4. 남은 구현 및 검증 항목
 
@@ -97,7 +99,7 @@ Track 하나에 여러 AudioAsset을 둘 수 있지만 기본 재생 파일과 f
 
 ### 운영·DB·미디어
 
-- 실제 파일 업로드 전 MIME/크기 검증, 저장소 키 관리, DB와 파일 저장소 간 실패 보상 및 삭제 lifecycle을 설계합니다.
+- 로컬 업로드의 크기·파일 서명 검사와 저장 실패 시 파일 정리는 구현되어 있습니다. 실제 미디어 디코딩 검증, 파일 삭제/복구 lifecycle, 백업·S3 전환을 보완합니다.
 - DB entity와 migration 간 FK·index 이름, datetime 정밀도, collation 차이를 정리하고, drift 검사를 보고 전용에서 CI 필수 gate로 전환합니다.
 - utf8mb4·timezone, 백업/복구, migration 실패 절차를 운영 DB에서 확인합니다.
 - Migration 적용·이관 검증·MariaDB 통합/E2E 결과를 배포 승인 기준에 포함합니다.

@@ -25,17 +25,17 @@
 
 ### Artist
 
-Legacy 카탈로그에서 Track이 속한 아티스트입니다. 현재 Catalog Track은 artist 문자열을 직접 저장합니다. 따라서 Legacy Artist와 Catalog Track의 artist 표현 방식은 다릅니다.
+Legacy 카탈로그의 아티스트와 별도로 Catalog에는 정규 아티스트와 별칭 테이블이 있습니다. Catalog Track의 표시용 `artist` 문자열은 유지되며 정규 아티스트·공동 참여자 연결과 자동 동기화되지 않습니다.
 
 ### Track
 
-음악 작품의 카탈로그 정보입니다. 제목, 아티스트, BPM 같은 메타데이터를 가집니다. Track이 생성될 때 AudioAsset이 반드시 존재할 필요는 없습니다.
+Catalog Track은 개별 녹음입니다. 같은 작품의 커버나 라이브 녹음을 별도 Track으로 만들고 선택적으로 같은 작품에 연결할 수 있습니다. Track이 생성될 때 AudioAsset이 반드시 존재할 필요는 없습니다.
 
 ### AudioAsset
 
 실제 음원 파일을 가리키는 저장소 메타데이터입니다.
 
-현재는 `url`, duration, BPM을 저장합니다. 중요한 구분은 Track의 BPM과 AudioAsset의 BPM이 서로 다른 값이라는 점입니다.
+기존 `url`, duration, BPM과 로컬 업로드용 storage key·content type·크기를 저장합니다. 로컬 업로드 파일은 Playlist 항목에 선택해 권한별로 재생할 수 있습니다. Track의 BPM과 AudioAsset의 BPM은 서로 다른 값입니다.
 
 - `Track.bpm`: 카탈로그 또는 작품 기준 BPM
 - `AudioAsset.bpm`: 특정 파일 또는 분석 결과의 BPM
@@ -52,7 +52,7 @@ Legacy 카탈로그에서 Track이 속한 아티스트입니다. 현재 Catalog 
 
 ### PlaylistTrack
 
-Playlist와 Track 사이의 관계 행입니다. Catalog에서는 `position`이 재생 순서입니다. 관계 테이블을 별도로 두는 이유는 같은 Track이 여러 Playlist에 들어갈 수 있고, Playlist마다 순서와 메모가 다르기 때문입니다.
+Playlist와 Track 사이의 관계 행입니다. Catalog에서는 `position`이 재생 순서이고 선택된 AudioAsset을 기록할 수 있습니다. `displayPosition`은 저장만 하며 독립 편집·정렬은 미구현입니다. 같은 Track을 한 Playlist에 여러 번 넣을 수 있습니다. 사용 회차를 확정하면 당시 항목과 사용 횟수의 별도 스냅샷으로 통계를 계산합니다.
 
 ## 3. 요청 흐름 읽기
 

@@ -186,7 +186,7 @@ Before enabling a provider, complete
   startup rejects enabling it in production. The Nest Swagger compiler plugin
   derives request schemas from `*.dto.ts` validation rules. Keep response DTOs
   concrete and use the shared error envelope for documented error responses.
-- Core account, SNS and music route table (55 routes):
+- Core account, SNS and music route table:
   [docs/product/api-spec.kr.md](docs/product/api-spec.kr.md). Dictionary and its
   dedicated health routes are documented in the
   [dictionary API specification](docs/api/API_SPEC.md).
@@ -201,12 +201,14 @@ Before enabling a provider, complete
 | SNS login | `POST /auth/{google,apple,kakao,naver,facebook}/{login,exchange-code}`, `POST /auth/{google,apple}/verify-id-token` | public (503 while disabled) |
 | Catalog reads | `GET /music/tracks`, `GET /music/tracks/:id`, `GET /music/public/playlists(/:id)` | public |
 | Catalog writes | tracks, audio assets, playlists (create/update/delete/publish/reorder), `GET /music/tracks/:trackId/audio-assets` | **admin** |
+| Music management | artists, works, recordings, playlist usage and statistics, local audio uploads | **admin** |
+| Local audio playback | published playlist item content; anonymous only when enabled, otherwise JWT | public / JWT |
 | Legacy reads | `GET /music/legacy/tracks(/:id)` public; artists, playlists, `tracks/full` | JWT |
 | Legacy writes | `POST/PATCH/DELETE /music/legacy/**` | **admin** |
 | Dictionary public | `GET /api/v1/languages`, `/lexemes`, `/lexemes/:id`, `/concepts/:id`, `/concepts/:id/translations` | public |
 | Dictionary admin | `/api/v1/admin/**` for sources, concepts, lexemes, review, publication and audit logs | **admin** |
 
-Public responses never include audio URLs or internal storage identifiers.
+Public metadata responses never include audio URLs or internal storage identifiers. Local audio playback streams the selected file through access-checked routes; S3 is not implemented. The [music usage prototype](docs/music/catalog-usage-prototype.kr.md) documents setup, limitations and pending legacy migration.
 
 ## Project structure
 
