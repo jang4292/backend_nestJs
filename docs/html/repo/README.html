@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="generator" content="docs/html/_tools/build.mjs">
   <title>NestJS Backend API · Backend NestJS 학습 사이트</title>
-  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 2026-11 감사 작업 내역을 학습 순서대로 정리한 사이트입니다.">
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 다국어 사전·학습 플랫폼 설계 초안을 정리한 사이트입니다.">
   <script>
     // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
     try {
@@ -28,27 +28,29 @@
   </header>
   <div class="layout">
     <nav id="sidebar" class="sidebar" aria-label="문서 목록">
-      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/api.kr.html" data-page-id="docs/music/api.kr">Music REST API 레퍼런스</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 후속 작업</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section" open><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="README.html" data-page-id="README" aria-current="page">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
-      <p class="sidebar-meta">스냅샷 2026-11-13 · <code>c3d9557</code></p>
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../api/API_SPEC.html" data-page-id="docs/api/API_SPEC">다국어 사전 REST API</a></li><li><a href="API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/api.kr.html" data-page-id="docs/music/api.kr">Music REST API 레퍼런스</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 후속 작업</a></li><li><a href="../architecture/AS_IS.html" data-page-id="docs/architecture/AS_IS">구현 전 시스템 현황 (AS-IS)</a></li><li><a href="../architecture/TO_BE.html" data-page-id="docs/architecture/TO_BE">다국어 사전·학습 플랫폼 목표 구조 (TO-BE)</a></li><li><a href="../architecture/ADMIN_LIVE_API.html" data-page-id="docs/architecture/ADMIN_LIVE_API">Admin API / Live API 경계</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../database/ERD.html" data-page-id="docs/database/ERD">다국어 사전·학습 MariaDB 데이터 모델</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../operations/SECURITY.html" data-page-id="docs/operations/SECURITY">인증·권한·접근제어 설계</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section" open><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../architecture/ENVIRONMENTS.html" data-page-id="docs/architecture/ENVIRONMENTS">LOCAL / DEV / PROD 환경 설계</a></li><li><a href="../architecture/INFRASTRUCTURE.html" data-page-id="docs/architecture/INFRASTRUCTURE">NAS / Mini PC / EC2 인프라 역할 및 조사 절차</a></li><li><a href="../operations/DEPLOYMENT.html" data-page-id="docs/operations/DEPLOYMENT">배포·운영 설계</a></li><li><a href="../operations/BACKUP_RECOVERY.html" data-page-id="docs/operations/BACKUP_RECOVERY">백업·복구 계획</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="README.html" data-page-id="README" aria-current="page">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>구현 계획</summary><ul class="nav-list"><li><a href="../plans/IMPLEMENTATION_PLAN.html" data-page-id="docs/plans/IMPLEMENTATION_PLAN">다국어 플랫폼 구현 로드맵</a></li><li><a href="../plans/TASK_CHECKLIST.html" data-page-id="docs/plans/TASK_CHECKLIST">우선순위별 작업 체크리스트</a></li><li><a href="../prompts/PHASE_PROMPTS.html" data-page-id="docs/prompts/PHASE_PROMPTS">Phase별 실행 프롬프트</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-16 · <code>84065b1</code></p>
     </nav>
     <main id="content" class="content">
-      <div class="page-meta"><span class="badge">배포·운영</span><span class="badge badge-stamp">최신화 2026-11-09 · develop 9b731ef + chore/project-audit-2026-11</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <div class="page-meta"><span class="badge">배포·운영</span><span class="badge badge-stamp">최신화 2026-11-16 · documentation review</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
       <article class="markdown">
         <h1 id="nestjs-backend-api">NestJS Backend API</h1>
 <blockquote>
-<p>Last updated: 2026-11-09 · develop <code>9b731ef</code> + <code>chore/project-audit-2026-11</code> ·
+<p>Last updated: 2026-11-16 · documentation review ·
 Documentation index (Korean): <a href="../index.html">docs/README.md</a></p>
 </blockquote>
-<p>A NestJS 11 backend that provides local JWT authentication, user profiles, and
-music catalog and playlist APIs. It runs on MariaDB through TypeORM. Settings
-are validated at startup, and the schema changes only through versioned
-migrations.</p>
+<p>A NestJS 11 backend that provides local JWT authentication, user profiles,
+music catalog and playlist APIs, and a multilingual dictionary MVP. It runs on
+MariaDB through TypeORM. Settings are validated at startup, and the schema
+changes only through versioned migrations.</p>
 <h2 id="features"><a class="heading-anchor" href="#features" aria-hidden="true" tabindex="-1">#</a>Features</h2>
 <ul>
 <li>Local registration and JWT login (HS256). A password change requires
 <code>currentPassword</code>.</li>
 <li>Minimal RBAC: music write APIs are admin-only (<code>users.role</code>).</li>
 <li>Music catalog (tracks, audio assets, playlists) and legacy music APIs.</li>
+<li>Dictionary search, concept lookup, admin review/publication and source
+attribution; see the <a href="../api/API_SPEC.html">dictionary API</a>.</li>
 <li>Social login modules for Google, Apple, Kakao, Naver and Facebook.
 <strong>They are currently all disabled; only local login is used.</strong> Each provider
 is opt-in, see <a href="#sns-login">SNS login</a>.</li>
@@ -92,7 +94,7 @@ port to developer IPs, or connect through an SSH tunnel.</li>
 </ul>
 <h2 id="environments"><a class="heading-anchor" href="#environments" aria-hidden="true" tabindex="-1">#</a>Environments</h2>
 <p>One env file per environment, chosen by <code>NODE_ENV</code>
-(see <a href="https://github.com/jang4292/backend_nestJs/blob/c3d9557/src/config/env-files.ts" target="_blank" rel="noopener noreferrer" class="source-link"><code>src/config/env-files.ts</code></a>). The app, the
+(see <a href="https://github.com/jang4292/backend_nestJs/blob/84065b1/src/config/env-files.ts" target="_blank" rel="noopener noreferrer" class="source-link"><code>src/config/env-files.ts</code></a>). The app, the
 migration CLI, the <code>db:*</code> tools and e2e all use the same rule.</p>
 <ul>
 <li>Exported shell variables override file values.</li>
@@ -212,7 +214,7 @@ their data, so the schema changes only through migrations.</li>
 </ul>
 </li>
 <li>Each environment-specific script runs through
-<a href="https://github.com/jang4292/backend_nestJs/blob/c3d9557/scripts/typeorm-env.cjs" target="_blank" rel="noopener noreferrer" class="source-link"><code>scripts/typeorm-env.cjs</code></a>, which sets <code>NODE_ENV</code>
+<a href="https://github.com/jang4292/backend_nestJs/blob/84065b1/scripts/typeorm-env.cjs" target="_blank" rel="noopener noreferrer" class="source-link"><code>scripts/typeorm-env.cjs</code></a>, which sets <code>NODE_ENV</code>
 and works the same on macOS, Linux and Windows.</li>
 <li>Prod commands run from <code>dist</code> with plain <code>node</code>, so the server does not need
 ts-node.</li>
@@ -222,7 +224,7 @@ database that contains nothing but this app&#39;s tables.</li>
 <h2 id="database-and-migrations"><a class="heading-anchor" href="#database-and-migrations" aria-hidden="true" tabindex="-1">#</a>Database and migrations</h2>
 <ul>
 <li><strong>Tables come only from migrations</strong>
-(<a href="https://github.com/jang4292/backend_nestJs/tree/c3d9557/src/database/migrations" target="_blank" rel="noopener noreferrer" class="source-link"><code>src/database/migrations/</code></a>). Never use
+(<a href="https://github.com/jang4292/backend_nestJs/tree/84065b1/src/database/migrations" target="_blank" rel="noopener noreferrer" class="source-link"><code>src/database/migrations/</code></a>). Never use
 <code>synchronize</code> (rejected at startup) or hand-written <code>CREATE TABLE</code>.</li>
 <li><strong>The same migration files go through every environment in order:</strong> CI
 (empty DB) → Test → Local → Prod.</li>
@@ -278,10 +280,15 @@ first. Exported values override <code>.env.production</code>.</li>
 <a href="../auth/sns-reenable-checklist.kr.html">docs/auth/sns-reenable-checklist.kr.md</a>.</p>
 <h2 id="api"><a class="heading-anchor" href="#api" aria-hidden="true" tabindex="-1">#</a>API</h2>
 <ul>
-<li>Swagger: <code>http://localhost:3000/api-docs</code> in development and test. It is
-disabled in production.</li>
-<li>Route table with access levels (55 routes):
-<a href="../product/api-spec.kr.html">docs/product/api-spec.kr.md</a>.</li>
+<li>Swagger: <code>http://localhost:3000/api-docs</code> when <code>SWAGGER_ENABLED=true</code>
+(enabled by the development and test templates). It defaults to disabled;
+startup rejects enabling it in production. The Nest Swagger compiler plugin
+derives request schemas from <code>*.dto.ts</code> validation rules. Keep response DTOs
+concrete and use the shared error envelope for documented error responses.</li>
+<li>Core account, SNS and music route table (55 routes):
+<a href="../product/api-spec.kr.html">docs/product/api-spec.kr.md</a>. Dictionary and its
+dedicated health routes are documented in the
+<a href="../api/API_SPEC.html">dictionary API specification</a>.</li>
 <li>curl examples: <a href="API_EXAMPLES.html">API_EXAMPLES.md</a>.</li>
 </ul>
 <div class="table-wrap"><table>
@@ -295,6 +302,11 @@ disabled in production.</li>
 <tbody><tr>
 <td>System</td>
 <td><code>GET /</code>, <code>GET /health</code></td>
+<td>public</td>
+</tr>
+<tr>
+<td>Dictionary health</td>
+<td><code>GET /api/v1/health/live</code>, <code>GET /api/v1/health/ready</code></td>
 <td>public</td>
 </tr>
 <tr>
@@ -332,6 +344,16 @@ disabled in production.</li>
 <td><code>POST/PATCH/DELETE /music/legacy/**</code></td>
 <td><strong>admin</strong></td>
 </tr>
+<tr>
+<td>Dictionary public</td>
+<td><code>GET /api/v1/languages</code>, <code>/lexemes</code>, <code>/lexemes/:id</code>, <code>/concepts/:id</code>, <code>/concepts/:id/translations</code></td>
+<td>public</td>
+</tr>
+<tr>
+<td>Dictionary admin</td>
+<td><code>/api/v1/admin/**</code> for sources, concepts, lexemes, review, publication and audit logs</td>
+<td><strong>admin</strong></td>
+</tr>
 </tbody></table>
 </div>
 <p>Public responses never include audio URLs or internal storage identifiers.</p>
@@ -345,6 +367,7 @@ disabled in production.</li>
   auth/          session (JWT, RBAC), local login, shared SNS kernel, 5 providers
   users/         domain, use-cases, ports/adapters, controller, presenters
   music/         legacy (/music/legacy) and catalog (/music) modules
+  dictionary/    public and admin dictionary, review and publication
 scripts/         typeorm-env.cjs, check-env.cjs, runtime-env-keys.cjs, export-secrets-env.cjs
 test/            e2e (runs against MariaDB)
 </code></pre>
@@ -352,7 +375,15 @@ test/            e2e (runs against MariaDB)
 <pre><code class="language-bash">npm run lint:check &amp;&amp; npm run format:check &amp;&amp; npm run typecheck &amp;&amp; npx jest &amp;&amp; npm run build
 npm run db:setup:test &amp;&amp; npm run test:e2e      # needs .env.test.local
 </code></pre>
-<p>GitHub Actions (<a href="https://github.com/jang4292/backend_nestJs/blob/c3d9557/.github/workflows/ci.yml" target="_blank" rel="noopener noreferrer" class="source-link"><code>.github/workflows/ci.yml</code></a>) runs
+<p>The dictionary and catalog concurrency E2E suites are skipped unless
+<code>ISOLATED_DATABASE_E2E=true</code> is set. Enable it <strong>only</strong> for a disposable,
+dedicated local <code>*_test</code> database: these suites create users/content and change
+the current publication; they do not clean up the database. The test guard
+checks the loopback host and name, but cannot prove a database is disposable.
+After configuring a private test instance and running its migrations:</p>
+<pre><code class="language-bash">ISOLATED_DATABASE_E2E=true npm run test:e2e -- --runInBand
+</code></pre>
+<p>GitHub Actions (<a href="https://github.com/jang4292/backend_nestJs/blob/84065b1/.github/workflows/ci.yml" target="_blank" rel="noopener noreferrer" class="source-link"><code>.github/workflows/ci.yml</code></a>) runs
 on every pull request and on every push to <code>develop</code> and <code>main</code>:</p>
 <ul>
 <li><strong><code>verify</code>:</strong> lint, format, typecheck, unit tests, build, a critical
@@ -363,7 +394,7 @@ production <code>npm audit</code>, and a link/anchor check of every Markdown doc
 <li>assert that nothing is pending</li>
 <li>revert and re-apply the latest migration</li>
 <li>run the schema drift check (report-only for now, audit item DB-12)</li>
-<li>run e2e</li>
+<li>run e2e, including the opt-in dictionary and concurrency suites</li>
 </ol>
 </li>
 </ul>
@@ -393,7 +424,7 @@ production <code>npm audit</code>, and a link/anchor check of every Markdown doc
 </tr>
 <tr>
 <td>Product scope, features, API contract</td>
-<td><a href="https://github.com/jang4292/backend_nestJs/tree/c3d9557/docs/product" target="_blank" rel="noopener noreferrer" class="source-link">docs/product/</a></td>
+<td><a href="https://github.com/jang4292/backend_nestJs/tree/84065b1/docs/product" target="_blank" rel="noopener noreferrer" class="source-link">docs/product/</a></td>
 </tr>
 <tr>
 <td>Music catalog design and decisions</td>
@@ -443,10 +474,10 @@ production <code>npm audit</code>, and a link/anchor check of every Markdown doc
 </div>
 
       </article>
-      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../learning/deployment-secrets-checklist.kr.html"><span>이전</span>배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a><a class="pager-next" href="../learning/work-history-2026-11.kr.html"><span>다음</span>작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></nav>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../learning/deployment-secrets-checklist.kr.html"><span>이전</span>배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a><a class="pager-next" href="../plans/IMPLEMENTATION_PLAN.html"><span>다음</span>다국어 플랫폼 구현 로드맵</a></nav>
       <footer class="page-footer">
-        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/c3d9557/README.md" target="_blank" rel="noopener noreferrer"><code>README.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
-        <p>스냅샷 2026-11-13 · develop <code>c3d9557</code></p>
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/84065b1/README.md" target="_blank" rel="noopener noreferrer"><code>README.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-16 · develop <code>84065b1</code></p>
       </footer>
     </main>
     <aside class="toc" aria-label="이 페이지 목차">

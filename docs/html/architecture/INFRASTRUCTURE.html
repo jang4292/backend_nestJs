@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/architecture/INFRASTRUCTURE">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>NAS / Mini PC / EC2 인프라 역할 및 조사 절차 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 다국어 사전·학습 플랫폼 설계 초안을 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../api/API_SPEC.html" data-page-id="docs/api/API_SPEC">다국어 사전 REST API</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/api.kr.html" data-page-id="docs/music/api.kr">Music REST API 레퍼런스</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 후속 작업</a></li><li><a href="AS_IS.html" data-page-id="docs/architecture/AS_IS">구현 전 시스템 현황 (AS-IS)</a></li><li><a href="TO_BE.html" data-page-id="docs/architecture/TO_BE">다국어 사전·학습 플랫폼 목표 구조 (TO-BE)</a></li><li><a href="ADMIN_LIVE_API.html" data-page-id="docs/architecture/ADMIN_LIVE_API">Admin API / Live API 경계</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../database/ERD.html" data-page-id="docs/database/ERD">다국어 사전·학습 MariaDB 데이터 모델</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../operations/SECURITY.html" data-page-id="docs/operations/SECURITY">인증·권한·접근제어 설계</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section" open><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="ENVIRONMENTS.html" data-page-id="docs/architecture/ENVIRONMENTS">LOCAL / DEV / PROD 환경 설계</a></li><li><a href="INFRASTRUCTURE.html" data-page-id="docs/architecture/INFRASTRUCTURE" aria-current="page">NAS / Mini PC / EC2 인프라 역할 및 조사 절차</a></li><li><a href="../operations/DEPLOYMENT.html" data-page-id="docs/operations/DEPLOYMENT">배포·운영 설계</a></li><li><a href="../operations/BACKUP_RECOVERY.html" data-page-id="docs/operations/BACKUP_RECOVERY">백업·복구 계획</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>구현 계획</summary><ul class="nav-list"><li><a href="../plans/IMPLEMENTATION_PLAN.html" data-page-id="docs/plans/IMPLEMENTATION_PLAN">다국어 플랫폼 구현 로드맵</a></li><li><a href="../plans/TASK_CHECKLIST.html" data-page-id="docs/plans/TASK_CHECKLIST">우선순위별 작업 체크리스트</a></li><li><a href="../prompts/PHASE_PROMPTS.html" data-page-id="docs/prompts/PHASE_PROMPTS">Phase별 실행 프롬프트</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-16 · <code>84065b1</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">배포·운영</span><span class="badge badge-stamp">최신화 2026-11-14 · develop a38e885</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="nas--mini-pc--ec2-인프라-역할-및-조사-절차">NAS / Mini PC / EC2 인프라 역할 및 조사 절차</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-14 · develop <code>a38e885</code>
+호스트 상태를 실제로 조회하지 않았습니다. 장비의 여유 자원, OS, 네트워크 및 서비스는 모두 <strong>UNVERIFIED</strong>입니다.</p>
+</blockquote>
+<h2 id="1-권장-배치-초안"><a class="heading-anchor" href="#1-%EA%B6%8C%EC%9E%A5-%EB%B0%B0%EC%B9%98-%EC%B4%88%EC%95%88" aria-hidden="true" tabindex="-1">#</a>1. 권장 배치 초안</h2>
+<pre><code class="language-mermaid">flowchart TB
+  User[Internet clients] --&gt;|HTTPS 443| SG[EC2 Security Group]
+  Admin[Admin via VPN / Zero Trust] --&gt;|HTTPS 443| SG
+  SG --&gt; Nginx[Nginx reverse proxy]
+  Nginx --&gt; API[NestJS API on loopback/private port]
+  API --&gt; DB[(MariaDB; 127.0.0.1 or private subnet)]
+  Worker[Mini PC: optional DEV import worker] --&gt;|outbound HTTPS; authenticated import only| Import[EC2 staging/import endpoint]
+  DB --&gt;|encrypted scheduled backup| NAS[Synology DS218j: backup target only]
+  Source[Approved external dictionary sources] --&gt;|download to staging| Worker
+</code></pre>
+<p>Mini PC와 NAS는 Live API의 필수 runtime dependency가 되지 않도록 합니다. NAS에 DB primary나 공개 API를 올리지 않고, Mini PC Worker가 PROD DB port로 직접 접속하지 않게 합니다. 실제 사양이 부족하거나 availability가 검증되지 않으면 Mini PC는 DEV-only/연구용으로 한정하고, PROD import도 EC2 내부 승인 job 또는 관리형 compute로 이동합니다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>장비</th>
+<th>제안 역할</th>
+<th>수행하지 않을 역할</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>개발 Mac/PC</td>
+<td>LOCAL API, 로컬 DB, unit/E2E</td>
+<td>운영 DB 직접 접속, PROD secret 보관</td>
+</tr>
+<tr>
+<td>HP t620 Ubuntu</td>
+<td>검증 후 DEV API 또는 제한된 DEV import worker</td>
+<td>PROD DB 직접 접근, Live SLA가 필요한 서비스</td>
+</tr>
+<tr>
+<td>Synology DS218j DSM 7.3</td>
+<td>암호화된 dump 및 raw source archive 보관, 제한된 내부 backup target</td>
+<td>인터넷 노출 API, 운영 MariaDB, Container/Docker 실행을 지원한다고 가정</td>
+</tr>
+<tr>
+<td>AWS EC2 Amazon Linux 2023</td>
+<td>PROD Nginx/API 및 (현재 목표로는) MariaDB</td>
+<td>MariaDB 3306 인터넷 공개, 외부 Worker 직접 DB 접근</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="2-확인되어야-할-값"><a class="heading-anchor" href="#2-%ED%99%95%EC%9D%B8%EB%90%98%EC%96%B4%EC%95%BC-%ED%95%A0-%EA%B0%92" aria-hidden="true" tabindex="-1">#</a>2. 확인되어야 할 값</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>구간</th>
+<th>조사 대상</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HP t620</td>
+<td>CPU 모델/코어, RAM 총량/여유, disk 종류/여유/SMART, Ubuntu 버전, 가동률·온도·전원, SSH 접근 제어, ISP/NAT/DNS, 수신 포트</td>
+</tr>
+<tr>
+<td>Synology</td>
+<td>모델/DSM build, volume 총량·여유·SMART/RAID, 공유폴더 ACL, snapshot/Hyper Backup/외부 복사 여부, SMB/NFS/SSH 노출, 계정/MFA, 복원 리허설</td>
+</tr>
+<tr>
+<td>EC2</td>
+<td>instance type/region/AZ, OS release, CPU/RAM/disk/IOPS, Security Group, EIP/DNS, Nginx site config, API process manager, MariaDB version/listen/TLS/privilege, CloudWatch/로그, backup/restore</td>
+</tr>
+<tr>
+<td>네트워크</td>
+<td>실제 Admin 경로, VPN/Zero Trust, ISP 공인 IP, DNS, TLS 발급·갱신, outbound 제한, 장애 시 접근 경로</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="3-read-only-점검-명령-후보"><a class="heading-anchor" href="#3-read-only-%EC%A0%90%EA%B2%80-%EB%AA%85%EB%A0%B9-%ED%9B%84%EB%B3%B4" aria-hidden="true" tabindex="-1">#</a>3. Read-only 점검 명령 후보</h2>
+<p>운영자 승인 후 해당 장비에서 로컬로 실행하고, 결과 중 IP·계정·경로·도메인·환경값은 공유 전에 가립니다. 이 문서 작성 시에는 실행하지 않았습니다.</p>
+<h3 id="ubuntu-mini-pc"><a class="heading-anchor" href="#ubuntu-mini-pc" aria-hidden="true" tabindex="-1">#</a>Ubuntu Mini PC</h3>
+<pre><code class="language-bash">hostnamectl
+uname -a
+lsb_release -a
+lscpu
+free -h
+df -hT
+lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS
+uptime
+systemctl --type=service --state=running
+ss -lntup
+</code></pre>
+<h3 id="ec2-amazon-linux-2023"><a class="heading-anchor" href="#ec2-amazon-linux-2023" aria-hidden="true" tabindex="-1">#</a>EC2 Amazon Linux 2023</h3>
+<pre><code class="language-bash">cat /etc/os-release
+uname -a
+nproc
+free -h
+df -hT
+lsblk
+uptime
+systemctl --type=service --state=running
+ss -lntup
+nginx -v
+pm2 status
+mariadb --version
+</code></pre>
+<p><code>nginx -T</code>, process command line, systemd unit dump, <code>ps e</code>, env file, DB grants/dump는 비밀정보를 포함할 수 있습니다. 필요한 경우 운영자 측에서 민감값을 제거해 별도로 검토하며, 이 명령 목록은 해당 출력을 요청하지 않습니다.</p>
+<h3 id="synology-dsm"><a class="heading-anchor" href="#synology-dsm" aria-hidden="true" tabindex="-1">#</a>Synology DSM</h3>
+<p>DSM UI에서 Storage Manager, Resource Monitor, Task Scheduler, Hyper Backup, Security/Firewall, Control Panel의 SSH 상태를 읽기 전용으로 확인합니다. 모델별 package/container 지원 여부는 DSM UI 및 Synology 공식 호환성 정보를 기준으로 확인하고, Docker/Container Manager가 있다고 가정하지 않습니다.</p>
+<h2 id="4-nginx와-포트-정책"><a class="heading-anchor" href="#4-nginx%EC%99%80-%ED%8F%AC%ED%8A%B8-%EC%A0%95%EC%B1%85" aria-hidden="true" tabindex="-1">#</a>4. Nginx와 포트 정책</h2>
+<ul>
+<li>외부 진입점은 80(HTTPS redirect)과 443만 허용하고, SSH는 지정된 관리자 경로로 제한합니다.</li>
+<li>Nginx는 TLS 종료 및 <code>/api/v1</code> reverse proxy를 수행합니다. API는 loopback 또는 private interface에서 수신합니다.</li>
+<li>MariaDB는 EC2 내 localhost 또는 private subnet에서만 접근하며 inbound public rule을 만들지 않습니다.</li>
+<li>Admin route는 VPN/Zero Trust source network allow-list를 추가합니다. JWT/RBAC만으로 무차별 인터넷 노출을 정당화하지 않습니다.</li>
+<li>기존 Nginx 설정/사이트/포트는 현장 조사 전 수정하지 않습니다. 신규 server block은 실제 기존 listen/domain과 충돌이 없는 것을 확인하고 배포합니다.</li>
+</ul>
+<h2 id="5-외부-데이터-pipeline"><a class="heading-anchor" href="#5-%EC%99%B8%EB%B6%80-%EB%8D%B0%EC%9D%B4%ED%84%B0-pipeline" aria-hidden="true" tabindex="-1">#</a>5. 외부 데이터 pipeline</h2>
+<ul>
+<li>다운로드는 허용된 source endpoint에서 Worker의 격리 staging으로만 받습니다.</li>
+<li>원본 파일은 checksum, source/version, 수집시각, license, attribution 텍스트를 함께 기록하고, 검수 후에만 DB에 import합니다.</li>
+<li>DEV Worker는 PROD credentials를 받지 않습니다. PROD import는 인증된 Admin import endpoint 또는 EC2 내부 승인 job을 통합니다.</li>
+<li>Worker 장애/네트워크 단절 시 이미 게시된 Live 데이터는 계속 읽힙니다. import는 checkpoint 및 idempotency key로 재시도합니다.</li>
+<li>대용량 원본은 NAS 공간/전송속도/복구 가능성을 확인한 뒤 archive할지 결정합니다. NAS 단일 사본을 백업으로 간주하지 않습니다.</li>
+</ul>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="ENVIRONMENTS.html"><span>이전</span>LOCAL / DEV / PROD 환경 설계</a><a class="pager-next" href="../operations/DEPLOYMENT.html"><span>다음</span>배포·운영 설계</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/84065b1/docs/architecture/INFRASTRUCTURE.md" target="_blank" rel="noopener noreferrer"><code>docs/architecture/INFRASTRUCTURE.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-16 · develop <code>84065b1</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-%EA%B6%8C%EC%9E%A5-%EB%B0%B0%EC%B9%98-%EC%B4%88%EC%95%88">1. 권장 배치 초안</a></li><li class="toc-2"><a href="#2-%ED%99%95%EC%9D%B8%EB%90%98%EC%96%B4%EC%95%BC-%ED%95%A0-%EA%B0%92">2. 확인되어야 할 값</a></li><li class="toc-2"><a href="#3-read-only-%EC%A0%90%EA%B2%80-%EB%AA%85%EB%A0%B9-%ED%9B%84%EB%B3%B4">3. Read-only 점검 명령 후보</a></li><li class="toc-3"><a href="#ubuntu-mini-pc">Ubuntu Mini PC</a></li><li class="toc-3"><a href="#ec2-amazon-linux-2023">EC2 Amazon Linux 2023</a></li><li class="toc-3"><a href="#synology-dsm">Synology DSM</a></li><li class="toc-2"><a href="#4-nginx%EC%99%80-%ED%8F%AC%ED%8A%B8-%EC%A0%95%EC%B1%85">4. Nginx와 포트 정책</a></li><li class="toc-2"><a href="#5-%EC%99%B8%EB%B6%80-%EB%8D%B0%EC%9D%B4%ED%84%B0-pipeline">5. 외부 데이터 pipeline</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

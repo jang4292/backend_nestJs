@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/architecture/ENVIRONMENTS">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>LOCAL / DEV / PROD 환경 설계 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 다국어 사전·학습 플랫폼 설계 초안을 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../api/API_SPEC.html" data-page-id="docs/api/API_SPEC">다국어 사전 REST API</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/api.kr.html" data-page-id="docs/music/api.kr">Music REST API 레퍼런스</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 후속 작업</a></li><li><a href="AS_IS.html" data-page-id="docs/architecture/AS_IS">구현 전 시스템 현황 (AS-IS)</a></li><li><a href="TO_BE.html" data-page-id="docs/architecture/TO_BE">다국어 사전·학습 플랫폼 목표 구조 (TO-BE)</a></li><li><a href="ADMIN_LIVE_API.html" data-page-id="docs/architecture/ADMIN_LIVE_API">Admin API / Live API 경계</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../database/ERD.html" data-page-id="docs/database/ERD">다국어 사전·학습 MariaDB 데이터 모델</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../operations/SECURITY.html" data-page-id="docs/operations/SECURITY">인증·권한·접근제어 설계</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section" open><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="ENVIRONMENTS.html" data-page-id="docs/architecture/ENVIRONMENTS" aria-current="page">LOCAL / DEV / PROD 환경 설계</a></li><li><a href="INFRASTRUCTURE.html" data-page-id="docs/architecture/INFRASTRUCTURE">NAS / Mini PC / EC2 인프라 역할 및 조사 절차</a></li><li><a href="../operations/DEPLOYMENT.html" data-page-id="docs/operations/DEPLOYMENT">배포·운영 설계</a></li><li><a href="../operations/BACKUP_RECOVERY.html" data-page-id="docs/operations/BACKUP_RECOVERY">백업·복구 계획</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>구현 계획</summary><ul class="nav-list"><li><a href="../plans/IMPLEMENTATION_PLAN.html" data-page-id="docs/plans/IMPLEMENTATION_PLAN">다국어 플랫폼 구현 로드맵</a></li><li><a href="../plans/TASK_CHECKLIST.html" data-page-id="docs/plans/TASK_CHECKLIST">우선순위별 작업 체크리스트</a></li><li><a href="../prompts/PHASE_PROMPTS.html" data-page-id="docs/prompts/PHASE_PROMPTS">Phase별 실행 프롬프트</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-16 · <code>84065b1</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">배포·운영</span><span class="badge badge-stamp">최신화 2026-11-14 · develop a38e885</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="local--dev--prod-환경-설계">LOCAL / DEV / PROD 환경 설계</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-14 · develop <code>a38e885</code>
+실제 현재 연결은 <a href="AS_IS.html">AS-IS</a>와 저장소의 <a href="../deployment/database-environments.kr.html">환경별 DB 가이드</a>를 참고하십시오. 아래 DEV 물리 배치는 제안이며 확정 사실이 아닙니다.</p>
+</blockquote>
+<h2 id="1-환경-분리표"><a class="heading-anchor" href="#1-%ED%99%98%EA%B2%BD-%EB%B6%84%EB%A6%AC%ED%91%9C" aria-hidden="true" tabindex="-1">#</a>1. 환경 분리표</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>구분</th>
+<th>LOCAL</th>
+<th>DEV</th>
+<th>PROD</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>목적</td>
+<td>개발·Migration 작성·테스트·샘플 데이터</td>
+<td>통합·배포·네트워크 검증, 비실데이터 import</td>
+<td>사용자 Live/Admin 운영</td>
+</tr>
+<tr>
+<td>API</td>
+<td>개발자 Mac/PC <code>localhost</code></td>
+<td>초기에는 Mini PC 검토, 검증이 안 되면 저비용 EC2 DEV</td>
+<td>AWS EC2, 별도 도메인/인증서</td>
+</tr>
+<tr>
+<td>DB</td>
+<td>개발 PC 로컬 MariaDB 또는 격리된 테스트 인스턴스(목표)</td>
+<td>전용 DB(이름은 환경 설정으로 결정)</td>
+<td>전용 DB(이름은 환경 설정으로 결정), 운영 API만 접근</td>
+</tr>
+<tr>
+<td>데이터</td>
+<td>가짜·샘플·가명화 데이터</td>
+<td>합성/검수 데이터; PROD 사용자 데이터 금지</td>
+<td>승인 콘텐츠 및 PROD 사용자 정보</td>
+</tr>
+<tr>
+<td>인증/시크릿</td>
+<td>개발 전용 <code>.env</code></td>
+<td>DEV 전용 key/DB 계정</td>
+<td>Secret Manager 또는 제한 권한 파일</td>
+</tr>
+<tr>
+<td>DB 권한</td>
+<td>개인 로컬 계정</td>
+<td>DEV 전용 런타임과 migrator</td>
+<td>별도 runtime 계정(read/write 필요한 최소 권한)과 migrator(DDL)</td>
+</tr>
+<tr>
+<td>로그</td>
+<td>debug 허용, 민감정보 금지</td>
+<td>운영과 유사한 구조, 비식별화</td>
+<td>최소한의 구조화 로그, 접근·보존 통제</td>
+</tr>
+<tr>
+<td>배포</td>
+<td>로컬 직접 실행</td>
+<td>CI 통과 후 수동/자동 배포</td>
+<td>승인된 tag/release + 배포 승인</td>
+</tr>
+</tbody></table>
+</div>
+<p>현 <a href="../repo/README.html">README</a>의 LOCAL은 현재 공유 DEV MariaDB의 <code>app_db_dev</code>를 연결하고, Test는 <code>app_db_test</code>를 사용합니다. PROD DB 이름은 <code>DB_DATABASE</code> 설정을 따릅니다. <code>dictionary_dev</code>/<code>dictionary_prod</code>는 현재 설정값이 아니므로 이 문서에서 특정 이름을 고정하지 않습니다. 목표 LOCAL 요구와 상충하므로 Phase 2에서 로컬 MariaDB 기본을 도입하거나, 연결이 필요한 개발자에게 SSH tunnel 기반 DEV 접근을 별도로 제공해야 합니다.</p>
+<h2 id="2-환경변수와-자격-증명"><a class="heading-anchor" href="#2-%ED%99%98%EA%B2%BD%EB%B3%80%EC%88%98%EC%99%80-%EC%9E%90%EA%B2%A9-%EC%A6%9D%EB%AA%85" aria-hidden="true" tabindex="-1">#</a>2. 환경변수와 자격 증명</h2>
+<ul>
+<li>환경변수 이름은 공통으로 유지하고 값/secret manager namespace는 환경별로 분리합니다.</li>
+<li>DB 접속, JWT signing key, OAuth credentials, import source key, backup encryption key를 환경 간 공유하지 않습니다.</li>
+<li><code>.env.example</code>은 자리표시자만 포함하며 실제 <code>.env</code>, <code>.env.production</code>, dump, PEM, private key는 저장소 밖에 둡니다.</li>
+<li>CI는 disposable DB/user/secret만 사용합니다. 운영 secret을 테스트 job에 노출하지 않습니다.</li>
+<li><code>ENVIRONMENT</code>와 <code>NODE_ENV</code>의 동기화 기준을 하나로 정하고(현 프로젝트는 <code>NODE_ENV</code>), 시스템마다 서로 다른 파일을 자동 fallback하지 않도록 합니다.</li>
+</ul>
+<p>필수 신규 설정 후보:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>변수</th>
+<th>목적</th>
+<th>기본 원칙</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>APP_ENV</code> 또는 기존 <code>NODE_ENV</code></td>
+<td>environment 식별</td>
+<td>불일치 거부</td>
+</tr>
+<tr>
+<td><code>DATABASE_URL</code> 또는 <code>DB_*</code></td>
+<td>해당 환경 전용 DB</td>
+<td><code>DB_SYNCHRONIZE=false</code></td>
+</tr>
+<tr>
+<td><code>JWT_SECRET</code> / session signing key</td>
+<td>인증</td>
+<td>환경 간 재사용 금지</td>
+</tr>
+<tr>
+<td><code>CORS_ORIGIN</code></td>
+<td>UI allow-list</td>
+<td><code>*</code> 금지, Admin UI origin 분리 검토</td>
+</tr>
+<tr>
+<td><code>TRUST_PROXY</code></td>
+<td>reverse proxy 신뢰</td>
+<td>실제 topology에 맞는 hop/IP만</td>
+</tr>
+<tr>
+<td><code>ADMIN_ALLOWED_NETWORKS</code> (ingress 설정 권장)</td>
+<td>Admin 네트워크 접근</td>
+<td>앱 설정보다 Nginx/Security Group에서 우선 적용</td>
+</tr>
+<tr>
+<td><code>IMPORT_STORAGE_ROOT</code> 또는 object storage config</td>
+<td>승인된 원본/작업 파일</td>
+<td>web root 밖, 환경별 경로/권한 분리</td>
+</tr>
+<tr>
+<td><code>LOG_LEVEL</code>, <code>REQUEST_TIMEOUT_MS</code></td>
+<td>운영 조정</td>
+<td>secret/개인정보를 log하지 않음</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="3-migration--콘텐츠-반영-정책"><a class="heading-anchor" href="#3-migration--%EC%BD%98%ED%85%90%EC%B8%A0-%EB%B0%98%EC%98%81-%EC%A0%95%EC%B1%85" aria-hidden="true" tabindex="-1">#</a>3. Migration / 콘텐츠 반영 정책</h2>
+<ol>
+<li>Schema Migration은 CI에서 빈 MariaDB에 전체 적용하고, 스키마 drift 및 backward compatibility를 검증합니다.</li>
+<li>DEV에서 migration과 롤백/복구 절차를 확인한 후 PROD 승인 배포에 포함합니다.</li>
+<li>코드 배포와 migration은 분리된 단계로 기록합니다. 파괴적 변경은 expand/contract로 나눕니다.</li>
+<li>Seed는 LOCAL/CI 전용입니다. DEV 콘텐츠는 import batch + approval 절차를 거치며 PROD 데이터베이스 전체 복제는 금지합니다.</li>
+<li>콘텐츠 데이터는 schema migration과 분리된, 버전·라이선스·source checksum·승인자·작업 ID를 가진 publish/import operation으로 반영합니다.</li>
+<li>되돌릴 수 없는 Migration 전에는 외부 저장소 backup과 복원 검증 여부를 확인합니다.</li>
+</ol>
+<h2 id="4-격리실패-영향-범위"><a class="heading-anchor" href="#4-%EA%B2%A9%EB%A6%AC%EC%8B%A4%ED%8C%A8-%EC%98%81%ED%96%A5-%EB%B2%94%EC%9C%84" aria-hidden="true" tabindex="-1">#</a>4. 격리·실패 영향 범위</h2>
+<ul>
+<li>개발자 로컬 API/DB 장애는 개인 개발에만 영향.</li>
+<li>DEV API/DB/Worker는 PROD credential 및 운영 네트워크 권한이 없어야 합니다.</li>
+<li>NAS는 별도 backup destination 및 제한된 원본 archive로 사용하고, Live 요청 경로에 마운트하지 않습니다.</li>
+<li>DEV와 PROD를 같은 EC2에 두는 구조는 CPU/RAM/disk, 계정, 포트, DB, 장애 영역을 공유합니다. 비용 절감 대신 동시 자원 고갈·잘못된 배포·호스트 장애의 공통 영향이 생기므로 기본안으로 권장하지 않습니다.</li>
+<li>EC2 단일 호스트의 API와 DB는 인스턴스 장애가 둘 다에 영향을 줍니다. Multi-AZ/managed DB로 옮길지 비용과 복구 목표를 비교해야 합니다.</li>
+</ul>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../deployment/mariadb-systemd.kr.html"><span>이전</span>EC2 + MariaDB 배포 가이드</a><a class="pager-next" href="INFRASTRUCTURE.html"><span>다음</span>NAS / Mini PC / EC2 인프라 역할 및 조사 절차</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/84065b1/docs/architecture/ENVIRONMENTS.md" target="_blank" rel="noopener noreferrer"><code>docs/architecture/ENVIRONMENTS.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-16 · develop <code>84065b1</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-%ED%99%98%EA%B2%BD-%EB%B6%84%EB%A6%AC%ED%91%9C">1. 환경 분리표</a></li><li class="toc-2"><a href="#2-%ED%99%98%EA%B2%BD%EB%B3%80%EC%88%98%EC%99%80-%EC%9E%90%EA%B2%A9-%EC%A6%9D%EB%AA%85">2. 환경변수와 자격 증명</a></li><li class="toc-2"><a href="#3-migration--%EC%BD%98%ED%85%90%EC%B8%A0-%EB%B0%98%EC%98%81-%EC%A0%95%EC%B1%85">3. Migration / 콘텐츠 반영 정책</a></li><li class="toc-2"><a href="#4-%EA%B2%A9%EB%A6%AC%EC%8B%A4%ED%8C%A8-%EC%98%81%ED%96%A5-%EB%B2%94%EC%9C%84">4. 격리·실패 영향 범위</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

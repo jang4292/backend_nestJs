@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/api/API_SPEC">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>다국어 사전 REST API · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 다국어 사전·학습 플랫폼 설계 초안을 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section" open><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="API_SPEC.html" data-page-id="docs/api/API_SPEC" aria-current="page">다국어 사전 REST API</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/api.kr.html" data-page-id="docs/music/api.kr">Music REST API 레퍼런스</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 후속 작업</a></li><li><a href="../architecture/AS_IS.html" data-page-id="docs/architecture/AS_IS">구현 전 시스템 현황 (AS-IS)</a></li><li><a href="../architecture/TO_BE.html" data-page-id="docs/architecture/TO_BE">다국어 사전·학습 플랫폼 목표 구조 (TO-BE)</a></li><li><a href="../architecture/ADMIN_LIVE_API.html" data-page-id="docs/architecture/ADMIN_LIVE_API">Admin API / Live API 경계</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../database/ERD.html" data-page-id="docs/database/ERD">다국어 사전·학습 MariaDB 데이터 모델</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../operations/SECURITY.html" data-page-id="docs/operations/SECURITY">인증·권한·접근제어 설계</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../architecture/ENVIRONMENTS.html" data-page-id="docs/architecture/ENVIRONMENTS">LOCAL / DEV / PROD 환경 설계</a></li><li><a href="../architecture/INFRASTRUCTURE.html" data-page-id="docs/architecture/INFRASTRUCTURE">NAS / Mini PC / EC2 인프라 역할 및 조사 절차</a></li><li><a href="../operations/DEPLOYMENT.html" data-page-id="docs/operations/DEPLOYMENT">배포·운영 설계</a></li><li><a href="../operations/BACKUP_RECOVERY.html" data-page-id="docs/operations/BACKUP_RECOVERY">백업·복구 계획</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>구현 계획</summary><ul class="nav-list"><li><a href="../plans/IMPLEMENTATION_PLAN.html" data-page-id="docs/plans/IMPLEMENTATION_PLAN">다국어 플랫폼 구현 로드맵</a></li><li><a href="../plans/TASK_CHECKLIST.html" data-page-id="docs/plans/TASK_CHECKLIST">우선순위별 작업 체크리스트</a></li><li><a href="../prompts/PHASE_PROMPTS.html" data-page-id="docs/prompts/PHASE_PROMPTS">Phase별 실행 프롬프트</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-16 · <code>84065b1</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">제품과 API</span><span class="badge badge-stamp">최신화 2026-11-14 · dictionary MVP 작업 트리</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="다국어-사전-rest-api">다국어 사전 REST API</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-14 · dictionary MVP 작업 트리
+이 문서는 현재 구현된 사전 API를 설명합니다. 기존 음악·인증 API에는 전역 prefix를 추가하지 않습니다.</p>
+</blockquote>
+<h2 id="공통-규칙"><a class="heading-anchor" href="#%EA%B3%B5%ED%86%B5-%EA%B7%9C%EC%B9%99" aria-hidden="true" tabindex="-1">#</a>공통 규칙</h2>
+<ul>
+<li>사전과 health 경로는 <code>/api/v1</code>을 사용하며 JSON UTF-8로 요청하고 응답합니다. ID는 정수입니다.</li>
+<li>Public 조회는 현재 publication의 승인된 revision만 반환하며, 출처의 이름·라이선스·attribution·URL을 함께 제공합니다.</li>
+<li>Public 목록의 <code>limit</code>은 기본 20, 최대 100이며 <code>cursor</code>는 opaque token입니다. 정렬은 lexeme ID 오름차순입니다. 다음 페이지 요청에는 같은 검색 조건을 사용해야 하며, publication이 바뀌면 409를 반환하므로 첫 페이지부터 다시 조회합니다.</li>
+<li>검색은 lemma와 forms에 대해 NFC 정규화·소문자 변환 후 <strong>접두사</strong>를 비교합니다. <code>%</code>, <code>_</code>, <code>!</code>는 와일드카드가 아닌 문자 그대로 취급합니다. 언어별 형태소 분석이나 fuzzy 검색은 지원하지 않습니다.</li>
+<li>관리자 API는 Bearer JWT와 <code>admin</code> 역할이 필요합니다. actor는 토큰에서 결정하며 요청 body에서 받지 않습니다. 쓰기와 감사 기록은 같은 트랜잭션에서 처리합니다.</li>
+<li>Swagger를 명시적으로 활성화한 비운영 환경에서는 <code>/api-docs</code>에서 DTO와 응답 스키마를 확인할 수 있습니다.</li>
+</ul>
+<p>성공 응답 예:</p>
+<pre><code class="language-json">{
+  &quot;ok&quot;: true,
+  &quot;requestId&quot;: &quot;req-123&quot;,
+  &quot;data&quot;: { &quot;publicationId&quot;: null, &quot;items&quot;: [], &quot;nextCursor&quot;: null }
+}
+</code></pre>
+<p>오류 응답 예:</p>
+<pre><code class="language-json">{
+  &quot;ok&quot;: false,
+  &quot;requestId&quot;: &quot;req-123&quot;,
+  &quot;errorCode&quot;: &quot;BAD_REQUEST&quot;,
+  &quot;message&quot;: &quot;Invalid cursor&quot;
+}
+</code></pre>
+<h2 id="public"><a class="heading-anchor" href="#public" aria-hidden="true" tabindex="-1">#</a>Public</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Method / path</th>
+<th>입력</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>GET /api/v1/languages</code></td>
+<td>없음</td>
+<td>지원 언어 <code>en</code>, <code>ko</code>, <code>ja</code>, <code>zh-Hans</code>, <code>zh-Hant</code></td>
+</tr>
+<tr>
+<td><code>GET /api/v1/lexemes</code></td>
+<td><code>q?</code>(최대 100자), <code>language?</code>, <code>cursor?</code>, <code>limit?</code></td>
+<td><code>{ publicationId, items, nextCursor }</code>; 게시물이 없으면 빈 목록</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/lexemes/{id}</code></td>
+<td>정수 ID</td>
+<td>게시된 어휘·forms·senses·source·<code>contentRevisionId</code>·<code>publicationId</code>; 없으면 404</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/concepts/{id}</code></td>
+<td><code>language?</code>, <code>cursor?</code>, <code>limit?</code></td>
+<td>게시된 개념과 연결 어휘; 게시된 연결이 없으면 404</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/concepts/{id}/translations</code></td>
+<td><code>targetLanguage?</code>, <code>cursor?</code>, <code>limit?</code></td>
+<td>같은 개념에 연결된 게시 어휘; 개념이 공개되지 않으면 404</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/health/live</code></td>
+<td>없음</td>
+<td>프로세스 생존 확인</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/health/ready</code></td>
+<td>없음</td>
+<td>DB <code>SELECT 1</code>; 실패하면 503</td>
+</tr>
+</tbody></table>
+</div>
+<p><code>language</code>와 <code>targetLanguage</code>는 위 다섯 태그 중 하나입니다. Concept 응답은 검색 목록과 같은 필드에 <code>concept: { id, description }</code>을 추가합니다. 기존 <code>/health</code>도 유지됩니다.</p>
+<h2 id="admin"><a class="heading-anchor" href="#admin" aria-hidden="true" tabindex="-1">#</a>Admin</h2>
+<p>관리자 목록은 <code>page</code>(기본 1)와 <code>limit</code>(기본 20, 최대 100)을 사용하고 <code>{ items, total, page, limit }</code>을 반환합니다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Method / path</th>
+<th>목적과 입력</th>
+<th>성공</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>POST /api/v1/admin/sources</code></td>
+<td>출처 생성: <code>name</code>, <code>license</code>, <code>attribution</code>, <code>url?</code></td>
+<td>201</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/admin/sources</code></td>
+<td>출처 목록</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>POST /api/v1/admin/concepts</code></td>
+<td>개념 생성: <code>description</code></td>
+<td>201</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/admin/concepts</code></td>
+<td>개념 목록</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>POST /api/v1/admin/lexemes</code></td>
+<td>초안 생성: <code>languageTag</code>, <code>lemma</code>, <code>sourceId</code>, <code>senses</code>, <code>partOfSpeech?</code>, <code>forms?</code></td>
+<td>201</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/admin/lexemes</code></td>
+<td>어휘 목록, <code>status?</code> 필터</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/admin/lexemes/{id}</code></td>
+<td>현재 revision 상세</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>PATCH /api/v1/admin/lexemes/{id}</code></td>
+<td><code>expectedVersion</code>과 변경할 콘텐츠 필드로 새 초안 생성</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>POST /api/v1/admin/lexemes/{id}/submit</code></td>
+<td><code>expectedVersion</code>으로 초안 검수 요청</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>POST /api/v1/admin/lexemes/{id}/approve</code></td>
+<td><code>expectedVersion</code>, <code>reason</code>으로 검수 중 revision 승인</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/admin/publications/current</code></td>
+<td><code>{ publicationId }</code>, 최초에는 <code>null</code></td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>POST /api/v1/admin/publications</code></td>
+<td><code>revisionIds</code>, <code>expectedCurrentPublicationId?</code>, <code>reason</code>으로 게시</td>
+<td>201</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/admin/audit-logs</code></td>
+<td>감사 로그 목록</td>
+<td>200</td>
+</tr>
+</tbody></table>
+</div>
+<p>어휘 생성 예:</p>
+<pre><code class="language-json">{
+  &quot;languageTag&quot;: &quot;ko&quot;,
+  &quot;lemma&quot;: &quot;예시&quot;,
+  &quot;sourceId&quot;: 1,
+  &quot;forms&quot;: [{ &quot;text&quot;: &quot;예시&quot;, &quot;script&quot;: &quot;Hang&quot;, &quot;type&quot;: &quot;variant&quot; }],
+  &quot;senses&quot;: [{ &quot;definition&quot;: &quot;직접 작성한 뜻&quot;, &quot;conceptIds&quot;: [1] }]
+}
+</code></pre>
+<p><code>senses</code>는 1~20개, <code>forms</code>는 최대 20개입니다. 각 sense의 <code>conceptIds</code>는 최대 20개이며 기존 개념을 참조합니다. 변경하지 않은 필드는 이전 revision에서 복사되고, 편집할 때마다 새 <code>draft</code> revision이 만들어집니다. 상태는 <code>draft → in_review → approved</code> 순서로 진행합니다. 수정·제출·승인 시 <code>expectedVersion</code>이 오래되었거나 상태가 맞지 않으면 409입니다.</p>
+<p>게시 요청 예:</p>
+<pre><code class="language-json">{
+  &quot;revisionIds&quot;: [1, 2],
+  &quot;expectedCurrentPublicationId&quot;: null,
+  &quot;reason&quot;: &quot;검수 완료&quot;
+}
+</code></pre>
+<p>승인된 revision만 게시할 수 있습니다. 게시 트랜잭션은 이전 스냅샷에서 요청에 없는 어휘를 유지하고 지정한 어휘만 새 revision으로 교체한 뒤 현재 publication 포인터를 원자적으로 바꿉니다. <code>expectedCurrentPublicationId</code>를 생략하면 <code>null</code>로 간주하므로 최초 게시 이후에는 현재 ID를 전달해야 합니다. 동시에 다른 게시가 완료되거나 이미 같은/더 최신 revision이 공개된 경우 409입니다. 단일 요청은 최대 100개 revision을 받습니다.</p>
+<h2 id="상태와-운영-제한"><a class="heading-anchor" href="#%EC%83%81%ED%83%9C%EC%99%80-%EC%9A%B4%EC%98%81-%EC%A0%9C%ED%95%9C" aria-hidden="true" tabindex="-1">#</a>상태와 운영 제한</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>상태</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>400</td>
+<td>DTO, 필터, cursor 또는 참조 검증 실패</td>
+</tr>
+<tr>
+<td>401 / 403</td>
+<td>미인증 / admin 권한 부족</td>
+</tr>
+<tr>
+<td>404</td>
+<td>존재하지 않거나 게시되지 않은 리소스</td>
+</tr>
+<tr>
+<td>409</td>
+<td>version, review 상태, publication 또는 cursor 충돌</td>
+</tr>
+<tr>
+<td>429</td>
+<td>공통 요청 제한</td>
+</tr>
+<tr>
+<td>503</td>
+<td>readiness에서 DB 연결 실패</td>
+</tr>
+</tbody></table>
+</div>
+<p>출처 정보는 수동 등록만 제공하며 라이선스의 적법성이나 재배포 가능 여부를 자동 검증하지 않습니다. 외부 데이터는 가져오지 않았습니다. MFA, 관리자 네트워크 제한, 출처 승인 절차와 배포 환경은 별도 운영 검증이 필요합니다. 문자·독음 API, 학습, import job, 게시 취소/롤백, idempotency key는 MVP에 구현되지 않았습니다.</p>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../product/api-spec.kr.html"><span>이전</span>API 명세 (라우트·권한)</a><a class="pager-next" href="../repo/API_EXAMPLES.html"><span>다음</span>API Usage Examples</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/84065b1/docs/api/API_SPEC.md" target="_blank" rel="noopener noreferrer"><code>docs/api/API_SPEC.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-16 · develop <code>84065b1</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#%EA%B3%B5%ED%86%B5-%EA%B7%9C%EC%B9%99">공통 규칙</a></li><li class="toc-2"><a href="#public">Public</a></li><li class="toc-2"><a href="#admin">Admin</a></li><li class="toc-2"><a href="#%EC%83%81%ED%83%9C%EC%99%80-%EC%9A%B4%EC%98%81-%EC%A0%9C%ED%95%9C">상태와 운영 제한</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

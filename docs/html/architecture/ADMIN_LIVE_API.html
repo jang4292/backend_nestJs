@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/architecture/ADMIN_LIVE_API">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>Admin API / Live API 경계 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 다국어 사전·학습 플랫폼 설계 초안을 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../api/API_SPEC.html" data-page-id="docs/api/API_SPEC">다국어 사전 REST API</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section" open><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/api.kr.html" data-page-id="docs/music/api.kr">Music REST API 레퍼런스</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 후속 작업</a></li><li><a href="AS_IS.html" data-page-id="docs/architecture/AS_IS">구현 전 시스템 현황 (AS-IS)</a></li><li><a href="TO_BE.html" data-page-id="docs/architecture/TO_BE">다국어 사전·학습 플랫폼 목표 구조 (TO-BE)</a></li><li><a href="ADMIN_LIVE_API.html" data-page-id="docs/architecture/ADMIN_LIVE_API" aria-current="page">Admin API / Live API 경계</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section"><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="../database/ERD.html" data-page-id="docs/database/ERD">다국어 사전·학습 MariaDB 데이터 모델</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../operations/SECURITY.html" data-page-id="docs/operations/SECURITY">인증·권한·접근제어 설계</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="ENVIRONMENTS.html" data-page-id="docs/architecture/ENVIRONMENTS">LOCAL / DEV / PROD 환경 설계</a></li><li><a href="INFRASTRUCTURE.html" data-page-id="docs/architecture/INFRASTRUCTURE">NAS / Mini PC / EC2 인프라 역할 및 조사 절차</a></li><li><a href="../operations/DEPLOYMENT.html" data-page-id="docs/operations/DEPLOYMENT">배포·운영 설계</a></li><li><a href="../operations/BACKUP_RECOVERY.html" data-page-id="docs/operations/BACKUP_RECOVERY">백업·복구 계획</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>구현 계획</summary><ul class="nav-list"><li><a href="../plans/IMPLEMENTATION_PLAN.html" data-page-id="docs/plans/IMPLEMENTATION_PLAN">다국어 플랫폼 구현 로드맵</a></li><li><a href="../plans/TASK_CHECKLIST.html" data-page-id="docs/plans/TASK_CHECKLIST">우선순위별 작업 체크리스트</a></li><li><a href="../prompts/PHASE_PROMPTS.html" data-page-id="docs/prompts/PHASE_PROMPTS">Phase별 실행 프롬프트</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-16 · <code>84065b1</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">아키텍처</span><span class="badge badge-stamp">최신화 2026-11-14 · dictionary MVP 작업 트리</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="admin-api--live-api-경계">Admin API / Live API 경계</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-14 · dictionary MVP 작업 트리
+사전 MVP는 기존 음악·인증 API와 같은 앱에 구현되었습니다. 확장 기능과 운영 경계는 아래에서 별도로 표시합니다.</p>
+</blockquote>
+<h2 id="1-구현된-mvp-배치"><a class="heading-anchor" href="#1-%EA%B5%AC%ED%98%84%EB%90%9C-mvp-%EB%B0%B0%EC%B9%98" aria-hidden="true" tabindex="-1">#</a>1. 구현된 MVP 배치</h2>
+<p>동일 NestJS 애플리케이션에 다음 route/module 경계를 둡니다.</p>
+<pre><code class="language-text">src/dictionary/
+  entities/           TypeORM 사전 스키마
+  application/        편집·검수·게시 및 공개 조회 서비스
+  interface/          admin/live/health controllers와 별도 DTO
+  dictionary.module.ts
+</code></pre>
+<p>현재 <code>src/users</code>와 <code>src/music</code>의 Nest module, DTO, ValidationPipe, error envelope, JWT/role guard, TypeORM migration 패턴을 재사용합니다. Controller는 도메인 모델을 직접 반환하지 않고 response DTO/presenter를 사용합니다. 초기 기능에서 admin과 live를 별도 deployable app으로 만들지 않습니다.</p>
+<h2 id="2-live-기능"><a class="heading-anchor" href="#2-live-%EA%B8%B0%EB%8A%A5" aria-hidden="true" tabindex="-1">#</a>2. Live 기능</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>그룹</th>
+<th>기능</th>
+<th>접근</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Lookup</td>
+<td>언어 목록/언어별 검색, lexeme detail, senses/concepts/translations</td>
+<td>공개, 게시 publication만</td>
+</tr>
+<tr>
+<td>Characters / Study</td>
+<td>문자·독음·학습</td>
+<td>미구현</td>
+</tr>
+<tr>
+<td>Health</td>
+<td>process liveness, DB/readiness</td>
+<td>공개; DB 장애는 readiness에서 503</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="3-admin-기능"><a class="heading-anchor" href="#3-admin-%EA%B8%B0%EB%8A%A5" aria-hidden="true" tabindex="-1">#</a>3. Admin 기능</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>그룹</th>
+<th>기능</th>
+<th>필수 제어</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Editorial</td>
+<td>출처·concept 생성, lexeme 생성/수정/조회</td>
+<td><code>admin</code>, DTO 검증, revision 및 감사 기록</td>
+</tr>
+<tr>
+<td>Review</td>
+<td>현재 revision 검수 요청 및 승인</td>
+<td><code>admin</code>; 승인 reason, actor/time</td>
+</tr>
+<tr>
+<td>Publication</td>
+<td>승인 revision을 새 전체 스냅샷으로 게시</td>
+<td><code>admin</code>; 예상 현재 ID와 감사 로그</td>
+</tr>
+<tr>
+<td>Import / Governance 확장</td>
+<td>import·반려·철회·MFA·세분화된 운영 역할</td>
+<td>미구현</td>
+</tr>
+</tbody></table>
+</div>
+<p>현재 앱의 <code>user/admin</code> 두 역할을 재사용하고 Admin API 전체를 admin-only로 둡니다. 별도의 <code>editor/reviewer/publisher/importer</code> 역할은 구현하지 않았습니다.</p>
+<h2 id="4-인증인가와-네트워크"><a class="heading-anchor" href="#4-%EC%9D%B8%EC%A6%9D%EC%9D%B8%EA%B0%80%EC%99%80-%EB%84%A4%ED%8A%B8%EC%9B%8C%ED%81%AC" aria-hidden="true" tabindex="-1">#</a>4. 인증·인가와 네트워크</h2>
+<ul>
+<li>Admin 작업은 인증된 사용자와 server-side role 검사를 통과해야 하며 actor는 토큰에서 가져옵니다.</li>
+<li>관리자 MFA/보호된 OIDC, 복구 절차 및 Nginx/VPN/Zero Trust 네트워크 제한은 <strong>미구현·미검증</strong>입니다. 운영 공개 전 별도로 마련해야 합니다.</li>
+<li>Admin API path는 <code>/api/v1/admin</code>입니다. 별도 Admin UI를 사용할 경우 해당 origin을 CORS allow-list에 추가해야 합니다.</li>
+<li><code>dictionary_audit_logs</code>에 actor, action, 대상, revision 참조, request ID, timestamp 및 해당 작업의 reason을 저장합니다. password/token/secret은 기록하지 않습니다.</li>
+</ul>
+<h2 id="5-서비스-경계와-향후-분리-기준"><a class="heading-anchor" href="#5-%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B2%BD%EA%B3%84%EC%99%80-%ED%96%A5%ED%9B%84-%EB%B6%84%EB%A6%AC-%EA%B8%B0%EC%A4%80" aria-hidden="true" tabindex="-1">#</a>5. 서비스 경계와 향후 분리 기준</h2>
+<p>Live 조회는 현재 publication의 entry에 연결된 revision만 읽습니다. Admin은 별도 서비스와 DTO로 편집·검수·게시하며, 각 변경과 감사 기록은 같은 트랜잭션에서 처리합니다. 상세 계약은 <a href="../api/API_SPEC.html">사전 API 명세</a>를 참고합니다.</p>
+<p>아래 조건이 하나라도 운영 요구가 되면 별도 Admin/Live 앱 분리를 설계합니다.</p>
+<ul>
+<li>Admin은 사내망에서만 운영해야 하며 Live는 인터넷/별도 보안 인증 경계에 있어야 함.</li>
+<li>Live read scaling/캐시/가용성 요구가 Admin write 요구와 달라짐.</li>
+<li>별도 팀/릴리스 주기 또는 장애 도메인이 실제로 필요함.</li>
+<li>API 호출량·성능 측정으로 단일 앱의 리소스 공유가 병목임이 입증됨.</li>
+</ul>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="TO_BE.html"><span>이전</span>다국어 사전·학습 플랫폼 목표 구조 (TO-BE)</a><a class="pager-next" href="../music/api-reorganization-review.kr.html"><span>다음</span>Music API 서버 로직 재점검 및 구조 재정리 보고서</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/84065b1/docs/architecture/ADMIN_LIVE_API.md" target="_blank" rel="noopener noreferrer"><code>docs/architecture/ADMIN_LIVE_API.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-16 · develop <code>84065b1</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#1-%EA%B5%AC%ED%98%84%EB%90%9C-mvp-%EB%B0%B0%EC%B9%98">1. 구현된 MVP 배치</a></li><li class="toc-2"><a href="#2-live-%EA%B8%B0%EB%8A%A5">2. Live 기능</a></li><li class="toc-2"><a href="#3-admin-%EA%B8%B0%EB%8A%A5">3. Admin 기능</a></li><li class="toc-2"><a href="#4-%EC%9D%B8%EC%A6%9D%EC%9D%B8%EA%B0%80%EC%99%80-%EB%84%A4%ED%8A%B8%EC%9B%8C%ED%81%AC">4. 인증·인가와 네트워크</a></li><li class="toc-2"><a href="#5-%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B2%BD%EA%B3%84%EC%99%80-%ED%96%A5%ED%9B%84-%EB%B6%84%EB%A6%AC-%EA%B8%B0%EC%A4%80">5. 서비스 경계와 향후 분리 기준</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

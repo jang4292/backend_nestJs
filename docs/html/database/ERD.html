@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="ko" data-root="../" data-page-id="docs/database/ERD">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="docs/html/_tools/build.mjs">
+  <title>다국어 사전·학습 MariaDB 데이터 모델 · Backend NestJS 학습 사이트</title>
+  <meta name="description" content="NestJS + TypeORM + MariaDB 백엔드의 구조, 데이터베이스, 보안, 배포와 다국어 사전·학습 플랫폼 설계 초안을 정리한 사이트입니다.">
+  <script>
+    // 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장소 접근이 막혀 있어도 동작합니다.
+    try {
+      var saved = localStorage.getItem('docs-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="page-doc">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="icon-button menu-button" type="button" aria-label="메뉴 열기" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <a class="brand" href="../index.html">Backend NestJS 학습 사이트</a>
+    <div class="search" role="search">
+      <input id="search-input" type="search" placeholder="검색 ( / )" autocomplete="off" aria-label="문서 검색">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <button class="icon-button theme-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="문서 목록">
+      <ul class="nav-list nav-home"><li><a href="../index.html">홈</a></li></ul><details class="nav-section"><summary>시작하기</summary><ul class="nav-list"><li><a href="../learning/README.html" data-page-id="docs/learning/README">학습 로드맵</a></li><li><a href="../learning/glossary.kr.html" data-page-id="docs/learning/glossary.kr">용어집</a></li><li><a href="../product/overview.kr.html" data-page-id="docs/product/overview.kr">서비스 개요 (기획)</a></li></ul></details><details class="nav-section"><summary>제품과 API</summary><ul class="nav-list"><li><a href="../product/features.kr.html" data-page-id="docs/product/features.kr">기능 명세 (기획)</a></li><li><a href="../product/api-spec.kr.html" data-page-id="docs/product/api-spec.kr">API 명세 (라우트·권한)</a></li><li><a href="../api/API_SPEC.html" data-page-id="docs/api/API_SPEC">다국어 사전 REST API</a></li><li><a href="../repo/API_EXAMPLES.html" data-page-id="API_EXAMPLES">API Usage Examples</a></li></ul></details><details class="nav-section"><summary>아키텍처</summary><ul class="nav-list"><li><a href="../learning/nestjs-operational-stability-guide.kr.html" data-page-id="docs/learning/nestjs-operational-stability-guide.kr">NestJS 아키텍처·운영 안정성 학습 가이드</a></li><li><a href="../music/README.html" data-page-id="docs/music/README">Music API 운영 개선 문서</a></li><li><a href="../music/learning-guide.kr.html" data-page-id="docs/music/learning-guide.kr">Music 학습 가이드</a></li><li><a href="../music/api.kr.html" data-page-id="docs/music/api.kr">Music REST API 레퍼런스</a></li><li><a href="../music/architecture.kr.html" data-page-id="docs/music/architecture.kr">Music 설계 및 아키텍처</a></li><li><a href="../music/decisions.html" data-page-id="docs/music/decisions">Music API 결정 및 후속 작업</a></li><li><a href="../architecture/AS_IS.html" data-page-id="docs/architecture/AS_IS">구현 전 시스템 현황 (AS-IS)</a></li><li><a href="../architecture/TO_BE.html" data-page-id="docs/architecture/TO_BE">다국어 사전·학습 플랫폼 목표 구조 (TO-BE)</a></li><li><a href="../architecture/ADMIN_LIVE_API.html" data-page-id="docs/architecture/ADMIN_LIVE_API">Admin API / Live API 경계</a></li><li><a href="../music/api-reorganization-review.kr.html" data-page-id="docs/music/api-reorganization-review.kr">Music API 서버 로직 재점검 및 구조 재정리 보고서</a></li><li><a href="../music/checklists.kr.html" data-page-id="docs/music/checklists.kr">Music 체크리스트</a></li><li><a href="../music/troubleshooting.kr.html" data-page-id="docs/music/troubleshooting.kr">Music 원인 분석 및 트러블슈팅</a></li></ul></details><details class="nav-section" open><summary>데이터베이스</summary><ul class="nav-list"><li><a href="../learning/database-schema-management.kr.html" data-page-id="docs/learning/database-schema-management.kr">DB·스키마 관리 학습 가이드: 생성, migration, 검증</a></li><li><a href="../learning/database-improvement-guide.kr.html" data-page-id="docs/learning/database-improvement-guide.kr">DB 개선 가이드: 남은 과제와 진행 방법</a></li><li><a href="ERD.html" data-page-id="docs/database/ERD" aria-current="page">다국어 사전·학습 MariaDB 데이터 모델</a></li><li><a href="../deployment/database-environments.kr.html" data-page-id="docs/deployment/database-environments.kr">환경별 DB·설정 가이드 (Local / Test / Prod)</a></li><li><a href="../music/database/mariadb-operations.html" data-page-id="docs/music/database/mariadb-operations">MariaDB 운영 가이드</a></li></ul></details><details class="nav-section"><summary>보안</summary><ul class="nav-list"><li><a href="../learning/api-security-guide.kr.html" data-page-id="docs/learning/api-security-guide.kr">API 보안 학습 가이드: 이 프로젝트로 배우는 인증·인가·입력·운영 보안</a></li><li><a href="../learning/security-guide.kr.html" data-page-id="docs/learning/security-guide.kr">시크릿 관리와 GitHub Push 보안 학습 가이드</a></li><li><a href="../operations/SECURITY.html" data-page-id="docs/operations/SECURITY">인증·권한·접근제어 설계</a></li><li><a href="../audit/2026-11-09-security-audit.kr.html" data-page-id="docs/audit/2026-11-09-security-audit.kr">보안 전수 감사 리포트 (2026-11-09)</a></li></ul></details><details class="nav-section"><summary>인증·SNS 로그인</summary><ul class="nav-list"><li><a href="../auth/sns-login-overview.kr.html" data-page-id="docs/auth/sns-login-overview.kr">SNS 로그인 정리 (Google / Apple / Facebook / Kakao / Naver)</a></li><li><a href="../learning/sns-login-operational-guide.kr.html" data-page-id="docs/learning/sns-login-operational-guide.kr">SNS 로그인 빌드·동작·운영·학습 가이드</a></li><li><a href="../auth/sns-reenable-checklist.kr.html" data-page-id="docs/auth/sns-reenable-checklist.kr">SNS 로그인 재활성화 체크리스트</a></li><li><a href="../auth/google-login.kr.html" data-page-id="docs/auth/google-login.kr">Google SNS 로그인 – 구현 가이드</a></li><li><a href="../auth/login-api-reassessment.kr.html" data-page-id="docs/auth/login-api-reassessment.kr">로그인 API 서버 로직 재점검 및 구조 재정리 보고서</a></li></ul></details><details class="nav-section"><summary>배포·운영</summary><ul class="nav-list"><li><a href="../deployment/mariadb-systemd.kr.html" data-page-id="docs/deployment/mariadb-systemd.kr">EC2 + MariaDB 배포 가이드</a></li><li><a href="../architecture/ENVIRONMENTS.html" data-page-id="docs/architecture/ENVIRONMENTS">LOCAL / DEV / PROD 환경 설계</a></li><li><a href="../architecture/INFRASTRUCTURE.html" data-page-id="docs/architecture/INFRASTRUCTURE">NAS / Mini PC / EC2 인프라 역할 및 조사 절차</a></li><li><a href="../operations/DEPLOYMENT.html" data-page-id="docs/operations/DEPLOYMENT">배포·운영 설계</a></li><li><a href="../operations/BACKUP_RECOVERY.html" data-page-id="docs/operations/BACKUP_RECOVERY">백업·복구 계획</a></li><li><a href="../learning/deployment-secrets-checklist.kr.html" data-page-id="docs/learning/deployment-secrets-checklist.kr">배포/시크릿 운영 체크리스트 (EC2 + MariaDB + Secrets Manager)</a></li><li><a href="../repo/README.html" data-page-id="README">NestJS Backend API</a></li></ul></details><details class="nav-section"><summary>구현 계획</summary><ul class="nav-list"><li><a href="../plans/IMPLEMENTATION_PLAN.html" data-page-id="docs/plans/IMPLEMENTATION_PLAN">다국어 플랫폼 구현 로드맵</a></li><li><a href="../plans/TASK_CHECKLIST.html" data-page-id="docs/plans/TASK_CHECKLIST">우선순위별 작업 체크리스트</a></li><li><a href="../prompts/PHASE_PROMPTS.html" data-page-id="docs/prompts/PHASE_PROMPTS">Phase별 실행 프롬프트</a></li></ul></details><details class="nav-section"><summary>작업 기록과 감사</summary><ul class="nav-list"><li><a href="../learning/work-history-2026-11.kr.html" data-page-id="docs/learning/work-history-2026-11.kr">작업 내역과 배운 점 (2026-11 감사와 후속 작업)</a></li><li><a href="../audit/2026-11-08-project-audit.kr.html" data-page-id="docs/audit/2026-11-08-project-audit.kr">프로젝트 전수 감사 리포트 (2026-11-08)</a></li><li><a href="../audit/2026-09-02-project-audit.kr.html" data-page-id="docs/audit/2026-09-02-project-audit.kr">NestJS 프로젝트 전수 감사 및 개선 가이드 (2026-09-02)</a></li><li><a href="../learning/runtime-troubleshooting-history.kr.html" data-page-id="docs/learning/runtime-troubleshooting-history.kr">NestJS 로컬 실행 오류 및 수정 이력</a></li></ul></details><details class="nav-section"><summary>사이트 관리</summary><ul class="nav-list"><li><a href="../site-maintenance.html" data-page-id="docs/html/README">학습 사이트 관리 가이드 (docs/html)</a></li></ul></details>
+      <p class="sidebar-meta">스냅샷 2026-11-16 · <code>84065b1</code></p>
+    </nav>
+    <main id="content" class="content">
+      <div class="page-meta"><span class="badge">데이터베이스</span><span class="badge badge-stamp">최신화 2026-11-14 · dictionary MVP 작업 트리</span><label class="read-toggle"><input type="checkbox" data-read-toggle> 읽음</label></div>
+      <article class="markdown">
+        <h1 id="다국어-사전학습-mariadb-데이터-모델">다국어 사전·학습 MariaDB 데이터 모델</h1>
+<blockquote>
+<p>최신화 기준: 2026-11-14 · dictionary MVP 작업 트리
+0절은 구현된 MVP이며, 1~8절은 학습·문자·import 등을 포함한 <strong>미구현 장기 모델 제안</strong>입니다.</p>
+</blockquote>
+<h2 id="0-구현된-사전-mvp"><a class="heading-anchor" href="#0-%EA%B5%AC%ED%98%84%EB%90%9C-%EC%82%AC%EC%A0%84-mvp" aria-hidden="true" tabindex="-1">#</a>0. 구현된 사전 MVP</h2>
+<p>동일 앱에 <code>dictionary_</code> 접두사의 12개 테이블을 추가합니다. 기존 <code>users</code>의 <code>int</code> ID와 역할을 재사용하고 음악 테이블을 변경하지 않습니다.</p>
+<pre><code class="language-mermaid">erDiagram
+  dictionary_languages ||--o{ dictionary_lexemes : contains
+  dictionary_lexemes ||--o{ dictionary_revisions : versions
+  dictionary_sources ||--o{ dictionary_revisions : attributes
+  dictionary_revisions ||--o{ dictionary_forms : has
+  dictionary_revisions ||--o{ dictionary_senses : has
+  dictionary_senses ||--o{ dictionary_sense_concepts : maps
+  dictionary_concepts ||--o{ dictionary_sense_concepts : maps
+  dictionary_publications ||--o{ dictionary_publication_entries : includes
+  dictionary_revisions ||--o{ dictionary_publication_entries : publishes
+  dictionary_publications ||--o| dictionary_publication_state : current
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>테이블</th>
+<th>구현 내용</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>dictionary_languages</code></td>
+<td>5개 언어 태그·이름·script seed</td>
+</tr>
+<tr>
+<td><code>dictionary_sources</code>, <code>dictionary_concepts</code></td>
+<td>수동 출처·라이선스와 언어 독립 개념</td>
+</tr>
+<tr>
+<td><code>dictionary_lexemes</code>, <code>dictionary_revisions</code></td>
+<td>언어와 현재 version, immutable 콘텐츠 및 draft/review/approved 상태</td>
+</tr>
+<tr>
+<td><code>dictionary_forms</code>, <code>dictionary_senses</code>, <code>dictionary_sense_concepts</code></td>
+<td>revision별 표기·뜻 및 개념 연결</td>
+</tr>
+<tr>
+<td><code>dictionary_publications</code>, <code>dictionary_publication_entries</code>, <code>dictionary_publication_state</code></td>
+<td>완전한 게시 스냅샷, lexeme/revision 연결, 단일 현재 포인터</td>
+</tr>
+<tr>
+<td><code>dictionary_audit_logs</code></td>
+<td>actor, action, 대상, revision 참조, request ID, reason, 시각</td>
+</tr>
+</tbody></table>
+</div>
+<ul>
+<li>사전 ID/FK는 기존 사용자 FK와 호환되는 signed <code>INT</code>입니다. revision의 <code>(lexemeId, version)</code>은 unique이며 publication entry는 <code>(revisionId, lexemeId)</code> 복합 FK로 올바른 어휘에 연결됩니다.</li>
+<li>참조 무결성은 <code>RESTRICT</code>를 기본으로 하며 사용자 actor 참조는 사용자 삭제 시 <code>SET NULL</code>입니다. revision 상태와 publication-state 단일 ID는 DB <code>CHECK</code>로도 보호합니다.</li>
+<li>문자열 컬럼과 테이블은 <code>utf8mb4_bin</code>이고 원문과 NFC·소문자 검색 키를 따로 보관합니다. 현재 지원 범위와 응답은 <a href="../api/API_SPEC.html">API 계약</a>을 참고합니다.</li>
+<li>시간 컬럼은 <code>DATETIME(3)</code>입니다. DB 기본 시각과 애플리케이션 시각이 일치하도록 운영 DB 세션과 앱의 시간대 설정을 검증해야 하며, 현재 코드만으로 UTC 설정을 보장하지 않습니다.</li>
+<li>Migration revert는 데이터나 수정·추가한 언어 seed가 있으면 거부합니다. MariaDB DDL은 암묵적으로 커밋되므로 migration 실패 시 부분 스키마가 남을 수 있습니다. <strong>서비스 중인 DB에 실행하지 말고</strong> 백업 및 별도 승인 절차를 따릅니다. 스키마/검색 부하와 실제 운영 DB 호환성은 아직 검증하지 않았습니다.</li>
+</ul>
+<h2 id="1-모델링-원칙"><a class="heading-anchor" href="#1-%EB%AA%A8%EB%8D%B8%EB%A7%81-%EC%9B%90%EC%B9%99" aria-hidden="true" tabindex="-1">#</a>1. 모델링 원칙</h2>
+<ul>
+<li><code>Lexeme</code>(한 언어의 어휘)와 <code>Concept</code>(언어 독립 개념)를 분리합니다. 다의어는 Lexeme당 여러 Sense, 동의어/번역은 여러 Lexeme의 Sense가 동일 Concept에 연결되는 방식으로 표현합니다.</li>
+<li>표기·활용형(<code>lexeme_forms</code>), 발음(<code>pronunciations</code>), 한자(<code>characters</code>), 언어/지역별 독음(<code>character_readings</code>), 호환/이형 표기(<code>character_variants</code>)를 한 컬럼에 합치지 않습니다.</li>
+<li>Chinese <code>zh-Hans</code> / <code>zh-Hant</code>는 language/script/region metadata로 분리하고, 동일 entry 여부를 임의로 단정하지 않습니다.</li>
+<li>출처·license·version·attribution·import batch는 개별 entry와 연결해 출처가 섞인 필드도 추적할 수 있게 합니다.</li>
+<li>미승인 변경은 Live read model에 노출하지 않습니다. 게시 콘텐츠 및 study card는 immutable revision을 참조합니다.</li>
+<li>문자열 컬럼은 <code>utf8mb4</code>를 사용합니다. Unicode normalization key와 사용자에게 보이는 원문을 분리하고, case/accent/collation 의존 동등성은 언어별 테스트로 검증합니다.</li>
+</ul>
+<h2 id="2-erd"><a class="heading-anchor" href="#2-erd" aria-hidden="true" tabindex="-1">#</a>2. ERD</h2>
+<pre><code class="language-mermaid">erDiagram
+  LANGUAGES ||--o{ LEXEMES : contains
+  LEXEMES ||--o{ LEXEME_FORMS : has
+  LEXEMES ||--o{ SENSES : has
+  SENSES }o--o{ CONCEPTS : maps
+  SENSES ||--o{ PRONUNCIATIONS : pronounced_as
+  SENSES ||--o{ EXAMPLES : exemplified_by
+  CHARACTERS ||--o{ CHARACTER_READINGS : read_by_language
+  CHARACTERS }o--o{ CHARACTER_VARIANTS : variant_of
+  LEXEMES }o--o{ CHARACTERS : contains
+  DATA_SOURCES ||--o{ SOURCE_RECORDS : provides
+  SOURCE_RECORDS }o--|| CONTENT_REVISIONS : provenance_for
+  CONTENT_REVISIONS }o--o{ PUBLICATIONS : published_in
+  USERS ||--o{ STUDY_DECKS : owns
+  STUDY_DECKS ||--o{ STUDY_CARDS : contains
+  USERS ||--o{ USER_CARD_STATES : tracks
+  STUDY_CARDS ||--o{ USER_CARD_STATES : state
+  USER_CARD_STATES ||--o{ REVIEW_LOGS : records
+  USERS ||--o{ AUDIT_LOGS : acts
+</code></pre>
+<p><code>SENSES ↔ CONCEPTS</code>는 <code>sense_concepts</code> junction으로, character variants는 direction/type을 가진 <code>character_variants</code>로 구현합니다. <code>CONTENT_REVISIONS</code>/<code>PUBLICATIONS</code>는 공개 시점의 버전을 고정합니다. 각 편집 엔터티를 revision row로 저장할지 typed snapshot table로 저장할지는 샘플 조회·검색량에 따라 schema review에서 확정합니다.</p>
+<h2 id="3-테이블-후보와-주요-컬럼"><a class="heading-anchor" href="#3-%ED%85%8C%EC%9D%B4%EB%B8%94-%ED%9B%84%EB%B3%B4%EC%99%80-%EC%A3%BC%EC%9A%94-%EC%BB%AC%EB%9F%BC" aria-hidden="true" tabindex="-1">#</a>3. 테이블 후보와 주요 컬럼</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>테이블</th>
+<th>역할 및 컬럼 후보 (PK는 <code>id</code> 또는 자연키, 시간은 UTC)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>languages</code></td>
+<td>언어/스크립트: <code>id</code>, <code>bcp47_tag</code> UNIQUE, <code>name_native</code>, <code>name_en</code>, <code>script</code>, <code>is_active</code></td>
+</tr>
+<tr>
+<td><code>lexemes</code></td>
+<td>언어별 어휘 단위: <code>id</code>, <code>language_id</code> FK, <code>lemma</code>, <code>normalized_lemma</code>, <code>part_of_speech</code>, <code>homograph_no</code>, <code>status</code>, <code>current_revision_id</code></td>
+</tr>
+<tr>
+<td><code>lexeme_forms</code></td>
+<td>표기/변형: <code>id</code>, <code>lexeme_id</code> FK, <code>form_text</code>, <code>normalized_form</code>, <code>script</code>, <code>form_type</code>, <code>is_primary</code></td>
+</tr>
+<tr>
+<td><code>senses</code></td>
+<td>어휘별 뜻: <code>id</code>, <code>lexeme_id</code> FK, <code>sense_no</code>, <code>definition</code>, <code>register</code>, <code>domain</code>, <code>status</code>, <code>current_revision_id</code></td>
+</tr>
+<tr>
+<td><code>concepts</code></td>
+<td>언어 독립 의미 concept: <code>id</code>, <code>concept_key</code> UNIQUE, <code>description</code>, <code>status</code>, <code>current_revision_id</code></td>
+</tr>
+<tr>
+<td><code>sense_concepts</code></td>
+<td>의미 연결: <code>(sense_id, concept_id)</code> unique, <code>relation_type</code>, <code>confidence</code>(nullable), <code>review_status</code></td>
+</tr>
+<tr>
+<td><code>translations</code></td>
+<td>선택적 directional mapping/번역 표현: <code>id</code>, <code>source_sense_id</code>, <code>target_sense_id</code>, <code>relation_type</code>, <code>context_note</code>; 동일 Concept 관계와 별도 정보가 필요한 경우만 사용</td>
+</tr>
+<tr>
+<td><code>pronunciations</code></td>
+<td>어휘 Sense/표기의 발음: <code>id</code>, <code>lexeme_id</code>, <code>sense_id</code> nullable, <code>language_id</code>, <code>reading</code>, <code>system</code>, <code>audio_source_id</code> nullable</td>
+</tr>
+<tr>
+<td><code>characters</code></td>
+<td>Unicode scalar/문자: <code>id</code>, <code>codepoint</code> UNIQUE, <code>character</code>, <code>radical</code>, <code>stroke_count</code>, <code>unicode_version</code></td>
+</tr>
+<tr>
+<td><code>character_readings</code></td>
+<td>문자별 언어 읽기: <code>id</code>, <code>character_id</code>, <code>language_id</code>, <code>reading</code>, <code>reading_type</code>, <code>romanization</code>, <code>source_record_id</code></td>
+</tr>
+<tr>
+<td><code>character_variants</code></td>
+<td>이체/간·번체·compatibility 관계: <code>(character_id, variant_character_id, variant_type)</code> UNIQUE</td>
+</tr>
+<tr>
+<td><code>lexeme_characters</code></td>
+<td>어휘 표기 내 문자와 위치: <code>(lexeme_form_id, character_id, position)</code>; 문자 분석이 필요한 경우</td>
+</tr>
+<tr>
+<td><code>examples</code></td>
+<td>예문: <code>id</code>, <code>sense_id</code>, <code>language_id</code>, <code>text</code>, <code>source_record_id</code>, <code>license_scope</code></td>
+</tr>
+<tr>
+<td><code>example_translations</code></td>
+<td>예문 번역: <code>id</code>, <code>example_id</code>, <code>target_language_id</code>, <code>text</code>, <code>source_record_id</code></td>
+</tr>
+<tr>
+<td><code>data_sources</code></td>
+<td>출처 등록: <code>id</code>, <code>name</code>, <code>source_url</code>, <code>license_id</code>, <code>attribution_text</code>, <code>commercial_use</code>, <code>redistribution_terms</code>, <code>checked_at</code>, <code>version_policy</code></td>
+</tr>
+<tr>
+<td><code>source_records</code></td>
+<td>원본 레코드 provenance: <code>id</code>, <code>data_source_id</code>, <code>external_id</code>, <code>source_version</code>, <code>checksum</code>, <code>import_job_id</code>, <code>raw_payload_uri</code>, <code>retrieved_at</code></td>
+</tr>
+<tr>
+<td><code>import_jobs</code></td>
+<td>작업 단위: <code>id</code>, <code>source_id</code>, <code>status</code>, <code>idempotency_key</code> UNIQUE, <code>checkpoint</code>, counts, <code>started_at</code>, <code>finished_at</code>, <code>error_summary</code></td>
+</tr>
+<tr>
+<td><code>import_staging_entries</code></td>
+<td>검수 전 원본/normalized row: <code>id</code>, <code>import_job_id</code>, <code>external_id</code>, <code>payload</code>, <code>validation_status</code>, <code>matched_entity_id</code>, <code>review_status</code></td>
+</tr>
+<tr>
+<td><code>content_revisions</code></td>
+<td>immutable content revision: <code>id</code>, <code>entity_type</code>, <code>entity_id</code>, <code>version</code>, <code>payload_hash</code>, <code>created_by</code>, <code>created_at</code>; <code>(entity_type, entity_id, version)</code> UNIQUE</td>
+</tr>
+<tr>
+<td><code>publications</code></td>
+<td>게시 스냅샷: <code>id</code>, <code>version</code>, <code>status</code>, <code>manifest_hash</code>, <code>approved_by</code>, <code>published_by</code>, <code>published_at</code></td>
+</tr>
+<tr>
+<td><code>publication_revisions</code></td>
+<td>게시물에 포함된 revision: <code>(publication_id, content_revision_id)</code> UNIQUE</td>
+</tr>
+<tr>
+<td><code>users</code>, <code>roles</code>, <code>user_roles</code></td>
+<td>현재 사용자 모델과의 통합 여부를 결정한 뒤 채택. 최소 MVP는 기존 users 및 admin role 재사용 가능</td>
+</tr>
+<tr>
+<td><code>study_decks</code></td>
+<td>사용자/공유 덱: <code>id</code>, <code>owner_user_id</code>, <code>name</code>, <code>visibility</code>, timestamps</td>
+</tr>
+<tr>
+<td><code>study_cards</code></td>
+<td>반복 가능한 카드: <code>id</code>, <code>deck_id</code>, <code>prompt_revision_id</code>, <code>answer_revision_id</code>, <code>card_type</code>, <code>created_at</code></td>
+</tr>
+<tr>
+<td><code>user_card_states</code></td>
+<td>사용자별 복습 상태: <code>id</code>, <code>user_id</code>, <code>study_card_id</code>, <code>due_at</code>, <code>interval</code>, <code>ease</code>, <code>status</code>, <code>last_reviewed_at</code>; <code>(user_id, study_card_id)</code> UNIQUE</td>
+</tr>
+<tr>
+<td><code>review_logs</code></td>
+<td>불변 답변/복습 이벤트: <code>id</code>, <code>user_id</code>, <code>study_card_id</code>, <code>content_revision_id</code>, <code>result</code>, <code>response_ms</code>, <code>reviewed_at</code></td>
+</tr>
+<tr>
+<td><code>audit_logs</code></td>
+<td>운영 변경: <code>id</code>, <code>actor_user_id</code>, <code>action</code>, <code>entity_type/id</code>, <code>revision_id</code>, <code>request_id</code>, <code>reason</code>, <code>created_at</code></td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="역할컬럼-요약"><a class="heading-anchor" href="#%EC%97%AD%ED%95%A0%EC%BB%AC%EB%9F%BC-%EC%9A%94%EC%95%BD" aria-hidden="true" tabindex="-1">#</a>역할·컬럼 요약</h3>
+<ul>
+<li><strong>Source/provenance:</strong> <code>data_sources → source_records → import_jobs/staging → approved revision</code> 순서로 입력 추적. <code>raw_payload_uri</code>는 접근 통제된 object/file storage를 가리키고 원본 데이터/키를 일반 로그에 넣지 않습니다.</li>
+<li><strong>Publication:</strong> <code>publication_revisions</code>의 완전한 집합이 immutable publish snapshot입니다. Live는 한 번 읽은 publication ID로 요청 전체를 처리해 revision 혼합을 방지합니다.</li>
+<li><strong>Study stability:</strong> <code>study_cards</code> 및 <code>review_logs</code>는 실제 노출된 content revision ID를 보유합니다. 편집이 과거 정답과 점수에 영향을 주지 않습니다.</li>
+<li><strong>Deletion:</strong> 사용자 삭제/개인 데이터 삭제, source takedown, 사전 엔터티 병합/분리 정책을 별도 정의합니다. 공유 source row를 무조건 cascade 삭제하지 않습니다.</li>
+</ul>
+<h2 id="4-타입키제약-초안"><a class="heading-anchor" href="#4-%ED%83%80%EC%9E%85%ED%82%A4%EC%A0%9C%EC%95%BD-%EC%B4%88%EC%95%88" aria-hidden="true" tabindex="-1">#</a>4. 타입·키·제약 초안</h2>
+<p>아래는 Migration 설계 시작점입니다. MariaDB 실제 버전과 TypeORM driver의 constraint 지원을 확인하고, CI에서 해당 버전으로 검증한 뒤 확정합니다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>영역</th>
+<th>권장 DB 표현</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>dictionary entity ID</td>
+<td><code>BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY</code>; 각 FK도 동일한 타입/부호</td>
+</tr>
+<tr>
+<td>기존 사용자 FK</td>
+<td>현 <code>users.id</code>는 Entity상 기본 <code>int</code>로 선언되어 있습니다. <code>SHOW CREATE TABLE users</code>로 signedness를 확인한 뒤 정확히 같은 타입으로 <code>study_*</code>/<code>audit_logs.actor_user_id</code> FK 정의</td>
+</tr>
+<tr>
+<td>locale</td>
+<td><code>languages.bcp47_tag VARCHAR(35) NOT NULL UNIQUE</code>; language/script/region 별도 컬럼</td>
+</tr>
+<tr>
+<td>Unicode codepoint</td>
+<td><code>characters.codepoint INT UNSIGNED NOT NULL UNIQUE</code>; <code>character VARCHAR(8)</code> 원문, variation sequence 보조 테이블 검토</td>
+</tr>
+<tr>
+<td>사용자 입력/lemma/form</td>
+<td><code>VARCHAR(255)</code> 원문 + 검색 key <code>VARCHAR(512)</code>; 대상 문자열 길이와 grapheme/normalization 테스트 후 상한 확정</td>
+</tr>
+<tr>
+<td>정의/예문/설명</td>
+<td>길이 제한을 정한 <code>TEXT</code>; 긴 원문 출처 자료는 외부 storage</td>
+</tr>
+<tr>
+<td>유형/status/tag</td>
+<td><code>VARCHAR(32..64)</code> + application validation. <code>ENUM</code> 사용은 상태 추가 Migration 비용 검토 후 결정</td>
+</tr>
+<tr>
+<td>source payload/revision</td>
+<td><code>LONGTEXT</code> + <code>JSON_VALID</code> 검증 또는 MariaDB JSON alias; 크기 제한. checksum은 <code>CHAR(64)</code></td>
+</tr>
+<tr>
+<td>날짜·시각</td>
+<td><code>DATETIME(3)</code> UTC convention; 날짜만 필요한 <code>playDate</code>류는 <code>DATE</code></td>
+</tr>
+<tr>
+<td>boolean/count</td>
+<td><code>TINYINT(1)</code> 또는 unsigned integer. positivity/range check는 app + DB constraint</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="테이블별-주요-pkfkunique-후보"><a class="heading-anchor" href="#%ED%85%8C%EC%9D%B4%EB%B8%94%EB%B3%84-%EC%A3%BC%EC%9A%94-pkfkunique-%ED%9B%84%EB%B3%B4" aria-hidden="true" tabindex="-1">#</a>테이블별 주요 PK/FK/UNIQUE 후보</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>테이블</th>
+<th>PK</th>
+<th>FK</th>
+<th>UNIQUE/인덱스 후보</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>languages</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td>—</td>
+<td><code>uq_languages_bcp47_tag(bcp47_tag)</code></td>
+</tr>
+<tr>
+<td><code>lexemes</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td><code>language_id → languages.id</code></td>
+<td><code>(language_id, normalized_lemma, homograph_no)</code>; <code>(language_id, status, id)</code></td>
+</tr>
+<tr>
+<td><code>lexeme_forms</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td><code>lexeme_id → lexemes.id</code></td>
+<td><code>(lexeme_id, normalized_form, form_type)</code>; <code>(normalized_form, script)</code></td>
+</tr>
+<tr>
+<td><code>senses</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td><code>lexeme_id → lexemes.id</code></td>
+<td><code>(lexeme_id, sense_no)</code></td>
+</tr>
+<tr>
+<td><code>concepts</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td>—</td>
+<td><code>concept_key</code></td>
+</tr>
+<tr>
+<td><code>sense_concepts</code></td>
+<td>composite <code>(sense_id, concept_id, relation_type)</code></td>
+<td>sense/concept FKs</td>
+<td>reverse lookup <code>(concept_id, sense_id)</code></td>
+</tr>
+<tr>
+<td><code>translations</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td>source/target sense FKs</td>
+<td><code>(source_sense_id, target_sense_id, relation_type)</code></td>
+</tr>
+<tr>
+<td><code>pronunciations</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td>lexeme/sense/language FKs</td>
+<td><code>(lexeme_id, language_id, system, reading)</code></td>
+</tr>
+<tr>
+<td><code>characters</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td>—</td>
+<td><code>codepoint</code></td>
+</tr>
+<tr>
+<td><code>character_readings</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td>character/language/source-record FKs</td>
+<td><code>(character_id, language_id, reading, reading_type)</code></td>
+</tr>
+<tr>
+<td><code>character_variants</code></td>
+<td>composite <code>(character_id, variant_character_id, variant_type)</code></td>
+<td>both character IDs → <code>characters.id</code></td>
+<td>reverse <code>(variant_character_id, character_id)</code></td>
+</tr>
+<tr>
+<td><code>lexeme_characters</code></td>
+<td>composite <code>(lexeme_form_id, position)</code></td>
+<td>form/character FKs</td>
+<td><code>(character_id, lexeme_form_id)</code></td>
+</tr>
+<tr>
+<td><code>examples</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td>sense/language/source-record FKs</td>
+<td><code>(sense_id, language_id)</code></td>
+</tr>
+<tr>
+<td><code>example_translations</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td>example/language/source-record FKs</td>
+<td><code>(example_id, target_language_id)</code></td>
+</tr>
+<tr>
+<td><code>data_sources</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td>—</td>
+<td><code>name</code> (여러 license/version은 별도 relation 가능)</td>
+</tr>
+<tr>
+<td><code>source_records</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td>data-source/import-job FKs</td>
+<td><code>(data_source_id, source_version, external_id)</code></td>
+</tr>
+<tr>
+<td><code>import_jobs</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td><code>source_id → data_sources.id</code></td>
+<td><code>idempotency_key</code>; <code>(source_id, status, started_at)</code></td>
+</tr>
+<tr>
+<td><code>import_staging_entries</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td><code>import_job_id → import_jobs.id</code></td>
+<td><code>(import_job_id, external_id)</code></td>
+</tr>
+<tr>
+<td><code>content_revisions</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td>creator user FK (optional)</td>
+<td><code>(entity_type, entity_id, version)</code>; <code>payload_hash</code> lookup</td>
+</tr>
+<tr>
+<td><code>publications</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td>approver/publisher user FKs</td>
+<td><code>(version)</code>; <code>status,published_at</code></td>
+</tr>
+<tr>
+<td><code>publication_revisions</code></td>
+<td>composite <code>(publication_id, content_revision_id)</code></td>
+<td>both IDs → parent rows</td>
+<td>same pair key</td>
+</tr>
+<tr>
+<td><code>study_decks</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td><code>owner_user_id → users.id</code></td>
+<td><code>(owner_user_id, name)</code> if product policy requires</td>
+</tr>
+<tr>
+<td><code>study_cards</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td>deck/revision FKs</td>
+<td><code>(deck_id, prompt_revision_id, answer_revision_id)</code></td>
+</tr>
+<tr>
+<td><code>user_card_states</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td>user/card FKs</td>
+<td><code>(user_id, study_card_id)</code>; <code>(user_id, due_at, status)</code></td>
+</tr>
+<tr>
+<td><code>review_logs</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td>user/card/revision FKs</td>
+<td><code>(user_id, reviewed_at)</code>; append-only</td>
+</tr>
+<tr>
+<td><code>audit_logs</code></td>
+<td><code>id BIGINT UNSIGNED</code></td>
+<td>actor user FK nullable</td>
+<td><code>(entity_type, entity_id, created_at)</code>; <code>(actor_user_id, created_at)</code></td>
+</tr>
+</tbody></table>
+</div>
+<p>FK delete action은 기본 <code>RESTRICT</code>; <code>import_staging_entries → import_jobs</code> 등 폐기 가능한 임시행만 retention workflow 후 cascade를 고려합니다. Study history, publication, revision, audit를 content 삭제와 함께 cascade 하지 않습니다.</p>
+<h3 id="샘플-데이터"><a class="heading-anchor" href="#%EC%83%98%ED%94%8C-%EB%8D%B0%EC%9D%B4%ED%84%B0" aria-hidden="true" tabindex="-1">#</a>샘플 데이터</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>테이블</th>
+<th>예시 (구조 예시이며 사전 뜻 데이터가 아님)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>languages</code></td>
+<td><code>{ bcp47_tag: &quot;zh-Hans&quot;, name_native: &quot;简体中文&quot;, script: &quot;Hans&quot; }</code></td>
+</tr>
+<tr>
+<td><code>lexemes</code></td>
+<td><code>{ language_id: &lt;zh-Hans&gt;, lemma: &quot;&lt;sample&gt;&quot;, normalized_lemma: &quot;&lt;NFC&gt;&quot;, homograph_no: 1 }</code></td>
+</tr>
+<tr>
+<td><code>concepts</code></td>
+<td><code>{ concept_key: &quot;concept:&lt;opaque&gt;&quot;, description: null }</code></td>
+</tr>
+<tr>
+<td><code>sense_concepts</code></td>
+<td><code>{ sense_id: &lt;sense&gt;, concept_id: &lt;concept&gt;, relation_type: &quot;equivalent&quot;, review_status: &quot;approved&quot; }</code></td>
+</tr>
+<tr>
+<td><code>source_records</code></td>
+<td><code>{ data_source_id: &lt;source&gt;, external_id: &quot;&lt;source-id&gt;&quot;, source_version: &quot;&lt;release&gt;&quot;, checksum: &quot;&lt;sha256&gt;&quot; }</code></td>
+</tr>
+<tr>
+<td><code>publications</code></td>
+<td><code>{ version: 1, status: &quot;published&quot;, manifest_hash: &quot;&lt;sha256&gt;&quot;, published_at: &quot;&lt;UTC&gt;&quot; }</code></td>
+</tr>
+<tr>
+<td><code>user_card_states</code></td>
+<td><code>{ user_id: &lt;existing-user-id&gt;, study_card_id: &lt;card&gt;, due_at: &quot;&lt;UTC&gt;&quot;, status: &quot;active&quot; }</code></td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="5-인덱스검색-초안"><a class="heading-anchor" href="#5-%EC%9D%B8%EB%8D%B1%EC%8A%A4%EA%B2%80%EC%83%89-%EC%B4%88%EC%95%88" aria-hidden="true" tabindex="-1">#</a>5. 인덱스·검색 초안</h2>
+<ul>
+<li>FK는 <code>RESTRICT</code>를 기본으로 하여 승인·게시·학습 이력을 실수로 지우지 않게 합니다. 단, 개인 study data의 삭제는 별도 정책에 따른 cascade/익명화를 검토합니다.</li>
+<li>Unique: <code>languages.bcp47_tag</code>, source별 <code>external_id</code>, job <code>idempotency_key</code>, revision <code>(entity_type,entity_id,version)</code>, publication membership, <code>(user_id,study_card_id)</code>.</li>
+<li>검색 후보: <code>(language_id, normalized_lemma, status)</code>; form 검색용 <code>(normalized_form, lexeme_id)</code>; concept lookup용 <code>sense_concepts(concept_id,sense_id)</code>; character <code>codepoint</code>; review <code>(user_id,due_at)</code>.</li>
+<li>FULLTEXT/LIKE/별도 search index 선택은 MariaDB 버전·collation·한국어/중국어/일본어 tokenize 품질을 실제 data fixture로 벤치마크한 뒤 결정합니다. MariaDB FULLTEXT가 모든 CJK 검색을 해결한다고 가정하지 않습니다.</li>
+<li>offset pagination은 작은 Admin 결과에 한정하고, Live 검색은 안정 정렬 key와 cursor 기반 pagination을 우선 검토합니다.</li>
+</ul>
+<h2 id="6-문자셋정규화시간"><a class="heading-anchor" href="#6-%EB%AC%B8%EC%9E%90%EC%85%8B%EC%A0%95%EA%B7%9C%ED%99%94%EC%8B%9C%EA%B0%84" aria-hidden="true" tabindex="-1">#</a>6. 문자셋·정규화·시간</h2>
+<ul>
+<li>모든 다국어 텍스트 저장소는 <code>utf8mb4</code>; 신규 DDL은 explicit charset/collation을 지정하고 서버 기본값에 의존하지 않습니다.</li>
+<li>원본 문자열, 검색 normalized key(NFC 등), 언어별 검색 토큰을 별도 저장합니다. NFKC로 원문을 덮어쓰지 않습니다.</li>
+<li>한자 표기 구분은 code point와 script/locale provenance를 함께 보관합니다. Unicode compatibility/variation selector 처리는 테스트 예제로 고정합니다.</li>
+<li>시간은 UTC <code>datetime(3)</code> 또는 요구 정밀도를 정한 뒤 일관 적용하고 API에는 ISO 8601 offset 포함 값으로 반환합니다.</li>
+</ul>
+<h2 id="7-샘플-관계"><a class="heading-anchor" href="#7-%EC%83%98%ED%94%8C-%EA%B4%80%EA%B3%84" aria-hidden="true" tabindex="-1">#</a>7. 샘플 관계</h2>
+<pre><code class="language-text">ko: &quot;사과&quot; lexeme → sense(과일) ─┐
+en: &quot;apple&quot; lexeme → sense(과일) ├─ concept(과일)
+ja: &quot;林檎&quot; lexeme → sense(과일) ┘
+zh-Hans: &quot;苹果&quot; lexeme form
+zh-Hant: &quot;蘋果&quot; lexeme form
+
+Character &quot;生&quot; → ja readings (せい, しょう, ...)
+              → zh-Hans reading (shēng)
+              → ko reading (생)
+</code></pre>
+<p>위는 구조 설명용 샘플이며 고정된 dictionary fact, 최종 locale taxonomy, 초기 seed 데이터가 아닙니다.</p>
+<h2 id="8-migration-및-검증"><a class="heading-anchor" href="#8-migration-%EB%B0%8F-%EA%B2%80%EC%A6%9D" aria-hidden="true" tabindex="-1">#</a>8. Migration 및 검증</h2>
+<ol>
+<li>현 Entity/Migration을 수정하지 않고 additive Migration을 설계합니다. 실제 production schema와 <code>SHOW CREATE TABLE</code> 비교 전 Migration을 실행하지 않습니다.</li>
+<li>빈 MariaDB에서 전체 schema build, FK/unique rollback, 반복 Migration을 CI에서 검사합니다.</li>
+<li>Unicode fixture에 한글 조합형/완성형, 간체·번체, 일본어 kana/kanji, variation selector, 보조 평면 문자를 둡니다.</li>
+<li>staging import는 기존 publication을 변경하지 않는지, 같은 idempotency key 재실행이 중복 생성하지 않는지 테스트합니다.</li>
+<li>사용자 답변 이력은 revision ID를 계속 가리키는지, publication 교체 후 기존 study session 결과가 변경되지 않는지 테스트합니다.</li>
+<li>인덱스/검색 성능은 실제 sample scale을 정의한 뒤 EXPLAIN 및 부하 테스트로 확인합니다. 현재 데이터량/응답시간은 <strong>UNVERIFIED</strong>입니다.</li>
+</ol>
+
+      </article>
+      <nav class="pager" aria-label="이전·다음 문서"><a class="pager-prev" href="../learning/database-improvement-guide.kr.html"><span>이전</span>DB 개선 가이드: 남은 과제와 진행 방법</a><a class="pager-next" href="../deployment/database-environments.kr.html"><span>다음</span>환경별 DB·설정 가이드 (Local / Test / Prod)</a></nav>
+      <footer class="page-footer">
+        <p>이 페이지는 <a href="https://github.com/jang4292/backend_nestJs/blob/84065b1/docs/database/ERD.md" target="_blank" rel="noopener noreferrer"><code>docs/database/ERD.md</code></a>에서 생성했습니다. 내용을 고칠 때는 원본 md만 수정합니다(<a href="../site-maintenance.html">사이트 관리</a>).</p>
+        <p>스냅샷 2026-11-16 · develop <code>84065b1</code></p>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="이 페이지 목차">
+      <p class="toc-title">이 페이지</p><ul><li class="toc-2"><a href="#0-%EA%B5%AC%ED%98%84%EB%90%9C-%EC%82%AC%EC%A0%84-mvp">0. 구현된 사전 MVP</a></li><li class="toc-2"><a href="#1-%EB%AA%A8%EB%8D%B8%EB%A7%81-%EC%9B%90%EC%B9%99">1. 모델링 원칙</a></li><li class="toc-2"><a href="#2-erd">2. ERD</a></li><li class="toc-2"><a href="#3-%ED%85%8C%EC%9D%B4%EB%B8%94-%ED%9B%84%EB%B3%B4%EC%99%80-%EC%A3%BC%EC%9A%94-%EC%BB%AC%EB%9F%BC">3. 테이블 후보와 주요 컬럼</a></li><li class="toc-3"><a href="#%EC%97%AD%ED%95%A0%EC%BB%AC%EB%9F%BC-%EC%9A%94%EC%95%BD">역할·컬럼 요약</a></li><li class="toc-2"><a href="#4-%ED%83%80%EC%9E%85%ED%82%A4%EC%A0%9C%EC%95%BD-%EC%B4%88%EC%95%88">4. 타입·키·제약 초안</a></li><li class="toc-3"><a href="#%ED%85%8C%EC%9D%B4%EB%B8%94%EB%B3%84-%EC%A3%BC%EC%9A%94-pkfkunique-%ED%9B%84%EB%B3%B4">테이블별 주요 PK/FK/UNIQUE 후보</a></li><li class="toc-3"><a href="#%EC%83%98%ED%94%8C-%EB%8D%B0%EC%9D%B4%ED%84%B0">샘플 데이터</a></li><li class="toc-2"><a href="#5-%EC%9D%B8%EB%8D%B1%EC%8A%A4%EA%B2%80%EC%83%89-%EC%B4%88%EC%95%88">5. 인덱스·검색 초안</a></li><li class="toc-2"><a href="#6-%EB%AC%B8%EC%9E%90%EC%85%8B%EC%A0%95%EA%B7%9C%ED%99%94%EC%8B%9C%EA%B0%84">6. 문자셋·정규화·시간</a></li><li class="toc-2"><a href="#7-%EC%83%98%ED%94%8C-%EA%B4%80%EA%B3%84">7. 샘플 관계</a></li><li class="toc-2"><a href="#8-migration-%EB%B0%8F-%EA%B2%80%EC%A6%9D">8. Migration 및 검증</a></li></ul>
+    </aside>
+  </div>
+  <script src="../assets/search-index.js"></script>
+  <script src="../assets/site.js"></script>
+</body>
+</html>
