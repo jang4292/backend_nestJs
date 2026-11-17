@@ -1,20 +1,22 @@
 # 문서 인덱스
 
-> 최신화 기준: 2026-11-16 · documentation review
+> 최신화 기준: 2026-11-17 · develop `82bb4f1` + 주석·문서 작업 트리
 > 구현 문서는 마지막 코드 대조 기준을 표시하고, `이력 문서`는 작성 시점에 고정된 기록으로 이후 변경을 반영하지 않습니다.
 
 ## 처음 읽는 순서
 
 1. [서비스 개요](product/overview.kr.md): 무엇을 하는 서버인지
-2. [기능 명세](product/features.kr.md) → [핵심 API 명세](product/api-spec.kr.md): 규칙, 정책, 라우트, 권한. 사전 계약은 [사전 API](api/API_SPEC.md)를 참고
-3. [아키텍처 학습 가이드](learning/nestjs-operational-stability-guide.kr.md): 코드 구조와 계층
-4. [DB·스키마 관리 학습 가이드](learning/database-schema-management.kr.md): DB·테이블을 누가 언제 만들고, migration을 어떻게 적용하고 검증하는지
-5. [환경별 DB·설정 가이드](deployment/database-environments.kr.md): Local / Test / Prod 연결과 명령(처음 연결: `db:check` → `db:setup`), DB 삭제 안전 원칙
-6. [API 보안 학습 가이드](learning/api-security-guide.kr.md): 위협 모델, 인증·인가, 외부 IdP 검증, 직접 점검하는 방법
-7. [작업 내역과 배운 점](learning/work-history-2026-11.kr.md): 2026-11 감사와 후속 작업 전체
-8. 최신 감사: [보안 전수 감사(2026-11-09)](audit/2026-11-09-security-audit.kr.md)와 [프로젝트 감사(2026-11-08)](audit/2026-11-08-project-audit.kr.md): 현재 위험, 로드맵, 릴리스 체크리스트
-9. [DB 개선 가이드](learning/database-improvement-guide.kr.md): 남은 DB 과제의 우선순위와 단계
-10. [다국어 플랫폼 아키텍처 감사](architecture/AS_IS.md): 기존 음악 API와 목표 사전·학습 플랫폼의 차이 및 미확인 운영 환경. 구현된 MVP는 [사전 API](api/API_SPEC.md)와 [ERD](database/ERD.md)를 참고
+2. [개발자 실무 안내서](learning/developer-handbook.kr.md): 환경 준비, 코드 추적, 기능 변경, 테스트, 배포와 복구를 혼자 수행하는 순서
+3. [기능 명세](product/features.kr.md) → [핵심 API 명세](product/api-spec.kr.md): 규칙, 정책, 라우트, 권한. 사전 계약은 [사전 API](api/API_SPEC.md)를 참고
+4. [아키텍처 학습 가이드](learning/nestjs-operational-stability-guide.kr.md): 코드 구조와 계층
+5. [사전 구현 실습](learning/dictionary-implementation-workbook.kr.md)과 [음악 구현 실습](music/implementation-workbook.kr.md): 실제 요청, 데이터 흐름, 변경·검증
+6. [DB·스키마 관리 학습 가이드](learning/database-schema-management.kr.md): DB·테이블을 누가 언제 만들고, migration을 어떻게 적용하고 검증하는지
+7. [환경별 DB·설정 가이드](deployment/database-environments.kr.md): Local / Test / Prod 연결과 명령, DB 삭제 안전 원칙
+8. [API 보안 학습 가이드](learning/api-security-guide.kr.md): 위협 모델, 인증·인가, 외부 IdP 검증, 직접 점검하는 방법
+9. [작업 내역과 배운 점](learning/work-history-2026-11.kr.md): 2026-11 감사와 후속 작업 전체
+10. 최신 감사: [보안 전수 감사(2026-11-09)](audit/2026-11-09-security-audit.kr.md)와 [프로젝트 감사(2026-11-08)](audit/2026-11-08-project-audit.kr.md): 당시 위험과 로드맵
+11. [DB 개선 가이드](learning/database-improvement-guide.kr.md): 남은 DB 과제의 우선순위와 단계
+12. [다국어 플랫폼 아키텍처 감사](architecture/AS_IS.md): 구현 전 조사 기록. 구현된 MVP는 [사전 API](api/API_SPEC.md)와 [ERD](database/ERD.md)를 참고
 
 학습 자료 전체의 순서와 자가 점검·실습 모음은 [학습 로드맵](learning/README.md)에 있습니다.
 
@@ -42,7 +44,7 @@
 | `music/` | 음악 카탈로그 설계, 결정, 운영 | [music/README](music/README.md) |
 | `deployment/` | 환경별 DB·env 설정과 명령, EC2 배포 절차 | [환경별 DB·설정 가이드](deployment/database-environments.kr.md), [EC2 MariaDB 배포](deployment/mariadb-systemd.kr.md) |
 | `html/` | 학습 사이트: 생성기(`_tools/`)와 HTML 스냅샷. **생성물은 직접 수정하지 않음** | [사이트 관리 가이드](html/README.md) |
-| `learning/` | 학습 가이드, 운영 체크리스트, 장애 이력 | [학습 로드맵](learning/README.md), [작업 내역과 배운 점](learning/work-history-2026-11.kr.md), [아키텍처 학습 가이드](learning/nestjs-operational-stability-guide.kr.md), [DB·스키마 관리](learning/database-schema-management.kr.md), [DB 개선 가이드](learning/database-improvement-guide.kr.md), [API 보안 학습 가이드](learning/api-security-guide.kr.md), [시크릿 관리 가이드](learning/security-guide.kr.md), [배포 시크릿 체크리스트](learning/deployment-secrets-checklist.kr.md), [SNS 운영 가이드](learning/sns-login-operational-guide.kr.md), [용어집](learning/glossary.kr.md), [실행 오류 이력](learning/runtime-troubleshooting-history.kr.md) (이력) |
+| `learning/` | 학습 가이드, 운영 체크리스트, 장애 이력 | [학습 로드맵](learning/README.md), [개발자 실무 안내서](learning/developer-handbook.kr.md), [사전 구현 실습](learning/dictionary-implementation-workbook.kr.md), [작업 내역과 배운 점](learning/work-history-2026-11.kr.md), [아키텍처 학습 가이드](learning/nestjs-operational-stability-guide.kr.md), [DB·스키마 관리](learning/database-schema-management.kr.md), [DB 개선 가이드](learning/database-improvement-guide.kr.md), [API 보안 학습 가이드](learning/api-security-guide.kr.md), [시크릿 관리 가이드](learning/security-guide.kr.md), [배포 시크릿 체크리스트](learning/deployment-secrets-checklist.kr.md), [SNS 운영 가이드](learning/sns-login-operational-guide.kr.md), [용어집](learning/glossary.kr.md), [실행 오류 이력](learning/runtime-troubleshooting-history.kr.md) (이력) |
 
 저장소 루트 문서:
 

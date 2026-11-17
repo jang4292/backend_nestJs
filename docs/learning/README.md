@@ -1,16 +1,19 @@
 # 학습 로드맵
 
-> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-17 · develop `82bb4f1` + 주석·문서 작업 트리
 > 이 저장소의 학습 자료를 한곳에 모았습니다. 위에서부터 순서대로 읽으면 "구조 → 데이터 → 운영 → 보안" 흐름으로 이해할 수 있습니다.
-> 같은 내용을 웹사이트로 보려면 `docs/html/index.html`을 브라우저로 엽니다([학습 사이트 관리 가이드](../html/README.md)).
+> 웹사이트 스냅샷은 `docs/html/index.html`을 브라우저로 엽니다. md 변경이 반영되지 않았을 수 있으므로 생성 시점과 갱신 절차는 [학습 사이트 관리 가이드](../html/README.md)를 확인합니다.
 
 ## 1. 읽는 순서
 
 | 순서 | 문서 | 무엇을 배우나 | 먼저 알면 좋은 것 |
 | --- | --- | --- | --- |
 | 1 | [서비스 개요](../product/overview.kr.md) → [기능 명세](../product/features.kr.md) | 이 서버가 하는 일, 기능 규칙 | 없음 |
+| 1-1 | [개발자 실무 안내서](developer-handbook.kr.md) | 인수, 코드 추적, 격리 테스트, 기능 변경, 배포·복구 | 1번 |
 | 2 | [아키텍처·운영 안정성 가이드](nestjs-operational-stability-guide.kr.md) | NestJS 모듈 구조, 계층과 포트·어댑터, 오류 처리, 인증·인가, 품질 게이트 | TypeScript, NestJS 기본 |
 | 3 | [Music 학습 가이드](../music/learning-guide.kr.md) | 도메인(Artist·Track·Playlist), 요청 흐름, presenter, 트랜잭션 | 2번 |
+| 3-1 | [음악 구현 실습](../music/implementation-workbook.kr.md) | 음원 업로드·재생, 순서, 사용 회차·통계, 백업 | 3번 |
+| 3-2 | [사전 구현 실습](dictionary-implementation-workbook.kr.md) | 출처·revision·검수·게시·검색과 동시성 | 2번 |
 | 4 | [DB·스키마 관리 가이드](database-schema-management.kr.md) | DB·테이블은 누가 언제 만드나, migration 적용과 검증, 롤백, 다른 DB 보호 | SQL 기본 |
 | 5 | [환경별 DB·설정 가이드](../deployment/database-environments.kr.md) | Local / Test / Prod 설정과 명령, 권한, 자주 나는 오류(실행 절차) | 4번 |
 | 6 | [시크릿 관리 가이드](security-guide.kr.md) → [API 보안 학습 가이드](api-security-guide.kr.md) | 비밀 관리와 push 전 점검 → 위협 모델, 비밀번호·세션·인가, 외부 IdP 검증, **대소문자 경로 우회 사례**, 직접 점검하는 방법 | 2번 |
@@ -26,6 +29,9 @@
 
 | 궁금한 것 | 문서 |
 | --- | --- |
+| 혼자 환경을 준비하고 기능을 변경·배포하는 순서 | [개발자 실무 안내서](developer-handbook.kr.md) |
+| 사전 초안이 검수·게시되어 검색되기까지 | [사전 구현 실습](dictionary-implementation-workbook.kr.md) |
+| 음악 파일 업로드·재생과 사용 통계 | [음악 구현 실습](../music/implementation-workbook.kr.md) |
 | 계층(controller → use-case → port → adapter)을 어떻게 나눴나 | [아키텍처 가이드 6장](nestjs-operational-stability-guide.kr.md#6-계층과-포트어댑터-users-예시) |
 | 오류를 HTTP 응답으로 바꾸는 곳 | [아키텍처 가이드 7장](nestjs-operational-stability-guide.kr.md#7-오류-처리를-한-곳에-모으기) |
 | admin만 쓸 수 있는 API는 어떻게 막나 | [아키텍처 가이드 8장](nestjs-operational-stability-guide.kr.md#8-인증과-인가) |
@@ -48,6 +54,9 @@
 
 | 문서 | 자가 점검 | 실습 |
 | --- | --- | --- |
+| 개발자 실무 안내서 | 마지막 장의 점검 질문 | 안전한 환경 준비와 요청 추적 |
+| 사전 구현 실습 | 마지막 장의 점검 질문 | 초안·검수·게시와 revision 확장 |
+| 음악 구현 실습 | 마지막 장의 점검 질문 | 업로드·재생·사용 회차와 통계 |
 | 아키텍처 가이드 | 14장의 파일별 질문 | [15장 실습 과제](nestjs-operational-stability-guide.kr.md#15-실습-과제) |
 | Music 학습 가이드 | [9장 질문](../music/learning-guide.kr.md#9-학습자가-스스로-답해야-하는-질문) | [8장 실습](../music/learning-guide.kr.md#8-직접-해보는-학습-실습) |
 | DB·스키마 관리 가이드 | [11장 자가 점검](database-schema-management.kr.md#11-자가-점검-질문) | [12장 실습 과제](database-schema-management.kr.md#12-실습-과제) |

@@ -231,10 +231,10 @@ test/            e2e (runs against MariaDB)
 
 ```bash
 npm run lint:check && npm run format:check && npm run typecheck && npx jest && npm run build
-npm run db:setup:test && npm run test:e2e      # needs .env.test.local
+# Run database setup/E2E only after confirming a disposable, isolated test DB.
 ```
 
-The dictionary and catalog concurrency E2E suites are skipped unless
+The dictionary, music-management and catalog concurrency E2E suites are skipped unless
 `ISOLATED_DATABASE_E2E=true` is set. Enable it **only** for a disposable,
 dedicated local `*_test` database: these suites create users/content and change
 the current publication; they do not clean up the database. The test guard
@@ -256,7 +256,12 @@ on every pull request and on every push to `develop` and `main`:
   2. assert that nothing is pending
   3. revert and re-apply the latest migration
   4. run the schema drift check (report-only for now, audit item DB-12)
-  5. run e2e, including the opt-in dictionary and concurrency suites
+  5. run e2e, including the opt-in dictionary, music-management and concurrency suites
+
+**Current CI limitation:** the latest `AddMusicManagement1768000000000`
+intentionally rejects `down()`, so the database job's latest-migration revert
+step cannot succeed as written. Check the actual job result; recovery requires
+an approved backup-restore procedure rather than an assumed revert.
 
 ## Documentation
 
@@ -265,6 +270,9 @@ on every pull request and on every push to `develop` and `main`:
 | Index and reading order | [docs/README.md](docs/README.md) |
 | Learning site (HTML snapshot, open `docs/html/index.html`) | [docs/html/README.md](docs/html/README.md) |
 | Learning roadmap (all guides, exercises) | [docs/learning/README.md](docs/learning/README.md) |
+| Developer handover and maintenance workbook | [docs/learning/developer-handbook.kr.md](docs/learning/developer-handbook.kr.md) |
+| Dictionary implementation and publication exercises | [docs/learning/dictionary-implementation-workbook.kr.md](docs/learning/dictionary-implementation-workbook.kr.md) |
+| Music upload, playback and statistics exercises | [docs/music/implementation-workbook.kr.md](docs/music/implementation-workbook.kr.md) |
 | Work history and lessons (2026-11) | [docs/learning/work-history-2026-11.kr.md](docs/learning/work-history-2026-11.kr.md) |
 | Product scope, features, API contract | [docs/product/](docs/product/) |
 | Music catalog design and decisions | [docs/music/README.md](docs/music/README.md) |

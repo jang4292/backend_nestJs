@@ -7,6 +7,7 @@ NestJS Music API와 EC2 내부 MariaDB 운영 개선 문서 모음입니다.
 ## 문서 구조
 
 - [카탈로그·사용 기록·음원 재생 초안](catalog-usage-prototype.kr.md): 새 데이터 모델, API, 웹 초안과 미구현 범위
+- [음악 구현 실습](implementation-workbook.kr.md): 트랙 등록부터 업로드·재생·통계·복구까지 단계별 안내
 - [MariaDB 운영 가이드](database/mariadb-operations.md): DB 생성, migration, backup, 배포, 보안
 - [Music REST API 레퍼런스](api.kr.md): Catalog/Legacy 전체 endpoint, 요청·응답 형식, 오류 계약
 - [결정 및 후속 작업](decisions.md): 확정된 동작, 정책 결정, 구현·검증 잔여 항목
