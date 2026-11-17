@@ -147,6 +147,8 @@ export class DictionaryLiveService {
     });
     let lastId = 0;
     if (options.cursor) {
+      // 커서는 검색 조건과 게시 스냅샷에 묶입니다. 게시가 바뀌면 섞인 페이지 대신 409로 처음부터 다시 읽게 합니다.
+      // Bind the cursor to filters and publication; return 409 rather than mixing pages from different snapshots.
       const cursor = decodeCursor(options.cursor);
       if (cursor.scope !== scope) {
         throw new BadRequestException('Cursor does not match the query');
@@ -174,6 +176,8 @@ export class DictionaryLiveService {
       });
     }
     if (normalizedQuery !== undefined) {
+      // 사용자가 입력한 %, _, !는 LIKE 연산자가 아니라 문자로 취급하고 마지막 %만 접두사 검색에 씁니다.
+      // Escape user-supplied LIKE metacharacters; only the appended % is a prefix wildcard.
       builder.andWhere(
         `(revision.normalizedLemma LIKE :pattern ESCAPE '!'
           OR EXISTS (
@@ -256,6 +260,8 @@ function cursorScope(filters: {
   language: string | null;
   conceptId: number | null;
 }): string {
+  // 조건 일치 확인용 식별자이며 서명이나 접근 제어 수단은 아닙니다.
+  // This fingerprint checks filter consistency; it is not a signature or authorization mechanism.
   return createHash('sha256')
     .update(JSON.stringify(filters))
     .digest('base64url')

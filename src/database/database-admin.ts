@@ -43,6 +43,8 @@ export const MIGRATION_PRIVILEGES = [
  * 이 앱의 migration이 만들거나 이름을 바꿔 소유하는 테이블입니다.
  * 이 목록 밖의 객체(다른 테이블, 뷰, 루틴, 이벤트)가 있는 DB는 다른 앱과 공유 중으로 보고
  * db:setup·db:reset이 아무것도 바꾸지 않습니다. spec이 entity·migration 소스와 이 목록을 대조합니다.
+ * This allowlist protects setup/reset from visible foreign objects. Inspection is
+ * limited to objects the DB account can see, so it is not proof of isolation.
  */
 export const APP_TABLES: readonly string[] = [
   'users',

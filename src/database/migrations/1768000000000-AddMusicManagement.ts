@@ -1,6 +1,11 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-/** Additive only: ambiguous existing catalog and legacy records are not guessed. */
+/**
+ * 기존 카탈로그와 Legacy 데이터를 추측해 병합·이관하지 않습니다. 기존 항목의 displayPosition은 position으로 초기화합니다.
+ * 이 migration의 down은 항상 실패하므로 복원하려면 검증된 백업과 승인된 절차가 필요합니다.
+ * Do not guess how to merge or migrate existing catalog and legacy records; initialize displayPosition from position.
+ * Down always rejects; recovery requires a verified backup and an approved restore procedure.
+ */
 export class AddMusicManagement1768000000000 implements MigrationInterface {
   name = 'AddMusicManagement1768000000000';
   public async up(q: QueryRunner): Promise<void> {

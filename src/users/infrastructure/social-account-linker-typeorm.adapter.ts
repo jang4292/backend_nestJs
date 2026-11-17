@@ -42,6 +42,8 @@ export class SocialAccountLinkerTypeOrmAdapter implements SocialAccountLinkerPor
       // 같은 SNS 계정의 최초 로그인이 동시에 들어와 다른 요청이 먼저 생성한 경우입니다.
       // 실패한 트랜잭션의 스냅샷(REPEATABLE READ)에서는 경쟁 행이 보이지 않으므로
       // 트랜잭션 밖에서 다시 조회합니다.
+      // A concurrent first login may win the unique-key race. Re-read outside the failed
+      // transaction because its REPEATABLE READ snapshot may not see the winning row.
       const concurrent = await this.findBySocialId(
         identity.provider,
         identity.sub,
@@ -110,6 +112,8 @@ export class SocialAccountLinkerTypeOrmAdapter implements SocialAccountLinkerPor
    * - provider가 미검증(emailVerified === false)이라고 알린 email은 쓰지 않습니다.
    * - 다른 사용자가 이미 쓰는 email은 쓰지 않습니다. 기존에는 UNIQUE 위반으로 500이 났고,
    *   로컬 계정과의 자동 병합은 계정 탈취 위험이 있어 하지 않습니다.
+   * - Do not claim an email explicitly marked unverified or owned by another user.
+   *   Matching email addresses never automatically merge a social and local account.
    */
   private async claimableEmail(
     usersRepository: Repository<User>,

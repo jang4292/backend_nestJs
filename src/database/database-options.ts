@@ -22,6 +22,8 @@ export type ReadCaFile = (filePath: string, encoding: BufferEncoding) => string;
  * - ts-node·jest(src/*.ts) → src/database/migrations/*.ts
  * - 빌드 결과(dist/*.js)  → dist/database/migrations/*.js (.d.ts 제외)
  * cwd와 무관하게 동작하므로 PM2·npm script·e2e 어디서 실행해도 같은 목록을 읽습니다.
+ * The extension follows the executing file, so source and compiled deployments
+ * discover their own migrations independently of the working directory.
  */
 export const DEFAULT_MIGRATIONS_GLOB = join(
   __dirname,

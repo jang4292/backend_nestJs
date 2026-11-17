@@ -8,7 +8,11 @@ import type { UserRepositoryPort } from '../ports/user-repository.port';
 
 /**
  * 로그인 식별자와 비밀번호를 검증합니다. 실패 사유(계정 없음/비밀번호 없음/불일치)를
- * 구분하지 않고 null을 반환하며, 모든 경로에서 bcrypt 비교를 한 번 수행해 응답 시간을 맞춥니다.
+ * 구분하지 않고 null을 반환합니다. 모든 경로에서 bcrypt 비교를 해 타이밍 차이를 줄이지만
+ * 전체 요청 시간이 같다고 보장하지는 않습니다.
+ *
+ * Return the same failure for missing accounts and bad passwords. Each path performs
+ * a bcrypt comparison to reduce timing differences, not to guarantee constant time.
  */
 @Injectable()
 export class VerifyCredentialsUseCase {

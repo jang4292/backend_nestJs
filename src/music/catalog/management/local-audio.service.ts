@@ -21,7 +21,10 @@ export interface AudioUpload {
   size: number;
 }
 
-/** Signatures are checked independently of the client supplied file name and MIME type. */
+/**
+ * 클라이언트 파일명이나 MIME을 신뢰하지 않고 알려진 파일 서명을 확인합니다.
+ * Check known file signatures independently of the client-supplied name and MIME type.
+ */
 export function audioContentType(data: Buffer): string | null {
   if (data.length < 12) return null;
   if (
@@ -113,6 +116,8 @@ export class LocalAudioService {
       });
       return { id: asset.id, trackId, contentType, sizeBytes: file.size };
     } catch (error) {
+      // 파일 시스템과 DB는 단일 트랜잭션이 아닙니다. 저장 실패 시 삭제를 시도하지만 고아 파일이 남을 수 있습니다.
+      // Filesystem and DB writes are not atomic; cleanup is best-effort and can leave an orphan.
       await unlink(filePath).catch(() => undefined);
       throw error;
     }
@@ -159,6 +164,8 @@ export class LocalAudioService {
     range: string | undefined,
     response: Response,
   ) {
+    // 임의 경로가 아닌 서버가 발급한 저장 키만 허용하고 파일 자체는 정적 경로로 공개하지 않습니다.
+    // Accept only server-generated storage-key shapes; never expose files as a static directory.
     if (
       !asset.storageKey ||
       !/^[a-f0-9-]{36}$/.test(asset.storageKey) ||
@@ -170,6 +177,8 @@ export class LocalAudioService {
     if (!info?.isFile() || info.size <= 0)
       throw new NotFoundException('Playable audio not found');
     const requested = parseAudioRange(range, info.size);
+    // 단일 Range만 지원합니다. 유효하지 않은 범위는 전체 파일 대신 416으로 응답합니다.
+    // Only one byte range is supported; invalid ranges return 416 instead of the full file.
     response.setHeader('Accept-Ranges', 'bytes');
     response.setHeader('Cache-Control', 'private, no-store');
     response.setHeader('X-Content-Type-Options', 'nosniff');

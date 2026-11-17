@@ -348,6 +348,8 @@ export class DictionaryPublicationEntry {
   @Column({ type: 'int' })
   revisionId: number;
 
+  // 복합 FK는 이 revision이 entry의 lexeme에 실제로 속하는지도 DB에서 보장합니다.
+  // The composite foreign key also ensures that the revision belongs to this entry's lexeme.
   @ManyToOne(() => DictionaryRevision, {
     onDelete: 'RESTRICT',
     onUpdate: 'RESTRICT',

@@ -46,7 +46,8 @@ export class LocalLoginUseCase {
       );
     }
 
-    // 계정 없음/비밀번호 없음/불일치를 구분하지 않고 같은 비용으로 실패시킵니다.
+    // 실패 사유를 구분하지 않고 모두 bcrypt 비교를 거칩니다. 타이밍 차이를 줄이지만 완전히 없애지는 않습니다.
+    // All failure paths perform bcrypt comparison to reduce, not eliminate, timing differences.
     const user = await this.usersService.verifyCredentials(
       input.identifierType,
       input.identifier,

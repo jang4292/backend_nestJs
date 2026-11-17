@@ -13,6 +13,9 @@ import { isAbsolute, resolve } from 'node:path';
  *
  * `ENV_FILE`을 지정하면 위 규칙 대신 그 파일 하나만 읽습니다.
  * 이미 프로세스에 있는 환경변수(PM2, Secrets Manager export 등)는 파일 값보다 우선합니다.
+ *
+ * ENV_FILE replaces the selected file. Existing process variables take precedence
+ * over file values, so verify the effective target before running database commands.
  */
 export const ENV_FILE_BY_NODE_ENV: Readonly<Record<string, string>> = {
   development: '.env',

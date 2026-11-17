@@ -4,6 +4,8 @@ export function assertIsolatedTestDatabase(): void {
     : undefined;
   const host = url?.hostname ?? process.env.DB_HOST;
   const database = url?.pathname.slice(1) ?? process.env.DB_DATABASE;
+  // 이 검사는 실수 방지용 최소 조건입니다. localhost와 *_test라는 이름만으로 전용 DB임이 증명되지는 않습니다.
+  // These are minimum safeguards: localhost and a *_test name do not prove the database is disposable.
   if (
     process.env.ISOLATED_DATABASE_E2E !== 'true' ||
     process.env.NODE_ENV !== 'test' ||

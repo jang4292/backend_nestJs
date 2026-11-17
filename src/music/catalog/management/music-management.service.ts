@@ -132,6 +132,8 @@ export class MusicManagementService {
       });
       if (!item) throw new NotFoundException('Playlist item not found');
       if (dto.audioAssetId != null) {
+        // 다른 트랙의 파일이나 URL만 있는 자산을 선택하면 재생 경계가 깨지므로 둘 다 거부합니다.
+        // Reject assets from another track and URL-only assets; playback requires a local upload.
         const asset = await manager.findOne(AudioAsset, {
           where: { id: dto.audioAssetId },
           relations: { track: true },
@@ -172,6 +174,8 @@ export class MusicManagementService {
       });
       if (!usage.location)
         throw new BadRequestException('Location is required');
+      // 원본 이름·참여자가 나중에 바뀌어도 당시 사용 내역을 확인하도록 항목과 이름을 복사합니다.
+      // Snapshot item and credit names so later catalog edits do not rewrite usage history.
       for (const item of items) {
         const work =
           item.track.workId == null
@@ -257,6 +261,8 @@ export class MusicManagementService {
     const from = new Date(query.from);
     const to = new Date(query.to);
     if (from >= to) throw new BadRequestException('from must be before to');
+    // 확정된 양수 횟수만 [from, to) 구간에 합산합니다. 공동 아티스트는 각자 같은 항목의 횟수를 받습니다.
+    // Sum positive counts from confirmed usages in [from, to); each credited artist receives the item count.
     const where = `u.status = 'confirmed' AND u.usedAt >= ? AND u.usedAt < ? AND i.playCount > 0${query.location ? ' AND u.location = ?' : ''}`;
     const params = query.location ? [from, to, query.location] : [from, to];
     const base = `FROM music_playlist_usage u JOIN music_playlist_usage_item i ON i.usageId = u.id`;

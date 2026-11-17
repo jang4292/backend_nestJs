@@ -25,6 +25,8 @@ import { VerifyCredentialsUseCase } from './application/use-cases/verify-credent
     FindUserUseCase,
     VerifyCredentialsUseCase,
     UserTypeOrmRepository,
+    // 포트 토큰을 별도 인스턴스가 아닌 기존 adapter에 연결해 교체·테스트할 수 있게 합니다.
+    // Bind the port token to the existing adapter instance so it can be substituted in tests.
     { provide: USER_REPOSITORY_PORT, useExisting: UserTypeOrmRepository },
     BcryptPasswordHasherAdapter,
     { provide: PASSWORD_HASHER_PORT, useExisting: BcryptPasswordHasherAdapter },

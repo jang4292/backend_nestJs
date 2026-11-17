@@ -25,6 +25,9 @@ const ENABLED_KEY_BY_PROVIDER: Readonly<Record<SocialProviderName, string>> = {
  * provider는 요청 경로가 아니라 `@SocialProviderRoute()` 메타데이터로 찾습니다.
  * 경로 정규식은 대소문자(`/auth/GOOGLE/login`), 전역 prefix, 버전 경로 같은 라우팅 정규화 차이로
  * 우회될 수 있습니다(SEC-17).
+ *
+ * Read controller/handler metadata rather than matching the URL: Express routing
+ * can normalize paths differently, including case-insensitive route matching.
  */
 @Injectable()
 export class ProviderReadinessGuard implements CanActivate {

@@ -44,7 +44,10 @@ async function bootstrap() {
     exposedHeaders: [REQUEST_ID_HEADER],
   });
 
-  // Enable global validation pipes
+  // DTO에 선언하지 않은 필드는 조용히 제거하지 않고 400으로 거부합니다.
+  // transform은 DTO 인스턴스를 만들며, 쿼리 숫자 변환 등은 DTO의 @Type 설정을 따릅니다.
+  // Reject undeclared DTO fields with 400 instead of silently stripping them.
+  // Transform creates DTO instances; conversions such as query numbers use DTO metadata.
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

@@ -31,6 +31,8 @@ export function assertWellFormedText(value: string): void {
 
 export function normalizeDictionaryText(value: string): string {
   assertWellFormedText(value);
+  // 표시 원문은 보존하고 검색 키만 NFC·소문자로 통일합니다. 길이는 UTF-16 코드 단위가 아닌 코드 포인트로 셉니다.
+  // Preserve display text; normalize only the search key and count Unicode code points.
   const normalized = value.normalize('NFC').toLowerCase();
   if (Array.from(normalized).length > 512) {
     throw new BadRequestException('Normalized text is too long');
@@ -49,6 +51,8 @@ export async function loadRevisionContent(
     return content;
   }
 
+  // 여러 revision의 하위 항목을 일괄 조회해 목록의 항목마다 쿼리가 늘어나는 N+1 문제를 피합니다.
+  // Batch child rows across revisions to avoid a query per item in list responses.
   const [forms, senses] = await Promise.all([
     manager.find(DictionaryForm, {
       where: { revisionId: In(revisionIds) },

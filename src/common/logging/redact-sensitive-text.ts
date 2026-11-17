@@ -9,7 +9,11 @@ const DATABASE_URL_SECRET_PATTERN =
   /((?:postgres(?:ql)?|mariadb|mysql):\/\/[^:\s/@]+:)([^@\s]+)(@)/gi;
 const BEARER_TOKEN_PATTERN = /(Bearer\s+)[A-Za-z0-9._~+/=-]+/gi;
 
-/** 로그·오류 응답에 실릴 수 있는 문자열에서 비밀번호, 토큰, 연결 문자열 비밀값을 가립니다. */
+/**
+ * 로그·오류 응답에서 알려진 비밀번호·토큰·연결 문자열 패턴을 가립니다.
+ * 모든 비밀 형식을 탐지할 수 없으므로 원본 비밀값을 로그와 예외에 넣지 않는 것이 우선입니다.
+ * Redact known secret patterns as a safety net; do not put raw secrets in logs or exceptions.
+ */
 export function redactSensitiveText(value: string): string {
   return value
     .replace(DATABASE_URL_SECRET_PATTERN, `$1${SENSITIVE_VALUE_PLACEHOLDER}$3`)

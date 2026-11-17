@@ -181,6 +181,8 @@ export class CatalogMusicService {
     try {
       return await this.playlistTrackRepo.manager.transaction(
         async (manager) => {
+          // 같은 playlist의 추가·재정렬이 위치 검사를 동시에 통과하지 않도록 부모 행을 잠급니다.
+          // Lock the parent so concurrent additions and reorders cannot race on positions.
           const playlist = await manager.findOne(CatalogPlaylist, {
             where: { id: playlistId },
             lock: { mode: 'pessimistic_write' },
@@ -255,6 +257,8 @@ export class CatalogMusicService {
         dto.items.map((item) => [item.id, item.position]),
       );
       // 위치 교환 중 unique constraint와 충돌하지 않도록 임시 음수 값을 거칩니다.
+      // Move positions to temporary negative values before assigning positive positions
+      // so swaps do not violate the unique constraint midway through the transaction.
       for (const [index, item] of items.entries()) {
         await repository.update(item.id, { position: -(index + 1) });
       }

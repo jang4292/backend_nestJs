@@ -54,6 +54,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const http = host.switchToHttp();
     const request = http.getRequest<RequestWithId>();
     const response = http.getResponse<Response>();
+    // Guard에서 실패하면 interceptor가 아직 실행되지 않았으므로 여기서도 요청 ID를 확인합니다.
+    // A guard can fail before the interceptor runs, so resolve an ID here as well.
     const requestId =
       request.requestId ?? this.requestIdService.resolve(request as Request);
     const status = this.resolveStatus(exception);

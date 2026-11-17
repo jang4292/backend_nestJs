@@ -3,7 +3,10 @@ import * as bcrypt from 'bcrypt';
 import type { PasswordHasherPort } from '../application/ports/password-hasher.port';
 
 const BCRYPT_ROUNDS = 10;
-/** 존재하지 않는 계정 로그인에도 bcrypt 비교 비용을 동일하게 쓰기 위한 고정 해시(평문 미사용). */
+/**
+ * 계정이나 비밀번호가 없을 때도 bcrypt 비교를 수행하기 위한 고정 해시입니다(평문 미사용).
+ * A fixed hash ensures missing credentials still incur a bcrypt comparison.
+ */
 const TIMING_EQUALIZER_HASH =
   '$2b$10$M4STLCKcjswf1APu5VQbLeKqvI1ooRjIZgf6FzkoGS3Gv45eQF6/G';
 

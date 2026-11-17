@@ -10,7 +10,10 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { Roles } from './roles.decorator';
 import { RolesGuard } from './roles.guard';
 
-/** 로그인한 사용자만 접근 가능한 라우트 */
+/**
+ * JWT를 검증한 로그인 사용자만 접근하도록 합니다.
+ * Require a valid JWT before the route handler runs.
+ */
 export function Authenticated(): MethodDecorator & ClassDecorator {
   return applyDecorators(
     ApiBearerAuth(),
@@ -22,7 +25,10 @@ export function Authenticated(): MethodDecorator & ClassDecorator {
   );
 }
 
-/** admin 역할만 접근 가능한 라우트(카탈로그/음원 관리 등 쓰기 작업) */
+/**
+ * JWT를 먼저 검증하고 현재 DB에서 읽은 사용자 역할이 admin인지 검사합니다.
+ * Verify the JWT first, then require the current user's admin role.
+ */
 export function AdminOnly(): MethodDecorator & ClassDecorator {
   return applyDecorators(
     ApiBearerAuth(),

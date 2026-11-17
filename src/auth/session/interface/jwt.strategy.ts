@@ -43,6 +43,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException();
     }
     // 비밀번호 변경 등으로 세션 버전이 올라가면 그 전에 발급된 토큰을 거부합니다(AUTH-3).
+    // Compare against the current DB version on every request; old tokens without sv use version 0.
     if ((payload.sv ?? 0) !== (user.sessionVersion ?? 0)) {
       throw new UnauthorizedException('Session has been revoked');
     }

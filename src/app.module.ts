@@ -105,6 +105,8 @@ assertEnvFileAvailable(envFilePath);
   providers: [
     AppService,
     MigrationStatusService,
+    // Guard는 interceptor보다 먼저 실행됩니다. 실패한 요청의 ID는 예외 필터가 직접 확인하거나 생성합니다.
+    // Guards run before interceptors; the exception filter resolves an ID for guard failures.
     {
       provide: APP_INTERCEPTOR,
       useClass: RequestIdInterceptor,

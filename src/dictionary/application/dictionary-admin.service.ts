@@ -227,6 +227,8 @@ export class DictionaryAdminService {
       throw new BadRequestException('At least one content field is required');
     }
     return this.dataSource.transaction(async (manager) => {
+      // 행 잠금으로 동시 편집을 직렬화하고 expectedVersion으로 오래된 클라이언트의 덮어쓰기를 거부합니다.
+      // Serialize concurrent edits with a row lock and reject stale expectedVersion values.
       const lexeme = await this.lockLexeme(manager, id, dto.expectedVersion);
       const previous = await this.currentRevision(manager, lexeme);
       const previousContent = (
@@ -246,6 +248,8 @@ export class DictionaryAdminService {
         senses: dto.senses ?? previousContent.senses,
       };
       await this.validateRevisionInput(manager, input);
+      // 콘텐츠 수정은 이전 revision을 덮어쓰지 않습니다. 생략된 필드를 복사해 새 draft를 만듭니다.
+      // Content edits create a new draft, copying omitted fields instead of overwriting the old revision.
       lexeme.currentVersion += 1;
       await manager.save(DictionaryLexeme, lexeme);
       const revision = await this.createRevision(manager, lexeme, input, actor);
@@ -298,6 +302,8 @@ export class DictionaryAdminService {
   publish(dto: CreateDictionaryPublicationDto, actor: DictionaryActor) {
     assertWellFormedText(dto.reason);
     return this.dataSource.transaction(async (manager) => {
+      // 단일 state 행을 잠근 뒤 클라이언트가 본 게시 ID를 비교해 동시 게시의 유실 갱신을 막습니다.
+      // Lock the singleton state and compare the client's publication ID to prevent lost updates.
       const state = await this.publicationState(manager, true);
       if (
         state.currentPublicationId !==
@@ -354,6 +360,8 @@ export class DictionaryAdminService {
         createdBy: actor.actorId,
         reason: dto.reason,
       });
+      // 이전 스냅샷의 미변경 항목을 복사하고 요청 항목만 교체합니다. 포인터와 감사 기록도 같은 트랜잭션입니다.
+      // Copy unchanged entries, replace requested entries, and update the pointer and audit in one transaction.
       if (previousPublicationId !== null) {
         const placeholders = lexemeIds.map(() => '?').join(', ');
         await manager.query(
@@ -429,6 +437,8 @@ export class DictionaryAdminService {
       if (revision.status !== from) {
         throw new ConflictException('Revision is not in the required state');
       }
+      // 제출·승인은 현재 revision의 상태만 바꾸며 콘텐츠 편집처럼 version을 증가시키지 않습니다.
+      // Submit and approve change the current revision's status without creating a new version.
       revision.status = to;
       if (to === DictionaryRevisionStatus.IN_REVIEW) {
         revision.submittedAt = new Date();

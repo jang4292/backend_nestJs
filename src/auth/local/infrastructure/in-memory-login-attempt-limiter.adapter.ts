@@ -18,6 +18,9 @@ interface FailureWindow {
  * - PM2 단일 인스턴스(fork, instances: 1) 기준입니다. 인스턴스를 늘리면 Redis 같은 공유 저장소 어댑터로 바꿔야 합니다.
  * - 재시작하면 기록이 사라집니다(차단이 풀림). 영구 잠금이 아닌 속도 제한 목적이라 허용합니다.
  * - 생성자 인자(시계, 한도)는 테스트용이며 모듈은 useFactory로 기본값을 사용합니다.
+ *
+ * This fixed window is local to one process and is cleared on restart.
+ * Multiple instances need a shared limiter if they must enforce one combined limit.
  */
 export class InMemoryLoginAttemptLimiterAdapter implements LoginAttemptLimiterPort {
   private readonly windows = new Map<string, FailureWindow>();
