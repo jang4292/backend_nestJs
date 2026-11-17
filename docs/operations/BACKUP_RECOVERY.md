@@ -1,13 +1,14 @@
 # 백업·복구 계획
 
-> 최신화 기준: 2026-11-14 · develop `a38e885`
+> 최신화 기준: 2026-11-17 · develop `82bb4f1` + 주석·문서 작업 트리
 > 운영 DB·NAS·AWS backup 설정과 복원 기록을 조회하지 못했습니다. 현재 백업 성공 여부는 **UNVERIFIED**입니다.
 
 ## 1. 보호 대상과 위험
 
 - MariaDB 전체 데이터 및 schema/Migration state.
-- Admin audit trail, data-source/license registry, import job/staging 필요한 보존분.
-- Immutable publication metadata 및 사용자 study state.
+- 로컬 음원 파일 디렉터리와 DB의 `audio_asset` 참조. 실제 경로는 프로세스 설정과 [음악 구현 실습](../music/implementation-workbook.kr.md)에서 확인합니다.
+- 현재 사전 관리자 audit, data-source/license registry와 publication metadata.
+- 향후 import job/staging이나 사용자 study state를 구현하면 필요한 보존분을 추가합니다. 현재는 구현되지 않았습니다.
 - 승인된 외부 source raw snapshot/checksum (재수집이 불가능하거나 license 검수 증거가 필요한 범위).
 - 배포 artifact, Nginx/app configuration은 secret을 제외해 재구성 가능하도록 버전 관리.
 
@@ -35,7 +36,7 @@ EC2 로컬 dump, 같은 volume 복사, 동기 NAS mount 한 곳만으로는 호�
 ## 4. 백업 작업 절차
 
 1. 백업 job은 전용 최소권한 read account와 서비스 계정으로 실행하고, `umask 077`/권한 제한을 적용합니다.
-2. DB 이름·시각·schema version·publication ID·dump checksum·암호화 key version·job ID만 metadata로 기록합니다. password/secret/raw user content는 로그하지 않습니다.
+2. DB와 음원 파일이 같은 복구 시점을 갖도록 쓰기를 중지하거나 일관된 스냅샷을 확보합니다. DB 이름·시각·schema version·publication ID·dump checksum·암호화 key version·job ID만 metadata로 기록합니다. password/secret/raw user content는 로그하지 않습니다.
 3. 암호화 후 remote upload가 완료되고 checksum이 일치하기 전에는 성공 처리하지 않습니다.
 4. Upload/검증 실패는 알림을 내고 이전 성공 backup을 덮어쓰지 않습니다.
 5. NAS 복사는 별도 제한 계정/쓰기 전용 경로를 사용합니다. NAS에서 EC2로 inbound DB 접속을 허용하지 않습니다.
@@ -44,7 +45,7 @@ EC2 로컬 dump, 같은 volume 복사, 동기 NAS mount 한 곳만으로는 호�
 
 1. 격리된 restore host/account/database에서 백업을 복원합니다. PROD DB를 덮어쓰지 않습니다.
 2. 암호화 키 복구, checksum, MariaDB version compatibility, Migration state, FK/row-count sanity를 확인합니다.
-3. API를 격리된 private endpoint로 시작해 `/health/ready`, dictionary lookup, publication consistency, study history/revision link를 검증합니다.
+3. 음원 파일을 격리된 비공개 경로에 함께 복원합니다. API를 격리된 private endpoint로 시작해 `/api/v1/health/ready`, dictionary lookup·publication consistency, 사용자 접근과 음악 재생을 검증합니다. study history는 현재 구현되지 않았습니다.
 4. RTO/RPO 측정 및 누락 데이터 범위를 기록하고 승인된 보고서만 공유합니다.
 5. 테스트 결과를 바탕으로 retention, 비용, runbook, 담당자를 업데이트합니다.
 
@@ -56,6 +57,6 @@ EC2 로컬 dump, 같은 volume 복사, 동기 NAS mount 한 곳만으로는 호�
 2. 마지막 정상 backup/binlog 시각 및 문제 migration을 확인. 임의로 `migration:revert` 하지 않음.
 3. 복구 대상이 PROD인지, 별도 host인지, 사용자에게 고지할 영향인지 승인.
 4. 새 DB에 복원 → 검증 → 승인 → app endpoint 전환.
-5. 전환 후 write path, Admin audit, publication id, user progress를 확인.
+5. 전환 후 write path, Admin audit, publication ID, 사용자 접근과 음악 재생을 확인. 향후 학습 기능을 구현한 경우 user progress도 확인.
 6. 원본 DB를 조사 전 삭제하지 않고 incident evidence로 보존.
 

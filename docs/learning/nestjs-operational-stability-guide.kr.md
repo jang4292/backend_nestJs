@@ -1,6 +1,6 @@
 # NestJS 아키텍처·운영 안정성 학습 가이드
 
-> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-17 · develop `82bb4f1` + 주석·문서 작업 트리
 
 이 저장소의 구조를 NestJS와 Clean Architecture 관점에서 따라 읽기 위한 가이드입니다. "무엇을 바꿨는가"보다 "왜 이렇게 나눴는가"에 초점을 둡니다. 남은 구조 과제는 [감사 리포트 3.1장](../audit/2026-11-08-project-audit.kr.md#31-clean-architecture--ddd)을 참고하세요.
 
@@ -44,7 +44,8 @@ src/
     users.service.ts      다른 모듈이 쓰는 공개 facade
   music/
     (legacy)              application/ infrastructure/ interface/ — /music/legacy
-    catalog/              CatalogMusicService, entities, interface — /music
+    catalog/              CatalogMusicService, entities, interface, management — /music
+  dictionary/             관리자 revision·publication, 공개 검색, health — /api/v1
 ```
 
 ## 3. Bootstrap: `main.ts`
@@ -56,7 +57,7 @@ src/
 | `helmet()` | 기본 보안 헤더 |
 | `enableCors({ origin: CORS_ORIGINS, credentials, exposedHeaders: ['x-request-id'] })` | `*`는 `app-env.ts`에서 거부합니다 |
 | `ValidationPipe({ whitelist, forbidNonWhitelisted, transform })` | 모든 DTO에 같은 입력 정책을 적용합니다. 컨트롤러마다 `@Body(ValidationPipe)`를 반복하지 않습니다 |
-| Swagger(`NODE_ENV !== 'production'`) | 운영에서는 스펙을 노출하지 않습니다 |
+| Swagger(`SWAGGER_ENABLED=true`) | 명시적으로 활성화하며 production에서 활성화하면 설정 검증이 실패합니다 |
 
 ## 4. 루트 조립: `AppModule`
 
@@ -114,7 +115,7 @@ UsersController (interface)            ── DTO 검증, PublicUser로 변환
 - **보안 규칙의 위치**
   - 비밀번호 해시는 entity에서 `select: false`로 숨깁니다.
   - 로그인 경로만 `findCredentialsByIdentifier()`로 명시적으로 조회합니다.
-  - 계정이 없어도 해셔가 같은 비용의 비교를 하므로 응답 시간으로 계정 존재를 알 수 없습니다.
+  - 계정이 없어도 고정 해시와 bcrypt를 비교해 타이밍 차이를 줄입니다. 실제 해시 cost나 DB·네트워크 시간까지 같다는 보장은 없습니다.
 - **현재 한계:** 포트 시그니처가 아직 TypeORM entity(`User`)를 씁니다. 도메인 모델 분리는 로드맵 P2입니다.
 
 ## 7. 오류 처리를 한 곳에 모으기
@@ -139,7 +140,7 @@ UsersController (interface)            ── DTO 검증, PublicUser로 변환
 
 - **라우트 데코레이터:** `@Authenticated()`는 로그인, `@AdminOnly()`는 admin을 요구합니다(`src/auth/session/interface/auth-route.decorators.ts`).
 - **역할 반영:** 역할을 JWT에 넣지 않고 매 요청 DB에서 읽으므로, 권한 변경이 즉시 반영됩니다.
-- **회귀 방지:** 음악 쓰기 라우트에 `@AdminOnly()`가 빠지면 `src/music/music-authorization.spec.ts`가 실패합니다.
+- **회귀 방지:** `src/music/music-authorization.spec.ts`는 기존 Catalog와 Legacy 컨트롤러의 쓰기 라우트를 검사합니다. 새 음악 관리·업로드 컨트롤러는 이 자동 검사 범위에 없으므로 별도 권한 테스트가 필요합니다.
 - **provider 판정은 메타데이터로:** `ProviderReadinessGuard`는 요청 경로가 아니라 컨트롤러의 `@SocialProviderRoute()`를 읽습니다. Express 라우팅은 대소문자를 구분하지 않아 경로 검사로는 `/auth/GOOGLE/*`을 놓칩니다([API 보안 가이드 8장](api-security-guide.kr.md#8-사례-대소문자-경로로-비활성-provider-우회-sec-17)).
 - **토큰 무효화:** JWT의 `sv`가 `users.sessionVersion`과 다르면 401입니다. 비밀번호를 바꾸면 버전이 오릅니다.
 - **계정 단위 로그인 제한:** IP 단위 `@Throttle`과 별개로, 같은 식별자의 실패가 15분에 10회면 429입니다(`LoginAttemptLimiterPort`).
@@ -214,6 +215,7 @@ npm run build          # nest build
   3. 최신 migration revert 후 재적용
   4. drift 검사(현재는 보고만, 감사 DB-12)
   5. e2e
+- 현재 최신 `AddMusicManagement1768000000000.down()`은 의도적으로 실패하므로 3번과 양립하지 않습니다. CI가 뒤 단계까지 통과했다고 가정하지 말고 결과와 백업 복원 정책을 확인합니다.
 - Node 버전은 `.nvmrc`(24)로 고정합니다.
 
 ## 14. 추천 읽기 순서
@@ -238,9 +240,9 @@ npm run build          # nest build
 1. **CA-2 이어서 하기:** legacy music use-case의 `NotFoundException`을 `NotFoundError`로 바꾸고 spec을 고칩니다.
 2. **Playlist 상태 전이 규칙:** `publishPlaylist`에 `archived → published` 금지 규칙을 도메인 함수로 추출하고 테스트합니다(결정 문서 확정 후).
 3. **SNS use-case 통합:** kakao/naver/facebook 로그인 use-case를 하나의 공통 함수로 묶되, provider 오류 코드 계약은 유지합니다.
-4. **e2e 확장:** `/users/register` → `/auth/login` → `/users/profile` 흐름을 `test/`에 추가합니다. CI `database` job이 MariaDB에서 실행합니다.
+4. **e2e 확장:** 격리 DB에서 `/users/register` → `/auth/login` → `/users/profile` 흐름을 `test/`에 추가합니다. CI `database` job의 E2E 단계는 정의되어 있지만 현재 최신 migration revert 실패로 거기까지 도달하지 못합니다.
 5. **drift 해소(DB-12):** entity에 FK·인덱스 이름과 `datetime` 정밀도를 선언해 `npm run migration:check:test`가 `No changes`를 출력하게 만들고, CI의 `continue-on-error`를 제거합니다.
-6. **스키마 변경 한 바퀴:** [DB·스키마 관리 학습 가이드 12장](database-schema-management.kr.md#12-실습-과제)의 과제를 따라 migration 생성 → 검증 → 되돌리기를 연습합니다.
+6. **스키마 변경 한 바퀴:** [DB·스키마 관리 학습 가이드 12장](database-schema-management.kr.md#12-실습-과제)의 과제를 격리 DB에서 수행합니다. 최신 migration은 되돌릴 수 없으므로 먼저 해당 `down()`과 복구 절차를 확인합니다.
 
 ## 16. 기억할 원칙
 

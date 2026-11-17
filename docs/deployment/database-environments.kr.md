@@ -1,6 +1,6 @@
 # 환경별 DB·설정 가이드 (Local / Test / Prod)
 
-> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-17 · develop `82bb4f1` + 주석·문서 작업 트리
 > 개념과 이유(직접 SQL / 명령 / 자동 실행 비교, 검증 계층, 삭제 방지)는 [DB·스키마 관리 학습 가이드](../learning/database-schema-management.kr.md)를 보세요. 이 문서는 실행 절차입니다.
 
 모든 환경은 **env 파일 하나**로 설정합니다. 다음이 모두 같은 규칙(`src/config/env-files.ts`)으로 파일을 고릅니다.
@@ -15,7 +15,7 @@
 | 환경 | 무엇인가 | `NODE_ENV` | env 파일 (템플릿) | DB |
 | --- | --- | --- | --- | --- |
 | **Local** | 개발 PC에서 앱을 실행(`start:dev`)하고 NAS 개발 DB 서버에 접속 | `development`(기본) | `.env` (`.env.example`) | 개발 서버의 **앱 전용 DB** `app_db_dev` |
-| **Test** | Local 안에서 실행하는 e2e와 migration 검증 | `test` | `.env.test.local` (`.env.test.example`), **필수** | 개발 서버의 **앱 전용 DB** `app_db_test` (**`*_test`만 허용**) |
+| **Test** | e2e와 migration 검증 | `test` | `.env.test.local` (`.env.test.example`), 또는 명시적 `ENV_FILE` | 버려도 되는 앱 전용 `*_test` DB. 쓰기 E2E는 격리된 로컬 DB 필요 |
 | **Prod** | EC2에서 build 후 PM2로 실행 | `production` | `.env.production` (`.env.production.example`) | 같은 EC2의 MariaDB(`127.0.0.1:3306`) 운영 DB |
 
 | 작업 | Local | Test | Prod (EC2, `npm run build` 후) |
@@ -28,9 +28,9 @@
 | 앱 실행 | `npm run start:dev` | `npm run test:e2e` | `npm run pm2:reload` |
 | SNS 로그인 | 전부 off | 전부 off | 전부 off(로컬 로그인만) |
 
-- **Local·Test와 Prod는 다른 서버**입니다. 개발·테스트 작업이 운영 데이터에 닿지 않습니다.
-- **Local과 Test는 같은 개발 서버, 같은 계정을 쓰고 DB 이름으로 분리합니다.**
-  - `NODE_ENV=test`에서는 `*_test`가 아닌 DB를 지정하면 기동이 실패합니다(`src/config/app-env.ts`).
+- 위 서버 구성은 예시이며, **실제 분리 여부는 설정과 권한을 확인해야 합니다.** 이름만으로 운영 데이터에 닿지 않는다고 판단하지 않습니다.
+- `NODE_ENV=test`는 `DB_DATABASE`가 `*_test`로 끝나는지 확인하지만 `DATABASE_URL`이 있으면 실제 연결 대상을 우선합니다. 셸 환경변수도 파일보다 우선하므로 두 값을 모두 확인합니다.
+- 사전·음악 관리·동시성 E2E는 격리된 로컬 DB에서만 opt-in으로 실행합니다. 자세한 준비와 쓰기 범위는 [개발자 실무 안내서](../learning/developer-handbook.kr.md)를 참고합니다.
 - **개발 서버의 다른 DB는 쓰지 않습니다.** 이 앱은 `app_db_dev`와 `app_db_test`만 사용합니다(2장).
 - **테이블은 항상 migration으로만 만듭니다.**
   - `DB_SYNCHRONIZE=true`는 모든 환경에서 기동이 거부됩니다. entity와 다른 컬럼을 자동으로 삭제할 수 있기 때문입니다.
@@ -60,7 +60,7 @@ Hint: .env.test.local has DB_PASSWORD, but that file is read only with NODE_ENV=
 1. 이미 export된 셸 환경변수가 파일 값보다 우선합니다. PM2 `--update-env`, Secrets Manager export, CI job env가 여기에 해당합니다.
 2. `ENV_FILE=<경로>`를 지정하면 NODE_ENV 규칙 대신 그 파일 하나만 읽습니다. 예: `ENV_FILE=/etc/backend-nestjs/app.env`
 3. 파일이 없을 때
-   - Test는 기동하지 않습니다(개발 DB 오사용 방지).
+   - Test는 기본 `.env.test.local`이 없으면 기동하지 않습니다. `ENV_FILE`을 지정했다면 해당 파일을 사용합니다.
    - Local과 Prod는 환경변수만으로도 기동할 수 있습니다. 필수 값이 빠지면 검증 단계에서 어떤 키가 빠졌는지 알려 줍니다.
 
 > ⚠ EC2 셸에 예전 `eval "$(… secrets:export)"`로 export한 값이 남아 있으면 `.env.production`보다 우선합니다. `.env.production` 방식으로 바꿨다면 새 셸에서 `pm2:reload`하세요. 남은 값은 키 이름만 확인합니다: `env | cut -d= -f1 | grep -E '^(DB_|JWT_)'`
@@ -79,9 +79,9 @@ DB 서버에는 다른 앱이나 예전에 쓰던 DB가 있을 수 있습니다.
 | Prod | DB 생성·삭제 명령 없음 | `db:ensure`·`db:reset`은 거부됩니다. 운영 DB는 관리자가 만듭니다 |
 | 앱 기동 | 없음 | `synchronize` 금지, migration 자동 실행 없음, pending 경고만 |
 
-- **"앱 소유"의 기준:** `APP_TABLES`(`src/database/database-admin.ts`)는 migration이 만들거나 이름을 바꾸는 테이블 목록입니다. 대상 DB의 모든 객체가 이 목록 안에 있어야 앱 소유입니다. spec이 entity와 migration 소스를 이 목록과 대조합니다.
+- **"앱 소유" 검사의 범위:** `APP_TABLES`(`src/database/database-admin.ts`)는 migration이 만들거나 이름을 바꾸는 테이블 목록입니다. 검사 계정에 **보이는** 객체가 목록 밖이면 거부합니다. 보이지 않는 객체나 다른 사람의 데이터가 없다는 증거는 아니므로 DB 전용 여부를 별도로 확인합니다.
 - **`db:check`의 `ownership` 줄**
-  - `dedicated (N app tables)`: 앱 전용 DB입니다.
+  - `dedicated (N app tables)`: 검사 계정에 보이는 객체가 allowlist 안에 있다는 뜻입니다. DB가 비어 있거나 삭제해도 안전하다는 뜻은 아닙니다.
   - `shared — N object(s) not managed by this app: …`: 다른 객체가 섞여 있습니다. `db:setup`·`db:reset`이 거부하므로 전용 DB를 쓰세요.
 - **GRANT는 앱 전용 DB 단위로만 줍니다.** `ON *.*`(전역)나 다른 DB에는 권한을 주지 않습니다. `DROP` 권한도 그 DB 안에서만 유효합니다.
 - 다른 DB에 대한 권한은 이 앱에 필요 없습니다. 예전에 받은 권한은 회수해도 됩니다(선택).
@@ -161,19 +161,21 @@ npm run start:dev
 
 ## 4. Test: 개발 서버의 `app_db_test`
 
+아래는 대상과 권한을 확인한 **전용 테스트 DB**의 예시입니다. 공유 DB나 운영 데이터가 든 DB에서는 실행하지 않습니다. 특히 쓰기 E2E와 reset은 별도의 일회성 로컬 DB를 준비하세요.
+
 ```bash
-cp .env.test.example .env.test.local   # DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD 입력(Local과 같은 계정)
+test -e .env.test.local || cp .env.test.example .env.test.local
+# 파일과 셸 환경의 DB_HOST, DB_DATABASE, DATABASE_URL 등을 확인하고 전용 DB 설정
 chmod 600 .env.test.local
-npm run db:setup:test                  # app_db_test가 없으면 생성 → migration 적용
+npm run db:check:test                 # 실제 대상·소유·권한을 확인
+npm run db:setup:test                 # 확인한 대상에 생성/마이그레이션 수행
 npm run db:check:test -- --strict      # 권한·소유·pending 모두 OK면 종료 코드 0
-npm run test:e2e
 ```
 
-- **계정:** Local 계정을 같이 씁니다(3.1의 `app_db_test` GRANT). 테스트 전용 계정을 따로 만들어도 됩니다.
-- **빈 DB에서 전체 migration 재검증:** `npm run db:reset:test`
-  - `app_db_test`를 지우고 다시 만든 뒤 모든 migration을 적용합니다. CI가 매번 하는 것과 같습니다.
-  - 앱 소유 테이블만 있을 때만 동작하고, 다른 객체가 있으면 목록을 보여 주고 거부합니다.
-- **최신 migration 되돌리기 확인:** `npm run migration:revert:test` 후 `npm run migration:run:test`
+- **계정:** 테스트 전용 계정과 DB를 권장합니다. 이 앱의 데이터라 해도 다른 사람이 사용하는 DB라면 버려도 되는 DB가 아닙니다.
+- **E2E:** [격리 테스트 절차](../learning/developer-handbook.kr.md)대로 실제 host·DB·`DATABASE_URL`을 확인하고 실행합니다. `ISOLATED_DATABASE_E2E=true`를 지정하지 않으면 사전·음악 관리·동시성 묶음은 skip됩니다.
+- **빈 DB에서 전체 migration 재검증:** `npm run db:reset:test`는 대상 DB의 앱 데이터도 모두 삭제하고 재생성합니다. 대상이 버려도 되는 전용 DB임을 확인하기 전에는 실행하지 않습니다. CI의 DB는 일회용 서비스입니다.
+- **최신 migration 되돌리기:** 현재 `AddMusicManagement1768000000000.down()`은 항상 실패합니다. 무작정 `migration:revert:test`를 실행하지 말고 백업 복원 정책과 CI 검증 방식을 먼저 확인합니다.
 - **entity와 migration의 차이(drift):** `npm run migration:check:test`. 현재는 차이가 보고됩니다(감사 DB-12).
 
 ## 5. Prod: EC2 + PM2 + localhost MariaDB
@@ -253,8 +255,8 @@ pm2 ls
 1. entity를 변경하고, `npm run migration:generate -- src/database/migrations/<Name>`으로 초안을 만든 뒤 SQL을 리뷰합니다.
 2. **하위 호환을 확인합니다.** 삭제와 이름 변경은 다음 릴리스로 나눕니다(expand → contract). 새 NOT NULL 컬럼에는 default를 둡니다.
 3. 새 테이블을 만들었다면 `APP_TABLES`에 추가합니다. spec이 누락을 알려 줍니다.
-4. Test에서 확인합니다: `npm run db:reset:test` → `npm run migration:check:test` → `npm run test:e2e`
-5. PR을 올리고 CI `database` job이 통과하는지 확인합니다: 빈 DB 전체 체인 → pending 없음 → 최신 revert/재적용 → drift → e2e
+4. 격리된 일회성 Test DB에서 전체 체인, `npm run migration:check:test`, opt-in E2E를 확인합니다. `db:reset:test`는 DB를 삭제하므로 대상 확인이 선행되어야 합니다.
+5. PR에서 CI `database` job 결과를 확인합니다. 현재 workflow는 최신 revert/재적용을 시도하지만 최신 음악 migration의 `down()`이 의도적으로 실패하므로 이 단계는 통과할 수 없습니다. 실패를 성공으로 간주하거나 운영에서 revert로 우회하지 않습니다.
 6. Local에 적용합니다: `npm run db:check` → `npm run db:setup`. 기존 데이터 위에서 적용되는지 확인합니다.
 7. Prod에 적용합니다: 5.3 순서대로 진행하고, 백업 없이 migration을 실행하지 않습니다.
 

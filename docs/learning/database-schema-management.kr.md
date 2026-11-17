@@ -1,7 +1,8 @@
 # DB·스키마 관리 학습 가이드: 생성, migration, 검증
 
-> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-17 · develop `82bb4f1` + 주석·문서 작업 트리
 > 실행 절차(명령 순서, SQL)는 [환경별 DB·설정 가이드](../deployment/database-environments.kr.md)에 있습니다. 이 문서는 **왜 그렇게 하는지**를 설명합니다.
+> 현재 최신 음악 migration은 `down()`을 거부합니다. 아래 CI의 최신 revert 단계는 이 구현과 양립하지 않으며, 과거 실행 사례는 당시 기록입니다.
 
 ## 1. 학습 목표
 
@@ -97,7 +98,7 @@ Prod에서는 앱이 데이터베이스를 만들지 않습니다. `db:ensure`�
 entity 수정
 migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:test     db:check           백업
 커밋 / PR                pending 없음 확인            test:e2e          db:setup           migration:show:prod
-                         최신 revert → 재적용                           start:dev          migration:run:prod
+                         최신 revert 시도(현재 실패)                    start:dev          migration:run:prod
                          drift 검사, e2e                                                   pm2:reload → 스모크
 ```
 
@@ -130,7 +131,7 @@ migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:te
 | 단계 | 명령 | 증명하는 것 |
 | --- | --- | --- |
 | 단위 테스트 | `npx jest` | 로직(예: `database-admin.spec.ts`의 생성·거부 규칙) |
-| CI `database` job | `db:reset:test` → `db:check:test -- --strict` → `migration:revert:test` + `migration:run:test` → `migration:check:test` → `test:e2e` | 빈 DB에서 전체 체인이 적용되는지, 최신 migration의 down/up, entity와 migration 일치(drift), 앱 기동 |
+| CI `database` job | `db:reset:test` → `db:check:test -- --strict` → `migration:revert:test` + `migration:run:test` → `migration:check:test` → `test:e2e` | 빈 DB 체인 등을 검증하도록 작성됨. 현재 최신 migration의 `down()`이 실패하므로 뒤 단계까지 통과했다고 가정할 수 없음. drift는 보고만 함 |
 | Test DB | `db:setup:test`, `test:e2e` | 실제 개발 서버 버전과 설정에서 동작 |
 | Local DB | `db:check` → `db:setup` | 기존 데이터 위에서 적용 |
 | Prod 배포 | `env:check:prod` → `db:check:prod` → 백업 → `migration:show:prod` → `migration:run:prod` → `/health` | 운영 적용과 서비스 정상 |
@@ -146,6 +147,8 @@ migration 생성·리뷰  ─▶  전체 체인 실행               db:setup:te
 - **revert:** `migration:revert`는 마지막 migration 하나의 `down`을 실행합니다. 모든 migration이 되돌릴 수 있는 것은 아닙니다.
   - `ArchiveLegacyMusicSchema`: `down`이 의도적으로 실패합니다(이름 변경 복구는 백업으로).
   - `RepairLegacyMariaDbSchema`: `down`이 아무것도 하지 않습니다(데이터 손실 방지).
+  - `CreateDictionarySchema`: 사전 데이터나 변경된 언어 seed가 있으면 `down`이 실패합니다.
+  - `AddMusicManagement`: `down`이 항상 실패합니다. DB와 음원 파일을 복원하는 절차가 필요합니다.
 - **그래서 운영 migration 전에는 반드시 백업합니다**(`mysqldump --single-transaction`). 최종 복구 수단은 revert가 아니라 백업입니다.
 - 빈 DB에서 전체 체인을 실행하면 초기 migration이 만든 음악 테이블이 `ArchiveLegacyMusicSchema`에서 `legacy_*`로 이름이 바뀝니다. 그래서 새 DB에도 빈 `legacy_*` 테이블이 생깁니다. 이는 정상입니다.
 

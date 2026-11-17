@@ -1,6 +1,6 @@
 # EC2 + MariaDB 배포 가이드
 
-> 최신화 기준: 2026-11-09 · develop `9b731ef` + `chore/project-audit-2026-11`
+> 최신화 기준: 2026-11-17 · develop `82bb4f1` + 주석·문서 작업 트리
 
 NestJS 프로세스와 MariaDB가 같은 EC2 호스트에 있는 구성을 기준으로 합니다.
 
@@ -74,6 +74,8 @@ pm2 logs backend-nestjs --lines 50 | grep -i migration   # pending 경고(Migrat
 
 **admin 지정** (최초 1회, `1765000000000-AddRoleToUsers` 적용 후):
 
+이 변경은 권한을 부여합니다. 먼저 실제 DB 대상과 사용자 ID·username을 확인하고 승인된 관리자만 실행하며, 변경 기록과 결과를 남깁니다. 격리 실습에서도 다른 사용자의 계정은 변경하지 않습니다.
+
 ```sql
 UPDATE users SET role = 'admin' WHERE username = '<admin-username>';
 SELECT id, username, role FROM users WHERE role = 'admin';
@@ -92,10 +94,11 @@ SELECT id, username, role FROM users WHERE role = 'admin';
 ## 6. 롤백
 
 - 애플리케이션: 이전 커밋으로 `npm ci && npm run build && npm run pm2:reload`
-- 최근 migration: `npm run migration:revert:prod`(`AddSessionVersionToUsers`, `AddRoleToUsers`는 컬럼만 삭제)
-  - `AddSessionVersionToUsers`를 되돌릴 때는 **앱을 먼저 이전 빌드로 되돌린 뒤** revert합니다. 새 코드는 이 컬럼을 조회합니다.
-- `ArchiveLegacyMusicSchema`·`RepairLegacyMariaDbSchema`는 down이 없습니다. 문제가 생기면 배포 전 백업으로 복원합니다.
-- 최신 migration의 down/up은 CI `database` job이 매 PR마다 MariaDB 10.11에서 검증합니다(`migration:revert:test` → `migration:run:test`).
+- `migration:revert:prod`는 마지막 migration의 `down()`을 실행할 뿐입니다. 적용 이력과 해당 `down()`을 먼저 확인하고, 백업·호환성 검토 없이 실행하지 않습니다.
+- 현재 최신 `AddMusicManagement1768000000000.down()`은 항상 실패합니다. DB와 로컬 음원 파일의 승인된 백업을 격리 환경에 복원하고 검증하는 절차가 필요합니다.
+- `CreateDictionarySchema`의 down은 사전 데이터나 변경된 언어 seed가 있으면 거부합니다. `ArchiveLegacyMusicSchema`는 down이 실패하고 `RepairLegacyMariaDbSchema`의 down은 아무 작업도 하지 않습니다.
+- `AddSessionVersionToUsers`를 되돌릴 때는 **앱을 먼저 호환되는 이전 빌드로 되돌린 뒤** revert합니다. 새 코드는 이 컬럼을 조회합니다.
+- CI `database` job은 최신 down/up을 시도하지만 현재 최신 music migration의 의도적인 실패와 양립하지 않습니다. 실제 CI 결과를 확인하고 이 검증을 통과했다고 가정하지 않습니다.
 
 ## 7. DB TLS (원격 DB 또는 RDS로 옮길 때)
 

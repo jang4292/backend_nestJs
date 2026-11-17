@@ -1,6 +1,6 @@
 # 서비스 개요 (기획)
 
-> 최신화 기준: 2026-11-14 · dictionary MVP 작업 트리
+> 최신화 기준: 2026-11-17 · develop `82bb4f1` + 주석·문서 작업 트리
 > 이 문서는 **현재 코드에서 역으로 정리한 기획 문서**입니다. 확정된 제품 요구사항이 아니며,
 > 결정이 필요한 항목은 [결정 문서](../music/decisions.md)와 [감사 로드맵](../audit/2026-11-08-project-audit.kr.md#6-로드맵)에 있습니다.
 
@@ -32,8 +32,9 @@
 3. **음악 카탈로그(Catalog)**
    - Track은 제목, 아티스트명, BPM을 가집니다.
    - AudioAsset은 Track에 딸린 음원 파일 정보입니다(URL, 길이, 분석 BPM).
-   - Playlist는 `draft` → `published` → `archived` 상태를 가지고, 항목은 `position` 순서로 정렬합니다.
-   - 공개 API는 `published` 플레이리스트만, 음원 URL을 빼고 반환합니다.
+   - Playlist는 `draft`, `published`, `archived` 상태를 저장하고 항목을 `position` 순서로 정렬합니다. 현재 생성과 공개 API는 있지만 archived 전환 API는 없습니다.
+   - 공개 API는 `published` 플레이리스트만, 음원 URL을 빼고 반환합니다. 관리자는 로컬 음원을 업로드·선택하고 재생 권한을 설정할 수 있습니다.
+   - 관리자가 사용 회차를 입력·확정하면 녹음·작품·파일·아티스트별 통계를 볼 수 있습니다. 실제 청취 이력은 아닙니다.
 4. **Legacy 음악 API**
    - 이전 Artist/Track/Playlist 모델을 `/music/legacy` 아래에 보존합니다.
    - 신규 기능은 Catalog에서만 개발합니다.

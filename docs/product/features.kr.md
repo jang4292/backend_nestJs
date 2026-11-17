@@ -105,7 +105,7 @@
 
 | 항목 | 정책 |
 | --- | --- |
-| 오류 응답 | `{ ok: false, requestId, errorCode, message }`. 5xx 메시지는 일반화하고 비밀값은 마스킹합니다 |
+| 오류 응답 | `{ ok: false, requestId, errorCode, message }`. 예상하지 못한 일반 오류는 일반화하며, `HttpException`의 5xx 메시지는 노출될 수 있습니다. 알려진 비밀 패턴만 마스킹하므로 민감정보를 예외에 넣지 않습니다 |
 | 요청 ID | `x-request-id`가 영문·숫자·`. _ : = + / -` 128자 이하면 그대로 쓰고, 아니면 새 UUID를 생성합니다. 응답 헤더로 돌려줍니다(CORS 노출) |
 | 입력 검증 | 전역 `ValidationPipe(whitelist, forbidNonWhitelisted, transform)`. 모든 문자열 입력에 길이 상한(DB 컬럼 길이 이하) |
 | 요청 제한 | 전역 `THROTTLE_LIMIT`/`THROTTLE_TTL`(기본 10회/60초), 로그인 IP당 5회/분 + 계정당 실패 10회/15분, `/health` 및 `/api/v1/health/*` 제외. proxy 뒤에서는 `TRUST_PROXY` 필수 |

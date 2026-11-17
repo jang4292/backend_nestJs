@@ -30,13 +30,13 @@
 ```text
 요청
  └─ helmet, CORS(origin 목록), body 크기(기본 100kb)
- └─ RequestIdInterceptor ........ x-request-id 형식 검사(SEC-14)
  └─ ThrottlerGuard .............. IP 단위 제한(전역 10회/60초, 로그인 5회/분)
  └─ ProviderReadinessGuard ...... 비활성 SNS provider 503(라우트 메타데이터 기준, SEC-17)
  └─ JwtAuthGuard / RolesGuard ... 토큰 서명·만료·sessionVersion, admin 역할
+ └─ RequestIdInterceptor ........ x-request-id 형식 검사(guard 실패 시 필터가 처리, SEC-14)
  └─ ValidationPipe .............. whitelist, forbidNonWhitelisted, 길이 상한(SEC-18)
  └─ use-case .................... 계정 단위 실패 제한(SEC-19), 비즈니스 규칙
- └─ GlobalExceptionFilter ....... 5xx 메시지 고정, 비밀값 마스킹, 로그 redaction
+ └─ GlobalExceptionFilter ....... 오류 매핑, 알려진 비밀값 패턴 redaction
 ```
 
 ## 3. 비밀번호 저장과 비교
@@ -53,10 +53,11 @@
 
 **최소 길이를 8자로 한 이유:** NIST SP 800-63B는 사용자가 고르는 비밀번호에 최소 8자를 권장합니다. 복잡도 규칙(대문자, 특수문자 강제)보다 길이와 유출 목록 대조가 효과적이라고 봅니다. 유출 비밀번호 대조는 이 프로젝트에 아직 없습니다.
 
-**응답 시간으로 계정 존재가 드러나지 않게 하기(SEC-9)**
+**계정 존재에 따른 응답 시간 차이 줄이기(SEC-9)**
 
 - 계정이 없을 때 bcrypt를 건너뛰면 응답이 눈에 띄게 빨라집니다.
 - 그래서 계정이 없어도 고정 해시와 한 번 비교합니다(`bcrypt-password-hasher.adapter.ts`).
+- 기존 해시의 cost와 DB·네트워크 시간은 다를 수 있으므로, 이 비교만으로 모든 경로가 같은 시간에 응답한다고 보장하지는 않습니다.
 
 정책 값은 한곳에 모아 두었습니다: `src/users/domain/user-input-policy.ts`
 
@@ -179,8 +180,8 @@ const match = /^\/auth\/([^/]+)/.exec(request.path);   // 'GOOGLE'은 목록에 
 
 ## 10. 오류와 로그
 
-- **5xx 메시지는 고정합니다(`Internal server error`).** 원인은 requestId와 함께 서버 로그에만 남깁니다(SEC-4).
-- **로그에 비밀값을 남기지 않습니다.** `redactSensitiveText`가 `password=`, `token=`, `Bearer …`, DB URL 비밀번호를 가립니다. 이번에 로그의 `path`(query 포함)에도 적용했습니다(SEC-23).
+- 예상하지 못한 일반 오류와 SNS의 내부 오류는 `Internal server error`로 일반화합니다. 다만 `GlobalExceptionFilter`는 **`HttpException`의 5xx 메시지를 그대로 사용할 수 있으므로** 예외 메시지에 민감정보를 넣지 말고 응답을 검증합니다.
+- **로그에 비밀값을 남기지 않습니다.** `redactSensitiveText`가 `password=`, `token=`, `Bearer …`, DB URL 비밀번호 등 알려진 패턴을 가리고 로그의 `path`(query 포함)에도 적용합니다(SEC-23). 모든 비밀 형식을 탐지한다고 보장하지 않으므로 로그와 예외에 원래 비밀값을 넣지 않습니다.
 - **클라이언트가 보낸 값은 로그에 그대로 쓰지 않습니다.** `x-request-id`는 안전한 문자와 길이일 때만 쓰고, 아니면 새로 만듭니다(SEC-14).
 - **남은 과제:** provider 오류 원문이 401 메시지로 나갑니다(SEC-24).
 

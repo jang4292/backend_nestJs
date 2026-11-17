@@ -67,24 +67,33 @@ CREATE DATABASE IF NOT EXISTS music_db
 덤프에는 사용자 데이터와 비밀번호 해시가 들어 있습니다. **저장소 밖의 권한이 막힌 디렉터리**에 만들고(`umask 077`), 프로젝트 루트에 두지 않습니다. `*.sql`, `*.sql.gz`는 `.gitignore`에 있습니다.
 
 ```bash
+set -o pipefail
 umask 077
 mkdir -p ~/backups
-mariadb-dump --single-transaction --routines --triggers -u <user> -p music_db \
+mariadb-dump --single-transaction --routines --triggers -u backup_user -p music_db \
   | gzip > ~/backups/music_db_$(date +%Y%m%d_%H%M%S).sql.gz
-gunzip -c ~/backups/music_db_<timestamp>.sql.gz | mariadb -u <user> -p music_db
 ```
 
+복원은 먼저 운영과 분리된 일회성 DB에서 연습합니다. 아래는 **이미 준비하고 대상과 권한을 확인한** 격리 DB의 예시입니다. 파일명과 계정·DB를 실제 격리 대상으로 바꾸고, 운영 또는 공유 DB에는 실행하지 마세요.
+
+```bash
+set -o pipefail
+gunzip -c ~/backups/music_db_YYYYMMDD_HHMMSS.sql.gz \
+  | mariadb -h 127.0.0.1 -u isolated_restore_user -p music_restore_test
+```
+
+- 로컬 음원 파일은 DB dump에 포함되지 않습니다. DB와 파일을 같은 복구 시점으로 백업하고 격리 환경에 함께 복원합니다. 경로 설정과 재생 검증은 [음악 구현 실습](../implementation-workbook.kr.md)을 참고합니다.
 - MariaDB DDL은 암묵적으로 커밋되므로, migration 도중 실패하면 트랜잭션 rollback으로 되돌릴 수 없습니다.
 - `ArchiveLegacyMusicSchema`·`RepairLegacyMariaDbSchema`처럼 down이 없는 migration이 있으므로 **배포 전 백업은 필수**입니다.
+- 최신 `AddMusicManagement`의 `down()`도 항상 실패합니다. 무작정 revert하지 말고 [백업·복구 계획](../../operations/BACKUP_RECOVERY.md)에 따라 복원을 검증합니다.
 
 backup 위치, 보존 기간, restore 리허설 결과를 운영 기록으로 남깁니다. 자동화와 복원 훈련 방법은 [DB 개선 가이드](../../learning/database-improvement-guide.kr.md#백업-자동화와-복원-훈련)에 있습니다.
 
 ## 문자셋과 시간
 
 - DB/table/문자열 컬럼은 `utf8mb4`를 기본으로 합니다.
-- 새 데이터의 저장 시간은 UTC를 기준으로 합니다.
-- API 시간 값은 ISO 8601로 반환합니다.
-- 사용자 화면의 timezone 변환은 client 책임으로 둡니다.
+- UTC 사용을 권장하지만 실제 Node·DB 연결과 서버의 timezone 설정을 확인해야 합니다. 사용 회차의 `usedAt`은 timezone을 포함해 입력받지만 DB의 `datetime`에는 timezone 정보가 저장되지 않습니다.
+- 통계 API의 시간 범위는 ISO 8601과 timezone을 포함해야 합니다. 날짜만 표현하는 `recordingDate`와 구분하고, 화면 시간대 변환과 일광절약시간 경계도 격리 환경에서 검증합니다.
 - 기존 운영 DB의 collation/timezone은 영향도 확인 없이 일괄 변경하지 않습니다.
 
 ## 사전 데이터 점검
@@ -98,14 +107,14 @@ FROM legacy_playlist_track
 GROUP BY playlistId, seq
 HAVING COUNT(*) > 1;
 
--- Catalog: (playlistId, position)은 UNIQUE로 강제됨. Track 중복은 정책 미확정이라 점검만 합니다.
+-- Catalog: (playlistId, position)은 UNIQUE입니다. 같은 Track의 반복은 허용되며 아래는 현황 조회입니다.
 SELECT playlistId, trackId, COUNT(*)
 FROM playlist_track
 GROUP BY playlistId, trackId
 HAVING COUNT(*) > 1;
 ```
 
-위반 데이터는 자동 삭제하지 않습니다. 제품 정책과 정리 절차를 확정한 뒤 별도 migration 또는 운영 작업으로 처리합니다.
+위 쿼리는 현황 조회이며 Catalog의 같은 Track 반복은 위반이 아닙니다. 데이터는 자동 삭제하지 않고, 정리가 필요하면 제품 정책과 절차를 확정한 뒤 별도 migration 또는 운영 작업으로 처리합니다.
 
 ## 권한(role) 관리
 

@@ -117,6 +117,6 @@
 | 409 | `CONFLICT` / `FOREIGN_KEY_CONSTRAINT` | 중복, 참조 중인 리소스 삭제 |
 | 429 | `RATE_LIMITED` | 요청 제한 초과, 계정 단위 로그인 실패 제한(`Retry-After`) |
 | 503 | `SERVICE_UNAVAILABLE` / `AUTH_<PROVIDER>_DISABLED` / `AUTH_<PROVIDER>_CONFIG_MISSING` | 비활성 provider, 검증 설정 누락 |
-| 5xx | `INTERNAL_SERVER_ERROR` | 메시지는 `Internal server error`로 고정 |
+| 5xx | `INTERNAL_SERVER_ERROR`(기본) | 예상하지 못한 일반 오류는 `Internal server error`; `HttpException`의 메시지는 노출될 수 있으므로 민감정보를 넣지 않음 |
 
 SNS 라우트는 `AUTH_<PROVIDER>_<REASON>` 코드를 씁니다([기능 명세 2장](features.kr.md#2-sns-로그인)).

@@ -6,10 +6,15 @@
 
 ## Prerequisites
 
-1. Create `.env` from the template and type in the DB connection values,
-   including `DB_PASSWORD` (the file is git-ignored):
+1. In a separate development checkout, create `.env` only if it does not
+   already exist, then enter the DB connection values, including `DB_PASSWORD`
+   (the file is git-ignored):
    ```bash
-   cp .env.example .env && chmod 600 .env
+   if [ ! -e .env ]; then
+     (umask 077; cp -n .env.example .env)
+   else
+     printf '%s\n' '.env already exists; inspect it without overwriting it'
+   fi
    ```
    ```env
    NODE_ENV=development
@@ -22,18 +27,23 @@
    CORS_ORIGIN=http://localhost:3001
    # SNS providers stay disabled (AUTH_*_ENABLED=false); their routes return 503.
    ```
-2. Check the connection, then create the database and tables:
+2. Confirm that the effective DB host, database and account point to an
+   approved, dedicated development database. Shell variables override the
+   file, and `DATABASE_URL` can override individual DB connection settings.
+   `npm ci` replaces `node_modules`; use a separate checkout if it is shared.
+   Check the connection, then create the database and tables:
    ```bash
    npm ci
    npm run db:check   # read-only: connection, privileges, pending migrations
-   npm run db:setup   # creates app_db_dev if missing, then applies migrations
+   npm run db:setup   # creates the confirmed database if missing, then applies migrations
    ```
 3. Start the server:
    ```bash
    npm run start:dev
    ```
-4. For admin-only examples, promote a user after registering it:
-   `UPDATE users SET role = 'admin' WHERE username = '<username>';`
+4. For admin-only examples, an authorized administrator can promote the
+   registered test user after confirming the database and account; see
+   [the deployment guide](docs/deployment/mariadb-systemd.kr.md#5-배포-후-작업).
 
 See [docs/deployment/database-environments.kr.md](docs/deployment/database-environments.kr.md)
 for Test and Prod.
@@ -44,7 +54,8 @@ Access levels used below:
 - **JWT**: `Authorization: Bearer <token>`
 - **admin**: JWT of a user whose `role` is `admin`
 
-Grant admin access in the database:
+Only an authorized administrator should grant admin access after confirming
+the target database and user:
 
 ```sql
 UPDATE users SET role = 'admin' WHERE username = 'johndoe';

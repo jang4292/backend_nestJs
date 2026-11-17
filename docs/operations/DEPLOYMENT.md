@@ -1,6 +1,6 @@
 # 배포·운영 설계
 
-> 최신화 기준: 2026-11-14 · develop `a38e885`
+> 최신화 기준: 2026-11-17 · develop `82bb4f1` + 주석·문서 작업 트리
 > 현재 저장소는 PM2 배포 문서와 CI 검증 workflow를 갖고 있습니다. 실제 운영 설정 및 배포 성공 여부는 **UNVERIFIED**입니다.
 
 ## 1. 구성 권고
@@ -14,6 +14,8 @@
 
 ### PR / CI
 
+다음은 권장 게이트입니다. 실제 자동화 범위와 현재 실패하는 단계는 [5장](#5-테스트-게이트)을 확인합니다.
+
 1. `npm ci`
 2. lint, format, typecheck, unit tests, build
 3. disposable MariaDB에서 모든 migration을 빈 DB에 적용
@@ -21,7 +23,7 @@
 5. npm audit, OpenAPI/contract diff, 문서 링크 확인
 6. PROD credentials 없이 실행
 
-현재 CI에 이미 포함된 부분은 [AS-IS](../architecture/AS_IS.md)를 참고하십시오. 새 단계는 필요한 dependency/feature를 추가할 때만 도입합니다.
+[`ci.yml`](../../.github/workflows/ci.yml)이 실제 CI 정의의 기준입니다. [AS-IS](../architecture/AS_IS.md)는 과거 조사 기록이며, 새 단계는 필요한 dependency/feature를 추가할 때 도입합니다.
 
 ### LOCAL → DEV
 
@@ -29,7 +31,7 @@
 2. PR CI 통과, `npm run db:check:test`/E2E 확인.
 3. DEV DB backup 또는 복원 가능한 스냅샷 확인; 해당 환경 전용 secret으로 배포.
 4. Migration을 명시적으로 적용한 뒤 API 배포.
-5. `/health/live`, `/health/ready`, 사용자/권한, Admin 접근 제한, publication smoke test.
+5. `/api/v1/health/live`, `/api/v1/health/ready`, 사용자/권한, Admin 접근 제한, publication smoke test.
 6. DEV 데이터가 운영 source로 승인되지 않으면 PROD로 가져가지 않음.
 
 ### DEV → PROD
@@ -59,7 +61,7 @@
 
 ## 5. 테스트 게이트
 
-CI에서 자동화: unit, DTO/auth contract, MariaDB migration, Unicode fixture, e2e, openapi diff, dependency audit.
+현재 `verify` job은 lint, format, typecheck, 단위 테스트, build, 문서 링크 및 production 의존성 critical audit를 실행합니다. `database` job에는 MariaDB migration과 E2E가 정의되어 있지만, 최신 `AddMusicManagement` migration의 `down()`이 항상 실패하므로 revert 단계에 도달하면 이후 drift와 E2E 단계가 실행되지 않습니다. 실제 실행 결과를 확인하세요. OpenAPI diff는 현재 CI에 없습니다.
 
-DEV/운영 승인 게이트: admin network deny/allow, DB port externally closed, restart recovery, new publication and revoke, backup restore, import retry/idempotency, old study card content consistency.
+DEV/운영에서 별도로 확인할 권장 게이트: admin network deny/allow, DB port externally closed, restart recovery, publication, backup restore 및 음악 파일 재생. 게시 취소, import 재시도/idempotency와 학습 이력은 아직 구현되지 않았으므로 구현 후 해당 검증을 추가합니다. 상세 실행·격리 절차는 [개발자 실무 안내서](../learning/developer-handbook.kr.md)를 참고합니다.
 
